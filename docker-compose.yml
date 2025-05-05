@@ -207,7 +207,7 @@ services:
     depends_on: *langfuse-depends-on
     environment:
       <<: *langfuse-worker-env
-      NEXTAUTH_URL: https://{$LANGFUSE_HOSTNAME}
+      NEXTAUTH_URL: https://${LANGFUSE_HOSTNAME}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-}
       LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_INIT_ORG_NAME:-}
