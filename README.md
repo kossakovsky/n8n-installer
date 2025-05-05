@@ -19,12 +19,6 @@ Also, you have the option during setup to automatically import over 300 communit
 
 - Download my N8N + OpenWebUI integration [directly on the Open WebUI site.](https://openwebui.com/f/coleam/n8n_pipe/) (more instructions below)
 
-![n8n.io - Screenshot](https://raw.githubusercontent.com/n8n-io/self-hosted-ai-starter-kit/main/assets/n8n-demo.gif)
-
-Curated by <https://github.com/n8n-io> and <https://github.com/coleam00>, it combines the self-hosted n8n
-platform with a curated list of compatible AI products and components to
-quickly get started with building self-hosted AI workflows.
-
 ### What's included
 
 ✅ [**Self-hosted n8n**](https://n8n.io/) - Low-code platform with over 400
