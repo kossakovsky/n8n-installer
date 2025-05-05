@@ -60,29 +60,44 @@ Before you begin, make sure you have the following software installed:
 
 ## Installation
 
-The recommended way to install is using the provided scripts. Run the main installation script:
+### Prerequisites before Installation
+
+1.  **Domain Name:** You need a registered domain name (e.g., `yourdomain.com`).
+2.  **DNS Configuration:** Before running the installation script, you **must** configure the following DNS A-records for your domain, pointing to the public IP address of the server where you intend to install the n8n ecosystem. Replace `yourdomain.com` with your actual domain:
+    - `A n8n.yourdomain.com` -> `YOUR_SERVER_IP`
+    - `A flowise.yourdomain.com` -> `YOUR_SERVER_IP`
+    - `A supabase.yourdomain.com` -> `YOUR_SERVER_IP`
+    - `A webui.yourdomain.com` -> `YOUR_SERVER_IP` (for Open WebUI)
+    - `A prometheus.yourdomain.com` -> `YOUR_SERVER_IP`
+    - `A grafana.yourdomain.com` -> `YOUR_SERVER_IP`
+    - `A langfuse.yourdomain.com` -> `YOUR_SERVER_IP`
+    - `A searxng.yourdomain.com` -> `YOUR_SERVER_IP`
+      Caddy (the included web server) will use these domains to automatically obtain and manage HTTPS/TLS certificates via Let's Encrypt.
+3.  **Server:** A Linux server (Ubuntu 24.04 LTS x64 recommended and tested). The installation was tested on a machine with **8 GB Memory / 4 Intel vCPUs / 120 GB Disk**.
+
+### Running the Installer
+
+The recommended way to install is using the provided main installation script. Connect to your server via SSH and run:
 
 ```bash
 git clone https://github.com/kossakovsky/n8n-installer && cd n8n-installer && bash ./scripts/install.sh
 ```
 
-This script automates the entire setup process, including:
+This single command automates the entire setup process, including:
 
-- System preparation (updates, firewall configuration with UFW, Fail2Ban setup).
+- System preparation (updates, firewall configuration with UFW, Fail2Ban setup for brute-force protection).
 - Docker and Docker Compose installation.
-- Generation of the `.env` configuration file with necessary secrets.
-- Launching all the services.
+- Generation of the `.env` configuration file with necessary secrets and your domain settings.
+- Launching all the services using Docker Compose.
 
-During the installation, the script will ask you for:
+During the installation, the script will prompt you for:
 
-1.  Your primary domain name (e.g., `yourdomain.com`) for accessing services.
-2.  Your email address (used for service logins like Flowise, Supabase dashboard, Grafana, Prometheus, SearXNG, and for Let's Encrypt SSL certificates).
-3.  An optional OpenAI API key (used by Supabase AI features and Crawl4ai).
-4.  Whether you want to import ~300 ready-made n8n community workflows (this can take ~30 minutes).
+1.  Your **primary domain name** (Required, e.g., `yourdomain.com`). This must be the domain for which you configured the DNS records.
+2.  Your **email address** (Required, used for service logins like Flowise, Supabase dashboard, Grafana, etc., and crucial for Let's Encrypt SSL certificates).
+3.  An optional **OpenAI API key** (Not required, used by Supabase AI features and Crawl4ai if provided. Press Enter to skip).
+4.  Whether you want to **import ~300 ready-made n8n community workflows** (y/n, Optional. This can take around 20-30 minutes depending on your server and network).
 
-Upon completion, the script will display a summary report containing the access URLs and credentials for the deployed services.
-
-Before running the services, you need to set up your environment variables for Supabase following their [self-hosting guide](https://supabase.com/docs/guides/self-hosting/docker#securing-your-services).
+Upon successful completion, the script will display a summary report containing the access URLs and credentials for the deployed services.
 
 > [!NOTE]
 > The `install.sh` script handles the creation and population of the `.env` file based on `.env.example` and the information you provide. You typically do not need to manually create or edit this file unless making advanced customizations _after_ the initial setup.
