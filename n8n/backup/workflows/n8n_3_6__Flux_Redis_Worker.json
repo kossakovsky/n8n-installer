@@ -1,0 +1,301 @@
+{
+  "name": "n8n-3-6: Flux Redis Worker",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 45
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "186ffb23-b464-4d1e-b1d9-f16c92204d15",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "flux_generation_prompts",
+        "propertyName": "value",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        200,
+        0
+      ],
+      "id": "34883295-eb97-4ce2-9ef5-f28bea426f4c",
+      "name": "Redis",
+      "credentials": {
+        "redis": {
+          "id": "knNOyGVUpH9IKLNz",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// In a Code node after your Redis Pop operation\nconst item = $input.first().json;\n\nif (item.value) {\n  const parts = item.value.split(':');\n  if (parts.length >= 2) {\n    item.chatId = parts[0];\n    item.prompt = parts.slice(1).join(':');\n  }\n}\nreturn { json: item };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        -120
+      ],
+      "id": "b55234c9-aed8-43ac-8949-8703b8d3f252",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.together.xyz/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "black-forest-labs/FLUX.1-schnell-Free"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $json.prompt }}"
+            },
+            {
+              "name": "width",
+              "value": 1440
+            },
+            {
+              "name": "height",
+              "value": 1024
+            },
+            {
+              "name": "steps",
+              "value": 4
+            },
+            {
+              "name": "n",
+              "value": 1
+            },
+            {
+              "name": "seed",
+              "value": "={{ Math.floor(Math.random() * 10000) + 1 }}"
+            },
+            {
+              "name": "response_format",
+              "value": "b64_json"
+            },
+            {
+              "name": "update_at",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dd135866-46c6-400a-b011-ca553edc05a7",
+      "name": "Together Ai Prompt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        840,
+        -120
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jEB4rIAhZXM0liht",
+          "name": "Together.Ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "id": "66568b9f-8964-4452-8e8c-7117a8a98656",
+      "name": "Convert to File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1060,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Code').item.json.chatId }}",
+        "binaryData": true,
+        "additionalFields": {
+          "caption": "= Refined Prompt: {{ $('Code').item.json.prompt }}\n\nBy FLUX.S ✕ @aiwizards"
+        }
+      },
+      "id": "b81e4785-8e4e-43a6-8209-43c8d23a799d",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        -120
+      ],
+      "webhookId": "9651b3c4-678d-4ff4-876e-29f95222fde3",
+      "credentials": {
+        "telegramApi": {
+          "id": "aA7ZTi3ZkYwSktd1",
+          "name": "flux_redis_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d505e2f3-3966-46b9-801a-7a7ba21b70e7",
+              "leftValue": "={{ $json.value }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        0
+      ],
+      "id": "d2d75e3e-c3d9-42db-a26b-00a50b778993",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        640,
+        100
+      ],
+      "id": "0669d3bc-e8a4-4a88-846d-ec8f483dcb3d",
+      "name": "No Operation, do nothing"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Together Ai Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Together Ai Prompt": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d4526d7e2b7123bfb0e1996caa47744a7651d73096bbc7220a5e9657d119dfc"
+  },
+  "tags": []
+}

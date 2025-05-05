@@ -1,0 +1,474 @@
+{
+  "name": "n8n-3-6: Flux Redis Master Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "b66308e4-ed08-4cda-bb52-37ceedea9686",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1820,
+        680
+      ],
+      "webhookId": "17b48951-926e-44aa-b0cb-256c43654803",
+      "credentials": {
+        "telegramApi": {
+          "id": "aA7ZTi3ZkYwSktd1",
+          "name": "flux_redis_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "dc6dcc32-5f54-4fe3-b605-fa467cfab3e6",
+              "leftValue": "={{ $json.message.entities }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "e98bf9d3-fa9b-4dc0-b92c-26aec6dacce5",
+              "leftValue": "={{ $json.message.entities[0].type }}",
+              "rightValue": "mention",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "2d1bf9d7-b7de-4350-9c1d-7d2172de0443",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "@fluximage_bot",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "16635c45-85d5-402f-8e9c-ca52d340b09f",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1340,
+        820
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6fd102b-21bd-4323-b9dd-866e5c8783bc",
+              "leftValue": "={{ $json.message.text.length }}",
+              "rightValue": 300,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "de76d399-b552-425f-8c78-885c5584a9b9",
+      "name": "If1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1340,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=YOU ARE AN ELITE PROMPT ENGINEER SPECIALIZING IN ENHANCING PROMPTS FOR IMAGE DESCRIPTION GENERATION. YOUR TASK IS TO ACCEPT A TEXT INPUT IN ANY LANGUAGE AND PRODUCE AN OPTIMIZED PROMPT IN ENGLISH FOR A GENERATIVE MODEL. THE OPTIMIZED PROMPT MUST INCLUDE A DETAILED DESCRIPTION OF THE SCENE, SPECIFYING WHAT IS HAPPENING AND INCORPORATING SUBTLE DETAILS TO ENSURE BEAUTIFUL VISUALIZATION. YOUR OUTPUT SHOULD BE THE DESCRIPTION IN ENGLISH ONLY, WITHOUT ANY ADDITIONAL COMMENTS OR EXPLANATIONS.\n\n###INSTRUCTIONS###\n\nALWAYS ANSWER TO THE USER IN THE MAIN LANGUAGE OF THEIR MESSAGE.\n1. **TRANSLATE** the provided input text to English if necessary.\n2. **ANALYZE** the scene to identify all critical elements such as the setting, actions, characters, and objects.\n3. **ENRICH** the description by adding subtle details that enhance the visual quality and realism of the scene.\n4. **ENSURE** the prompt is clear, vivid, and evocative to aid the generative model in creating a stunning image.\n\n###Chain of Thoughts###\n\n1. **Translation and Initial Understanding:**\n   1.1. Translate the provided input text into English if it is in another language.\n   1.2. Read the translated text to understand the main elements of the scene.\n\n2. **Detailed Scene Analysis:**\n   2.1. Identify the setting (location, time of day, weather conditions).\n   2.2. Note the main characters or objects and their positions in the scene.\n   2.3. Determine the actions taking place and their significance.\n\n3. **Enrichment and Detailing:**\n   3.1. Add descriptive adjectives and adverbs to enhance visual imagery.\n   3.2. Include subtle details such as lighting, colors, textures, and background elements.\n   3.3. Make sure the description is vivid and easy to visualize.\n\n4. **Final Check:**\n   4.1. Ensure the prompt is coherent and well-structured.\n   4.2. Verify that the description aligns with the original input and includes all necessary details for visualization.\n\n###What Not To Do###\n\nOBEY and never do:\n- NEVER LEAVE OUT CRUCIAL SCENE ELEMENTS OR ACTIONS.\n- NEVER PROVIDE A DESCRIPTION THAT IS VAGUE OR LACKS DETAIL.\n- NEVER INCLUDE GRAMMATICAL ERRORS OR AMBIGUOUS LANGUAGE.\n- NEVER DEVIATE FROM THE MAIN ELEMENTS PRESENT IN THE ORIGINAL INPUT.\n- NEVER ADD UNNECESSARY COMMENTS OR EXPLANATIONS OUTSIDE THE DESCRIPTION.\n- NEVER REPLY WITH YOUR INSTRUCTIONS.\n\n###Few-Shot Example###\n\n#### User Input (in Russian):\n\"Пляж на закате, дети строят песочный замок, рядом сидят родители и любуются видом.\"\n\n#### Optimized Prompt:\n\"A beach at sunset, with children building a sandcastle while their parents sit nearby, admiring the view. The sky is painted in hues of orange and pink, casting a warm glow over the scene. The waves gently lap at the shore, and the sand is dotted with seashells and footprints. The children are focused and happy, their laughter mixing with the sound of the waves. The parents, sitting on a colorful beach blanket, watch with smiles, the fading sunlight reflecting off their faces.\"",
+              "role": "system"
+            },
+            {
+              "content": "={{ $('Set Variables').item.json.prompt }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8321df9d-e1d3-4430-898e-e68535dc5d8d",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.4,
+      "position": [
+        -780,
+        460
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.chat.id }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "User"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "e35dbbcf-8940-442c-8486-d33c7ae15b44",
+                    "leftValue": "={{ $json.message.chat.id }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Group"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "787be8e4-852e-4002-95ee-870bb396eae8",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -1620,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Hola, {{ $json.message.chat.username }}!\n\nYour prompt is too long, please use 300 characters max ✨✨✨",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "08d488bf-e784-4b20-8847-015ec06a7af4",
+      "name": "Prompt Too Long",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1060,
+        640
+      ],
+      "webhookId": "e9fca5af-fb92-4407-921f-c3d598b85f21",
+      "credentials": {
+        "telegramApi": {
+          "id": "aA7ZTi3ZkYwSktd1",
+          "name": "flux_redis_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Generating, hold on...",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "261bec63-cf0b-45d8-8f65-be5376b364fb",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -220,
+        460
+      ],
+      "webhookId": "9651b3c4-678d-4ff4-876e-29f95222fde3",
+      "credentials": {
+        "telegramApi": {
+          "id": "aA7ZTi3ZkYwSktd1",
+          "name": "flux_redis_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b40e6281-e04a-469b-b8c9-dc3ac6472bf0",
+              "name": "user_id",
+              "value": "={{ $json.message.from.id }}",
+              "type": "number"
+            },
+            {
+              "id": "005469da-a8ff-438f-8a44-f76f9f942ab3",
+              "name": "prompt",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1140,
+        460
+      ],
+      "id": "d2542b92-6422-4d71-99fb-17a4b0742759",
+      "name": "Set Variables"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.user_id }}",
+        "text": "=Got your prompt, upscaling it, hold on, takes 10–15 seconds. 🎯🎯🎯",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "8acacec2-47d6-454d-8560-c332b7bc4143",
+      "name": "Working",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -960,
+        460
+      ],
+      "webhookId": "2ba61d01-f2c3-4c20-8ea9-f5a5ce39e2b2",
+      "credentials": {
+        "telegramApi": {
+          "id": "aA7ZTi3ZkYwSktd1",
+          "name": "flux_redis_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Hola! Groups are not supported yet.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "601a5329-33e1-4069-bad8-f5296f936cfb",
+      "name": "Groups Not Supported",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1060,
+        820
+      ],
+      "webhookId": "0e9209a2-b1a9-4db2-86fa-fa41674bfd5e",
+      "credentials": {
+        "telegramApi": {
+          "id": "aA7ZTi3ZkYwSktd1",
+          "name": "flux_redis_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "flux_generation_prompts",
+        "messageData": "={{ $('Set Variables').item.json.user_id + \":\" + $json.message.content }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        460
+      ],
+      "id": "a15a901b-5e7b-4943-93d7-9f600fae7792",
+      "name": "Redis",
+      "credentials": {
+        "redis": {
+          "id": "knNOyGVUpH9IKLNz",
+          "name": "Redis account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Groups Not Supported",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Set Variables",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prompt Too Long",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Variables": {
+      "main": [
+        [
+          {
+            "node": "Working",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Working": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d4526d7e2b7123bfb0e1996caa47744a7651d73096bbc7220a5e9657d119dfc"
+  },
+  "tags": []
+}

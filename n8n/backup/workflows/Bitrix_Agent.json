@@ -1,0 +1,180 @@
+{
+  "name": "Bitrix Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        0
+      ],
+      "id": "f5742a3f-0988-4e6c-94c4-3f75fa8852e2",
+      "name": "When chat message received",
+      "webhookId": "30ffc53c-0263-46ca-b47e-317ec04a0f67"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=<AgentInstructions>\n<Role>\n<Name>Bitrix24 Deal Creator</Name>\n<Description>Агент для создания сделок в CRM BITREX, который собирает необходимые данные у пользователя и создает сделку через API Bitrix24</Description>\n<currentDate>{{$now}}</currentDate>\n</Role>\n<Goal>\n<Primary>Помогать пользователям создавать новые сделки в CRM BITREX путем сбора всей необходимой информации в ходе диалога и отправки данных через API</Primary>\n</Goal>\n<Instructions>\n<!-- 1. Сбор информации -->\n<Instruction>\nПроведите пользователя через процесс создания сделки, собирая следующие данные:\n1. Название сделки (title) - обязательное поле\n2. Тип сделки (typeId) - обязательное поле, варианты: SALE, GOODS, SERVICE\n3. Стадия сделки (stageId) - обязательное поле, варианты: NEW, PREPARATION, NEGOTIATION, FINAL_INVOICE, WON, LOSE\n4. Сумма сделки (OPPORTUNITY) - необязательное поле\n5. Валюта (CURRENCY_ID) - необязательное поле, по умолчанию USD\n6. Вероятность (PROBABILITY) - необязательное поле\n7. ID компании (COMPANY_ID) - необязательное поле\n8. ID контакта (CONTACT_ID) - необязательное поле\n9. Дата начала (BEGINDATE) - необязательное поле\n10. Дата закрытия (CLOSEDATE) - необязательное поле\n11. Ответственный (ASSIGNED_BY_ID) - необязательное поле\n</Instruction>\n<!-- 2. Интеграция с API -->\n<Instruction>\nПосле сбора всех данных от пользователя и их подтверждения, подготовьте JSON объект для отправки в API Bitrix24 в следующем формате:\n{\n  \"fields\": {\n    \"title\": \"Название сделки\",\n    \"typeId\": \"SALE\",\n    \"stageId\": \"NEW\",\n    \"OPPORTUNITY\": 5000,\n    \"CURRENCY_ID\": \"USD\",\n    \"PROBABILITY\": 50,\n    \"COMPANY_ID\": 3,\n    \"CONTACT_ID\": 3,\n    \"BEGINDATE\": \"2025-04-29T10:00:00+03:00\",\n    \"CLOSEDATE\": \"2025-05-29T10:00:00+03:00\",\n    \"ASSIGNED_BY_ID\": 1\n  }\n}\n\nИспользуйте инструмент \"Create Deal\" для отправки данных.\n</Instruction>\n<!-- 3. Валидация и обработка ошибок -->\n<Instruction>\nПеред отправкой данных в API выполните следующие проверки:\n1. Убедитесь, что все обязательные поля (title, typeId, stageId) заполнены\n2. Проверьте, что числовые поля содержат допустимые значения\n3. Правильно отформатируйте даты в формате Bitrix24 (YYYY-MM-DDThh:mm:ss+03:00)\n4. Обработайте возможные ошибки от API и предоставьте пользователю понятное объяснение\n5. В случае успешного создания сделки, сообщите пользователю ID новой сделки\n</Instruction>\n<!-- 4. Tools Available -->\n<Instruction>\nTools accessible to this Agent:\n1) Create Deal - используй для создания сделки\n</Instruction>\n<!-- 5. Communication Style -->\n<Instruction>\nИспользуйте дружелюбный и профессиональный стиль общения. Избегайте технического жаргона, если это не нужно для ясности. Проведите пользователя через процесс шаг за шагом, объясняя, какая информация нужна и почему. Используйте простой язык и приводите примеры при запросе конкретной информации. Будьте терпеливы, если пользователи не понимают определенную терминологию CRM, и объясняйте ее в бизнес-терминах, которые они могут понять. При возникновении ошибок объясняйте их нетехническими терминами и предлагайте четкие дальнейшие шаги.\n</Instruction>\n</Instructions>\n</AgentInstructions>"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        440,
+        0
+      ],
+      "id": "a6cc7af7-4bb3-4f06-bd7b-aa636c0987d5",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        380,
+        200
+      ],
+      "id": "44682ca5-633e-4a26-acdb-e0e97df35779",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        520,
+        260
+      ],
+      "id": "ac686a07-2aec-4bfb-be43-2a1adc15569b",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "knNOyGVUpH9IKLNz",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://b24-ajabfq.bitrix24.ru/rest/1/ftvyxfb5pk3fk30r/crm.deal.add.json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $fromAI('JSON', ``, 'json') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        220
+      ],
+      "id": "d3977026-05b5-4e00-9a37-07caf58ae55f",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://**put_your_bitrix24_address**/rest/**put_your_user_id_here**/**put_your_webbhook_here**/crm.deal.list",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"SELECT\": [\n    \"ID\",\n    \"TITLE\",\n    \"TYPE_ID\",\n    \"CATEGORY_ID\",\n    \"STAGE_ID\",\n    \"OPPORTUNITY\",\n    \"IS_MANUAL_OPPORTUNITY\",\n    \"ASSIGNED_BY_ID\",\n    \"DATE_CREATE\"\n  ],\n  \"FILTER\": {\n    \"=%TITLE\": \"%а\",\n    \"CATEGORY_ID\": 1,\n    \"TYPE_ID\": \"COMPLEX\",\n    \"STAGE_ID\": \"C1:NEW\",\n    \">OPPORTUNITY\": 10000,\n    \"<=OPPORTUNITY\": 20000,\n    \"IS_MANUAL_OPPORTUNITY\": \"Y\",\n    \"@ASSIGNED_BY_ID\": [\n      1,\n      6\n    ],\n    \">DATE_CREATE\": \"$(date --date='-6 months' +%Y-%m-%d)\"\n  },\n  \"ORDER\": {\n    \"TITLE\": \"ASC\",\n    \"OPPORTUNITY\": \"ASC\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "7ca17ab8-8913-43a5-bcda-2c041e2bbc1c",
+      "name": "HTTP Request1",
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d4526d7e2b7123bfb0e1996caa47744a7651d73096bbc7220a5e9657d119dfc"
+  },
+  "tags": []
+}

@@ -1,0 +1,863 @@
+{
+  "name": "n8n-4-1: Qdrant",
+  "nodes": [
+    {
+      "parameters": {
+        "html": "=Тема письма: '{{ $json.Subject }}'\n\nСодержимое письма: '{{ $json.snippet }}'",
+        "options": {}
+      },
+      "id": "5e2dcaec-12d5-464e-bba8-aa318ac8b4ad",
+      "name": "Markdown",
+      "type": "n8n-nodes-base.markdown",
+      "position": [
+        -720,
+        1080
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "company_knowladge_base",
+        "toolDescription": "Extracts information regarding the request made.",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "=av_files",
+          "mode": "id"
+        },
+        "includeDocumentMetadata": false,
+        "options": {}
+      },
+      "id": "e783ece4-4a82-4739-a270-c7bf08679154",
+      "name": "Qdrant Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "position": [
+        380,
+        1500
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "qdrantApi": {
+          "id": "ilWSWGCsEJSDmgQv",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "44250561-a82e-405f-aeb9-49b76fe01f4f",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        460,
+        1700
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputText": "=Тебе необходимо классифицировать следующее электронное письмо:\n\n{{ $json.response.text }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Company or goods info request",
+              "description": "Company or goods info request"
+            }
+          ]
+        },
+        "options": {
+          "multiClass": false,
+          "fallback": "other",
+          "systemPromptTemplate": "Классифицируй текст, предоставленный пользователем, по одной из следующих категорий: {categories}, и используй приведенные ниже инструкции по форматированию. Не объясняй, выводите только json.",
+          "enableAutoFixing": true
+        }
+      },
+      "id": "0ee432d4-77fb-42bf-9680-f749a6919239",
+      "name": "Email Classifier",
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "position": [
+        -120,
+        1080
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operationMode": "nodeInputBinary",
+        "options": {
+          "binaryDataKey": "={{ $json.data }}",
+          "summarizationMethodAndPrompts": {
+            "values": {
+              "combineMapPrompt": "=Напиши краткое изложение следующего текста максимум в 100 словах:\n\n\"{{ $json.data }}\"",
+              "prompt": "=Напиши краткое изложение следующего текста максимум в 100 словах:\n\"{{ $json.data }}\"\n\nНе указывай общее количество использованных слов."
+            }
+          }
+        }
+      },
+      "id": "d5c57e7a-7fcb-4647-8f91-69f130d071c5",
+      "name": "Email Summarization Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainSummarization",
+      "position": [
+        -500,
+        1080
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Напиши текст для ответа на следующее электронное письмо:\n\n{{ $json.response.text }}",
+        "options": {
+          "systemMessage": "Вы — эксперт по ответам на электронные письма. Вам нужно отвечать на них профессионально, основываясь на имеющейся у вас информации. Это деловое электронное письмо. Будьте лаконичны и никогда не превышайте 100 слов."
+        }
+      },
+      "id": "909a4e6f-3746-4cdc-ad30-19058693799e",
+      "name": "Write email",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        280,
+        1280
+      ],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Review at the following email:\n\n{{ $json.output }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=If you are an expert in reviewing emails before sending them. You need to review and structure them in such a way that you can send them. It must be in HTML format and you can insert (if you think it is appropriate) only HTML characters such as <br>, <b>, <i>, <p> where necessary.\n\nNon superare le 100 parole."
+            }
+          ]
+        }
+      },
+      "id": "d83581b7-bbf5-4f8a-9dce-3b53e07f84fa",
+      "name": "Review email",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        760,
+        1280
+      ],
+      "typeVersion": 1.5
+    },
+    {
+      "parameters": {},
+      "id": "2f102e83-c6f1-4e8c-98d0-5a0a33342cfc",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -920,
+        120
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=http://{{ $json.qdrant_url }}/collections/{{ $json.collection_name }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "qdrantApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"vectors\": {\n    \"size\": 1536,\n    \"distance\": \"Cosine\"\n  }\n}",
+        "options": {}
+      },
+      "id": "408dc46d-1dea-4d63-b3f5-d1c859bf5d5b",
+      "name": "Create collection",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -480,
+        20
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jEB4rIAhZXM0liht",
+          "name": "Together.Ai"
+        },
+        "qdrantApi": {
+          "id": "5RTUwsmV6132iCxv",
+          "name": "QdrantApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "filter": {
+          "driveId": {
+            "__rl": true,
+            "value": "My Drive",
+            "mode": "list",
+            "cachedResultName": "My Drive",
+            "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+          },
+          "folderId": {
+            "__rl": true,
+            "value": "1uUxdt1d9Ss3AtiJE_9GxXWu3rh9wFJui",
+            "mode": "list",
+            "cachedResultName": "qdrant-rag-demo",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1uUxdt1d9Ss3AtiJE_9GxXWu3rh9wFJui"
+          }
+        },
+        "options": {}
+      },
+      "id": "df867a1f-18fe-4127-9fb4-6178957bb281",
+      "name": "Get folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        -260,
+        220
+      ],
+      "typeVersion": 3,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "aaEQJItVVHDFr2GE",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain"
+            }
+          }
+        }
+      },
+      "id": "52842346-ad42-4a1e-be49-d0f3f4d46e44",
+      "name": "Download Files",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        -40,
+        220
+      ],
+      "typeVersion": 3,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "aaEQJItVVHDFr2GE",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "id": "61694d67-bd14-4b2d-a20a-9340970fe66e",
+      "name": "Default Data Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "position": [
+        300,
+        442.5
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "004f30c7-cc46-48d1-b693-21c0a0aa3883",
+      "name": "Embeddings OpenAI1",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        180,
+        440
+      ],
+      "typeVersion": 1.1,
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "ad4c3bd6-53a3-4525-ae2e-862e81efdead",
+      "name": "Do nothing",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        400,
+        880
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "id": "e1298c2a-ca6a-4a76-9123-ad29942790fc",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        260,
+        1500
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "id": "561b0a72-1dc6-404f-8714-4fe6b7b3fb0c",
+      "name": "OpenAI 4-o-mini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        -20,
+        1300
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2ab41a2c-664b-42ab-bd3f-870af3ba3c05",
+              "name": "collection_name",
+              "value": "av_files",
+              "type": "string"
+            },
+            {
+              "id": "fd7f48a6-1073-43c1-9542-1eb376ab74e7",
+              "name": "qdrant_url",
+              "value": "qdrant:6333",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -700,
+        120
+      ],
+      "id": "e101c297-f7f9-461a-bca4-3fee1ec36346",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields').item.json.collection_name }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "059ebea3-9da1-45e7-93ca-584b5bfef754",
+      "name": "Insert To Qdrant Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "position": [
+        196,
+        220
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "qdrantApi": {
+          "id": "ilWSWGCsEJSDmgQv",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 100,
+        "options": {
+          "splitCode": "markdown"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        388,
+        640
+      ],
+      "id": "e7212802-6505-4883-9f8a-8524db832e27",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.textSplitterCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        560,
+        640
+      ],
+      "id": "33fee648-bfa4-47f8-9282-d94a6a14fe91",
+      "name": "Character Text Splitter",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://{{ $json.qdrant_url }}/collections/{{ $json.collection_name }}/points/delete",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "qdrantApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n \"filter\": {}\n}",
+        "options": {}
+      },
+      "id": "ac35c15f-4909-4740-949c-c4f317fe9a06",
+      "name": "Clear Collection",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -480,
+        220
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jEB4rIAhZXM0liht",
+          "name": "Together.Ai"
+        },
+        "qdrantApi": {
+          "id": "ilWSWGCsEJSDmgQv",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "options": {}
+      },
+      "id": "2f0f9f06-2e96-4361-b88d-de02276aca12",
+      "name": "OpenAI 4.1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        -400,
+        1300
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Gmail Trigger').item.json.From }}",
+        "subject": "=Re:  {{ $('Gmail Trigger').item.json.Subject }}",
+        "message": "={{ $json.text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1140,
+        1280
+      ],
+      "id": "200e44c5-1294-48e7-b254-ab1ddc83540d",
+      "name": "Gmail",
+      "webhookId": "17b72bfd-5b36-482f-a15d-633d4d703181",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LHiFGq5LoM1WEuTE",
+          "name": "Automatica GMail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -940,
+        1080
+      ],
+      "id": "98b0c414-87c8-443f-a411-49f4c8d1ca05",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LHiFGq5LoM1WEuTE",
+          "name": "Automatica GMail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "options": {}
+      },
+      "id": "441d4bfa-4489-45bc-853c-3f4b7ad26d44",
+      "name": "Open AI 4.1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        840,
+        1500
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Collection Name!\n",
+        "height": 200,
+        "width": 340
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        340,
+        1460
+      ],
+      "typeVersion": 1,
+      "id": "e8db0d7f-8152-4b92-9be4-e532e5ca3699",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Collection Name!\n",
+        "height": 300,
+        "width": 260
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -780,
+        40
+      ],
+      "typeVersion": 1,
+      "id": "74d92893-04ad-49ac-bc61-bb4ac61b175b",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Write email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Email Summarization Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get folder": {
+      "main": [
+        [
+          {
+            "node": "Download Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write email": {
+      "main": [
+        [
+          {
+            "node": "Review email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Review email": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Files": {
+      "main": [
+        [
+          {
+            "node": "Insert To Qdrant Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI 4-o-mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Classifier": {
+      "main": [
+        [
+          {
+            "node": "Write email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Insert To Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Insert To Qdrant Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "Write email",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Summarization Chain": {
+      "main": [
+        [
+          {
+            "node": "Email Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Create collection",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Clear Collection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear Collection": {
+      "main": [
+        [
+          {
+            "node": "Get folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI 4.1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Summarization Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Open AI 4.1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Review email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d4526d7e2b7123bfb0e1996caa47744a7651d73096bbc7220a5e9657d119dfc"
+  },
+  "tags": []
+}

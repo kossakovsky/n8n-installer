@@ -1,0 +1,983 @@
+{
+  "name": "n8n-2-2: Google Sheets Invoice Parser",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 5,
+              "unit": "minutes"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "has:attachment"
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "id": "65212fcc-211e-4c8b-90b0-7c2f08751f67",
+      "name": "Receiving Invoices",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "position": [
+        -1740,
+        180
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LHiFGq5LoM1WEuTE",
+          "name": "Automatica GMail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "e5649a2b-6e12-4cc4-8001-4639cc9cc2c2",
+              "operator": {
+                "name": "filter.operator.equals",
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $input.item.binary.attachment_0.mimeType }}",
+              "rightValue": "application/pdf"
+            },
+            {
+              "id": "4c57ab9b-b11c-455a-a63d-daf48418b06e",
+              "operator": {
+                "type": "array",
+                "operation": "notContains",
+                "rightType": "any"
+              },
+              "leftValue": "={{ $json.labelIds }}",
+              "rightValue": "Invoice Synced"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c8848b90-55c5-4a19-b6f0-18f77a06f05e",
+      "name": "Should Process Email?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -1240,
+        100
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloud.llamaindex.ai/api/parsing/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "=attachment_0"
+            },
+            {
+              "name": "premium_mode",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5d2649a4-2533-4f61-b837-97df44955d40",
+      "name": "Upload to LlamaParse",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -980,
+        80
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jofZcwMtHpH8EekK",
+          "name": "Llama Index"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.cloud.llamaindex.ai/api/parsing/job/{{ $json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7dc9387d-665b-435a-aac8-fb43e169119f",
+      "name": "Get Processing Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -720,
+        80
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jofZcwMtHpH8EekK",
+          "name": "Llama Index"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "373196ed-d72a-4fcb-968c-9b71b6891daf",
+      "name": "Wait to stay within service limits",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        -180,
+        320
+      ],
+      "webhookId": "17a96ed6-b5ff-47bb-a8a2-39c1eb40185a",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "300fce8c-b19a-4d0c-86e8-f62853c70ce2",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "SUCCESS"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SUCCESS"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "e6058aa0-a3e2-4ce3-9bed-6ff41a5be052",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "ERROR"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ERROR"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "ceb6338f-4261-40ac-be11-91f61c7302ba",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "CANCELED"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CANCELED"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "0fa97d86-432a-409a-917e-5f1a002b1ab9",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "PENDING"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PENDING"
+            }
+          ]
+        },
+        "options": {
+          "allMatchingOutputs": true
+        }
+      },
+      "id": "d28db00f-4e71-48c7-abba-039995f05d6c",
+      "name": "Is Job Ready?",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -480,
+        60
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "url": "=https://api.cloud.llamaindex.ai/api/parsing/job/{{ $json.id }}/result/markdown",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "id": "a330c124-30cc-4782-9e48-f5e6cb25eaaa",
+      "name": "Get Parsed Invoice Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -180,
+        -40
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jofZcwMtHpH8EekK",
+          "name": "Llama Index"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "Something Went Wrong"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        140
+      ],
+      "id": "af1edf66-0e00-44de-b616-2d6914927c23",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "215ee063-da51-4790-9617-0cd3d620511e",
+              "leftValue": "={{ $json.labelIds }}",
+              "rightValue": "UNREAD",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1520,
+        180
+      ],
+      "id": "1e917edc-94be-4e4d-88a7-c0088fd5f0a9",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -1240,
+        380
+      ],
+      "id": "cbbc3b1d-ee63-4c12-99d9-b5a78be15bcf",
+      "name": "Done_1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -980,
+        300
+      ],
+      "id": "bcfd11a9-83c5-4093-aec4-a58eeefe4d09",
+      "name": "Done_2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {
+          "temperature": 0
+        }
+      },
+      "id": "cbb05a05-6942-4cdf-935c-c782bc009eb5",
+      "name": "OpenAI Model",
+      "type": "@n8n/n8n-nodes-langchain.lmOpenAi",
+      "position": [
+        40,
+        140
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchema": "{\n \"Invoice date\": { \"type\": \"date\" },\n \"invoice number\": { \"type\": \"string\" },\n \"Purchase order number\": { \"type\": \"string\" },\n \"Supplier name\": { \"type\": \"string\" },\n \"Supplier address\": {\n \"type\": \"object\",\n \"properties\": {\n \"address 1\": { \"type\": \"string\" },\n \"address 2\": { \"type\": \"string\" },\n \"city\": { \"type\": \"string\" },\n \"postcode\": { \"type\": \"string\" }\n }\n },\n \"Supplier VAT identification number\": { \"type\": \"string\" },\n \"Customer name\": { \"type\": \"string\" },\n \"Customer address\": {\n \"type\": \"object\",\n \"properties\": {\n \"address 1\": { \"type\": \"string\" },\n \"address 2\": { \"type\": \"string\" },\n \"city\": { \"type\": \"string\" },\n \"postcode\": { \"type\": \"string\" }\n }\n },\n \"Customer VAT identification number\": { \"type\": \"string\" }, \n \"Shipping addresses\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"address 1\": { \"type\": \"string\" },\n \"address 2\": { \"type\": \"string\" },\n \"city\": { \"type\": \"string\" },\n \"postcode\": { \"type\": \"string\" }\n }\n }\n },\n \"Line items\": {\n \"type\": \"array\",\n \"items\": {\n \"name\": \"string\",\n \"description\": \"string\",\n \"price\": \"number\",\n \"discount\": \"number\"\n }\n },\n \"Subtotal without VAT\": { \"type\": \"number\" },\n \"Subtotal with VAT\": { \"type\": \"number\" },\n \"Total price\": { \"type\": \"number\" }\n}"
+      },
+      "id": "0cdc12b4-36d5-40c7-8e35-50ef18b198bd",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        280,
+        140
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Given the following invoice in the <invoice> xml tags, extract the following information as listed below.\nIf you cannot the information for a specific item, then leave blank and skip to the next. \n\n* Invoice date\n* invoice number\n* Purchase order number\n* Supplier name\n* Supplier address\n* Supplier VAT identification number\n* Customer name\n* Customer address\n* Customer VAT identification number\n* Shipping addresses\n* Line items, including a description of the goods or services rendered\n* Price with and without VAT\n* Total price\n\n<invoice>{{ $json.markdown }}</invoice>",
+        "hasOutputParser": true
+      },
+      "id": "877c7f53-0e7f-4711-a3ca-4ebaea0ae07b",
+      "name": "Apply Data Extraction Rules",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        60,
+        -40
+      ],
+      "typeVersion": 1.4
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1sfMGi3c4PLbrJhy95CPmYOkmqJ9zJbREy4AZ1KQEG98",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sfMGi3c4PLbrJhy95CPmYOkmqJ9zJbREy4AZ1KQEG98/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Дата счета": "={{ $json.output['Invoice date'] }}",
+            "Номер счета": "={{ $json.output['Invoice number'] }}",
+            "Номер заказа": "={{ $json.output['Purchase order number'] }}",
+            "Поставщик": "={{ $json.output['Supplier name'] }}",
+            "Адрес поставщика": "={{ $json.output['Supplier address'] }}",
+            "ИНН поставщика": "={{ $json.output['Supplier VAT identification number'] }}",
+            "Заказчик": "={{ $json.output['Customer name'] }}",
+            "Адрес заказчика": "={{ $json.output['Customer address'] }}",
+            "ИНН заказчика": "={{ $json.output['Customer VAT identification number'] }}",
+            "Сумма без НДС": "={{ $json.output['Price with and without VAT']['Total without VAT'] }}",
+            "Сумма с НДС": "={{ $json.output['Price with and without VAT']['Total VAT'] }}",
+            "Итоговая цена": "={{ $json.output['Price with and without VAT']['Total with VAT'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Дата счета",
+              "displayName": "Дата счета",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Номер счета",
+              "displayName": "Номер счета",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Номер заказа",
+              "displayName": "Номер заказа",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Поставщик",
+              "displayName": "Поставщик",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Адрес поставщика",
+              "displayName": "Адрес поставщика",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ИНН поставщика",
+              "displayName": "ИНН поставщика",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Заказчик",
+              "displayName": "Заказчик",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Адрес заказчика",
+              "displayName": "Адрес заказчика",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ИНН заказчика",
+              "displayName": "ИНН заказчика",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Сумма без НДС",
+              "displayName": "Сумма без НДС",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Сумма с НДС",
+              "displayName": "Сумма с НДС",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Итоговая цена",
+              "displayName": "Итоговая цена",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        440,
+        -40
+      ],
+      "id": "4dacec70-8e15-4d47-b3c8-33fed68f9524",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RqF6GeqJi92lt9Dv",
+          "name": "Automatica Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Receiving Invoices').item.json.id }}"
+      },
+      "id": "d7285bb1-f1be-414b-82a7-795a40234edc",
+      "name": "Add \"Invoice Synced\" Label",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        660,
+        -40
+      ],
+      "typeVersion": 2.1,
+      "webhookId": "a83ca0fb-bb72-4c6d-8df8-47a374e2203a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LHiFGq5LoM1WEuTE",
+          "name": "Automatica GMail"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appRxNYdlonuQ3lLd",
+          "mode": "list",
+          "cachedResultName": "n8n-2-Invoices",
+          "cachedResultUrl": "https://airtable.com/appRxNYdlonuQ3lLd"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblGxFJst2Q1hUBZ6",
+          "mode": "list",
+          "cachedResultName": "Imported table",
+          "cachedResultUrl": "https://airtable.com/appRxNYdlonuQ3lLd/tblGxFJst2Q1hUBZ6"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "Сумма без НДС": 0,
+            "Сумма с НДС": 0,
+            "Итоговая цена": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Дата счета",
+              "displayName": "Дата счета",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Номер счета",
+              "displayName": "Номер счета",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Номер заказа",
+              "displayName": "Номер заказа",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Поставщик",
+              "displayName": "Поставщик",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Адрес поставщика",
+              "displayName": "Адрес поставщика",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ИНН поставщика",
+              "displayName": "ИНН поставщика",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Заказчик",
+              "displayName": "Заказчик",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Адрес заказчика",
+              "displayName": "Адрес заказчика",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ИНН заказчика",
+              "displayName": "ИНН заказчика",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Сумма без НДС",
+              "displayName": "Сумма без НДС",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Сумма с НДС",
+              "displayName": "Сумма с НДС",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Итоговая цена",
+              "displayName": "Итоговая цена",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        440,
+        -240
+      ],
+      "id": "47426430-3477-4088-81cd-96d9a01cec57",
+      "name": "Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lKrmtLc3Va7YXnXJ",
+          "name": "Sales CRM Airtable"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Receiving Invoices": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Process Email?": {
+      "main": [
+        [
+          {
+            "node": "Upload to LlamaParse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Done_2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to LlamaParse": {
+      "main": [
+        [
+          {
+            "node": "Get Processing Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Processing Status": {
+      "main": [
+        [
+          {
+            "node": "Is Job Ready?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait to stay within service limits": {
+      "main": [
+        [
+          {
+            "node": "Get Processing Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Job Ready?": {
+      "main": [
+        [
+          {
+            "node": "Get Parsed Invoice Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Wait to stay within service limits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Should Process Email?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Done_1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Apply Data Extraction Rules",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Apply Data Extraction Rules",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Parsed Invoice Data": {
+      "main": [
+        [
+          {
+            "node": "Apply Data Extraction Rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Data Extraction Rules": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Add \"Invoice Synced\" Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d4526d7e2b7123bfb0e1996caa47744a7651d73096bbc7220a5e9657d119dfc"
+  },
+  "tags": []
+}

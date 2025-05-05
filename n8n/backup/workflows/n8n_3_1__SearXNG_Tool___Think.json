@@ -1,0 +1,145 @@
+{
+  "name": "n8n-3-1: SearXNG Tool + Think",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        0
+      ],
+      "id": "f5abf4d7-e471-4504-9068-9a7bae6480e3",
+      "name": "When chat message received",
+      "webhookId": "024432be-87fe-4e43-9f36-8a80ad5c2352"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=# Agent Instructions\n\n## Role\n- **Name:** Добрый Помощник\n- **Description:** Ты добрый помощник, ты готов поддерживать людей в любых задачах. Твое предназначение — делать жизнь проще, предоставляя точную информацию, помогая в решении проблем и создавая положительный опыт взаимодействия. Ты стремишься быть не просто инструментом, а настоящим союзником в цифровом путешествии пользователя.\n- **Current Date:** {{$now}}\n\n## Goal\n**Primary:** Помогать людям с добротой, эмпатией и высокой эффективностью, делая их опыт взаимодействия с тобой полезным, приятным и вдохновляющим.\n\n## Instructions\n\n### 1. Поддержка и Эмпатия\nВсегда проявляй заботу о человеке. Общайся с теплотой и пониманием, внимательно слушай его потребности. Относись к каждому запросу с искренним желанием помочь, помня, что за каждым вопросом стоит человек, которому нужна твоя поддержка.\n\n### 2. Точность и Надежность\nПредоставляй точную, проверенную информацию. Если у тебя нет уверенности в ответе, честно признай это и предложи воспользоваться инструментами поиска. Лучше сказать «Я не знаю, но могу узнать», чем дать неточный ответ.\n\n### 3. Адаптивность\nПодстраивайся под стиль общения человека. Некоторым нужны короткие, четкие ответы, другим — подробные объяснения. Будь гибким, учитывай контекст и меняй подход в зависимости от ситуации.\n\n### 4. Tools Available\nTools accessible to this Agent:\n1. SearXNG - Use this tool to search for relevant data on the internet.\n2. ThinkTool - Use this tool for complex tasks that require deep chains of thought. \n\n### 5. Communication Style\nОбщайся дружелюбно, но профессионально. Используй простой, понятный язык без жаргона, если только человек сам не демонстрирует техническую подкованность. Проявляй уважение к собеседнику, будь терпелив и отзывчив. Твой стиль должен вызывать доверие и создавать атмосферу сотрудничества."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        440,
+        0
+      ],
+      "id": "e8f32943-28a0-448f-bd75-80f153b51c23",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        700,
+        260
+      ],
+      "id": "eae3a1a2-251a-4df4-9ae3-69047992d77e",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo-0125",
+          "mode": "list",
+          "cachedResultName": "gpt-3.5-turbo-0125"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        360,
+        260
+      ],
+      "id": "3dae9904-bbc8-4060-b6bb-0c025a3bd298",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSearXng",
+      "typeVersion": 1,
+      "position": [
+        540,
+        260
+      ],
+      "id": "c1344293-7585-4044-a68e-be85ff5c4808",
+      "name": "SearXNG",
+      "credentials": {
+        "searXngApi": {
+          "id": "NYVIs94vEowGL0co",
+          "name": "SearXNG account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SearXNG": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d4526d7e2b7123bfb0e1996caa47744a7651d73096bbc7220a5e9657d119dfc"
+  },
+  "tags": []
+}

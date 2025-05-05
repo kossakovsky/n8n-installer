@@ -1,0 +1,506 @@
+{
+  "name": "n8n-2-5: Telegram Long Term Memory",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $json.body.message.chat.id }}",
+        "text": "=Unable to process your message.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "25ed782f-8422-410f-bc30-1e831cbb791c",
+      "name": "Error message",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        1540,
+        600
+      ],
+      "typeVersion": 1.2,
+      "webhookId": "b89a44be-5bb5-4271-ac7b-89dade16f1c6",
+      "credentials": {
+        "telegramApi": {
+          "id": "yUM0FYRiDuTWaeMm",
+          "name": "c3po_human_suppportbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0cea6da1-652a-4c1e-94c3-30608ced90f8",
+              "name": "first_name",
+              "type": "string",
+              "value": "={{ $json.message.from.first_name }}"
+            },
+            {
+              "id": "b90280c6-3e36-49ca-9e7e-e15c42d256cc",
+              "name": "last_name",
+              "type": "string",
+              "value": "={{ $json.message.from.last_name }}"
+            },
+            {
+              "id": "f6d86283-16ca-447e-8427-7d3d190babc0",
+              "name": "id",
+              "type": "number",
+              "value": "={{ $json.message.chat.id }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "782c1124-84fa-479b-baf7-e0db3ff6c08a",
+      "name": "Validation",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1100,
+        175
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message.voice }}",
+                    "rightValue": ""
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "342f0883-d959-44a2-b80d-379e39c76218",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message.text }}",
+                    "rightValue": ""
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "ded3a600-f861-413a-8892-3fc5ea935ecb",
+                    "operator": {
+                      "type": "array",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message.photo }}",
+                    "rightValue": ""
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "image"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "311c1636-8c9b-4083-8300-acba2defa9b7",
+      "name": "Message Router",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        1320,
+        154
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "=## ROLE \nYou are a friendly, attentive, and helpful AI assistant. Your primary goal is to assist the user while maintaining a personalized and engaging interaction. The current user's first name is **{{ $('Validation').item.json.message.from.first_name }}**.\n\n---\n\n## RULES \n\n1. **Memory Management**: \n - When the user sends a new message, evaluate whether it contains noteworthy or personal information (e.g., preferences, habits, goals, or important events). \n - If such information is identified, use the **Save Memory** tool to store this data in memory. \n - Always send a meaningful response back to the user, even if your primary action was saving information. This response should not reveal that information was stored but should acknowledge or engage with the user’s input naturally.\n\n2. **Context Awareness**: \n - Use stored memories to provide contextually relevant and personalized responses. \n - Always consider the **date and time** when a memory was collected to ensure your responses are up-to-date and accurate.\n\n3. **User-Centric Responses**: \n - Tailor your responses based on the user's preferences and past interactions. \n - Be proactive in recalling relevant details from memory when appropriate but avoid overwhelming the user with unnecessary information.\n\n4. **Privacy and Sensitivity**: \n - Handle all user data with care and sensitivity. Avoid making assumptions or sharing stored information unless it directly enhances the conversation or task at hand.\n\n5. **Fallback Responses**: \n - **IMPORTANT** If no specific task or question arises from the user’s message (e.g., when only saving information), respond in a way that keeps the conversation flowing naturally. For example:\n - Acknowledge their input: “Thanks for sharing that!” \n - Provide a friendly follow-up: “Is there anything else I can help you with today?”\n - DO NOT tell Jokes as a fall back response.\n\n---\n\n## TOOLS \n\n### Save Memory \n- Always use this tool to store summarized, concise, and meaningful information about the user. \n- Extract key details from user messages that could enhance future interactions (e.g., likes/dislikes, important dates, hobbies). \n- Ensure that the summary is clear and devoid of unnecessary details.\n\n---\n\n## MEMORIES \n\n### Recent Noteworthy Memories \nHere are the most recent memories collected from the user, including their date and time of collection: \n\n**{{ $('Retrieve Long Term Memories').item.json.content }}**\n\n### Guidelines for Using Memories: \n- Prioritize recent memories but do not disregard older ones if they remain relevant. \n- Cross-reference memories to maintain consistency in your responses. For example, if a user shares conflicting preferences over time, clarify or adapt accordingly.\n\n---\n\n## ADDITIONAL INSTRUCTIONS \n\n- Think critically before responding to ensure your answers are thoughtful and accurate. \n- Strive to build trust with the user by being consistent, reliable, and personable in your interactions. \n- Avoid robotic or overly formal language; aim for a conversational tone that aligns with being \"friendly and helpful.\" \n"
+        }
+      },
+      "id": "4ebe45ce-e66f-4ce5-93e7-5b23eef4794e",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        2000,
+        180
+      ],
+      "typeVersion": 1.7,
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "c5576f52-0acf-42a7-a3e2-9e3e143d5ea1",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        1760,
+        180
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.id }}",
+        "contextWindowLength": 50
+      },
+      "id": "070d50cf-944d-4c63-8957-24a5f617218b",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        2100,
+        460
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Validation').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "9bec46b8-0292-4b65-935c-eb9e63081faa",
+      "name": "Telegram Response",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        2420,
+        100
+      ],
+      "typeVersion": 1.2,
+      "webhookId": "c3a6410f-f49b-41ac-8228-ddf8f86340bc",
+      "credentials": {
+        "telegramApi": {
+          "id": "yUM0FYRiDuTWaeMm",
+          "name": "c3po_human_suppportbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Save Memory Tool. Use this tool to save memories to the long-term memory storage.",
+        "operation": "update",
+        "documentURL": "1b1UaxOUtnX1w40RWIAeh6cLwukwrVQjPGZamj8LuDpQ",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "= Memory: {{ $fromAI('memory') }} - Date: {{ $now }} "
+            }
+          ]
+        }
+      },
+      "id": "72f7fa66-91c0-40a8-aa10-9e398beb22dd",
+      "name": "Save Long Term Memories",
+      "type": "n8n-nodes-base.googleDocsTool",
+      "position": [
+        2260,
+        420
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "4Eq7fJ841qerBLik",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "1b1UaxOUtnX1w40RWIAeh6cLwukwrVQjPGZamj8LuDpQ"
+      },
+      "id": "09f39be3-5455-4a87-8c60-ccffe581a65f",
+      "name": "Retrieve Long Term Memories",
+      "type": "n8n-nodes-base.googleDocs",
+      "position": [
+        1560,
+        340
+      ],
+      "typeVersion": 2,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "4Eq7fJ841qerBLik",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Validation').item.json.message.chat.id }}",
+        "text": "=Unable to process your message.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "5f279674-8bd9-49f2-8c25-c8078caa758a",
+      "name": "Response Error message",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        2420,
+        300
+      ],
+      "typeVersion": 1.2,
+      "webhookId": "b9c3769a-b3da-433d-896f-5277570255d9",
+      "credentials": {
+        "telegramApi": {
+          "id": "yUM0FYRiDuTWaeMm",
+          "name": "c3po_human_suppportbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        175
+      ],
+      "id": "c2cf44c9-a467-4fe1-a1d2-9cf901659609",
+      "name": "Telegram Trigger",
+      "webhookId": "77595e10-f1aa-41d1-a347-a47d88e707c2",
+      "credentials": {
+        "telegramApi": {
+          "id": "yUM0FYRiDuTWaeMm",
+          "name": "c3po_human_suppportbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "id": "0110cddd-3063-4f6d-ad49-448a460d0eac",
+      "name": "OpenAI Account",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1940,
+        420
+      ],
+      "typeVersion": 1.1,
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "Something Went Wrong!"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        600
+      ],
+      "id": "55e890aa-89bf-4aa0-8328-b3cb56c05dca",
+      "name": "Stop and Error"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Response Error message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation": {
+      "main": [
+        [
+          {
+            "node": "Message Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message Router": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Retrieve Long Term Memories",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Error message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Long Term Memories": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Long Term Memories": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Account": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error message": {
+      "main": [
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d4526d7e2b7123bfb0e1996caa47744a7651d73096bbc7220a5e9657d119dfc"
+  },
+  "tags": []
+}

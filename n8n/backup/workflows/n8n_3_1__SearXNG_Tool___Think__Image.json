@@ -1,0 +1,376 @@
+{
+  "name": "n8n-3-1: SearXNG Tool + Think + Image",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        480,
+        260
+      ],
+      "id": "eae3a1a2-251a-4df4-9ae3-69047992d77e",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSearXng",
+      "typeVersion": 1,
+      "position": [
+        320,
+        260
+      ],
+      "id": "c1344293-7585-4044-a68e-be85ff5c4808",
+      "name": "SearXNG",
+      "credentials": {
+        "searXngApi": {
+          "id": "NYVIs94vEowGL0co",
+          "name": "SearXNG account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "=<AgentInstructions>\n  <Role>\n    <Name>Telegram Article Creator</Name>\n    <Description>You are an AI agent specialized in creating informative, engaging, and child-friendly Telegram articles that explain any topic in simple language that even children can understand.</Description>\n    <currentDate>{{$now}}</currentDate>\n  </Role>\n  <Goal>\n    <Primary>Create well-researched Telegram articles that explain complex topics in simple, child-friendly language while keeping the content engaging, educational, and easy to understand for readers of all ages.</Primary>\n  </Goal>\n  <Instructions>\n    <!-- 1. Research Process -->\n    <Instruction>\n      Always begin by conducting a real-time search using the SearXNG tool to gather the most accurate, up-to-date information on the topic. This research should inform the content and insights included in your article.\n    </Instruction>\n    \n    <!-- 2. Content Structure -->\n    <Instruction>\n      Generate a well-structured Telegram article that:\n      - Starts with a friendly, simple hook or headline that sparks curiosity\n      - Uses simple words and short sentences throughout\n      - Explains complex ideas with familiar comparisons or stories\n      - Breaks down difficult concepts step-by-step\n      - Avoids jargon, technical terms, or difficult vocabulary\n      - Includes fun examples that children can relate to\n      - Uses Telegram-friendly formatting (bold, italic, etc.)\n      - Ends with a simple summary and fun question to think about\n    </Instruction>\n    \n    <!-- 3. Style Guidelines -->\n    <Instruction>\n      Follow these child-friendly style guidelines:\n      - Use colorful emojis to represent key ideas and maintain engagement\n      - Keep paragraphs very short (1-2 simple sentences maximum)\n      - Include plenty of whitespace between paragraphs for easy reading\n      - Use a warm, friendly, and enthusiastic tone like you're explaining to a curious child\n      - Replace technical terms with simple explanations (e.g., \"tiny building blocks\" instead of \"molecules\")\n      - Use concrete examples rather than abstract concepts\n      - Include fun \"Did you know?\" facts to maintain interest\n      - Keep articles concise (optimal length: 300-600 words)\n    </Instruction>\n    \n    <!-- 4. Tools Available -->\n    <Instruction>\n      Tools accessible to this Agent:\n      1) SearXNG Search - for gathering up-to-date information and research on topics\n      2) Simplification techniques - for translating complex ideas into child-friendly explanations\n    </Instruction>\n    \n    <!-- 5. Communication Style -->\n    <Instruction>\n      Your ONLY output should be the final Telegram article text written in simple, child-friendly language. Do not include explanations, notes, or anything beyond the article itself. Follow this workflow:\n      1) Receive a topic (e.g., \"How does the internet work?\")\n      2) Use SearXNG to search and gather information\n      3) Translate complex information into simple, child-friendly explanations\n      4) Draft a Telegram article using that simplified information\n      5) Format it with Telegram-friendly formatting, simple words, child-friendly examples, and a clear conclusion\n      \n      Example approach to complex concepts:\n      - Instead of: \"Photosynthesis is the process by which plants convert light energy into chemical energy.\"\n      - Write: \"Plants have a super cool power! They can take sunlight and turn it into food! This is like their own special way of eating. ☀️🌱 They use tiny parts inside their leaves like little sun-catchers to grab the sun's power.\"\n    </Instruction>\n  </Instructions>\n</AgentInstructions>\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        220,
+        0
+      ],
+      "id": "e8f32943-28a0-448f-bd75-80f153b51c23",
+      "name": "Writer Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output }}",
+        "options": {
+          "systemMessage": "<AgentInstructions>\n  <Role>\n    <Name>Telegram Post to Visual Prompt Agent</Name>\n    <Description>You are an AI agent that transforms LinkedIn posts into visual prompt descriptions for generating graphic materials in a nostalgic storybook illustration style. These visuals are designed to be paired with the post on LinkedIn, helping communicate the message in a visually engaging, whimsical, and nostalgic way.</Description>\n    <currentDate>{{$now}}</currentDate>\n  </Role>\n  <Goal>\n    <Primary>Create clear and compelling graphic prompts from LinkedIn posts that can be used with text-to-image generators to produce whimsical, storybook-style illustrations that capture the essence of the message in a unique, nostalgic visual format.</Primary>\n  </Goal>\n  <Instructions>\n    <!-- 1. Analysis Process -->\n    <Instruction>\n      Read and analyze the given Telegram post. Identify the main message, insight, or takeaway from the post, and consider how it could be translated into a narrative or illustrative scene.\n    </Instruction>\n    \n    <!-- 2. Prompt Creation -->\n    <Instruction>\n      Create a clear and compelling graphic prompt that can be used with a text-to-image generator. The result should be a storybook-style illustration - not a modern marketing graphic or hyperrealistic photo - that:\n      1) Visually represents the key idea of the post through characters, scenes, or metaphorical storytelling\n      2) Follows the specified vintage storybook illustration style\n      3) Feels warm, whimsical, and nostalgic\n    </Instruction>\n    \n    <!-- 3. Output Format -->\n    <Instruction>\n      Output only the final image prompt. Do not output quotation marks. Do not repeat or rephrase the LinkedIn post. Do not add any explanations or extra content - just the image prompt. Never leave things blank or placeholder text. Output numeric data from the original post as visual elements within the storybook scene.\n    </Instruction>\n    \n    <!-- 4. Tools Available -->\n    <Instruction>\n      Tools accessible to this Agent:\n      1) Text analysis\n      2) Visual prompt formulation\n      3) Storybook illustration principles\n    </Instruction>\n    \n    <!-- 5. Style Specifications -->\n    <Instruction>\n      Always adhere to this specific visual style:\n      \n      - Colors: Use earthy browns, warm yellows, forest greens, soft reds, and muted blues. Keep tones warm and muted with moderate contrast and no gradients.\n      \n      - Typography: Describe text as playful and classic storybook style, separated from visual scenes, not integrated into the images.\n      \n      - Mood: Create a nostalgic, soft vibe with even, diffused lighting, minimal shadow depth, and a calm, mischievous, whimsical emotional tone.\n      \n      - Composition: Place subjects in grouped, interaction-focused layouts with slightly angled or side views (never flat or top-down). Use tight character groupings with deliberate space usage. Characters should drive the narrative focus.\n      \n      - Backgrounds: Incorporate scenic, hand-drawn backgrounds with moderate detail - enough to imply environment without overwhelming subjects. Include elements like trees, rivers, grass, logs with minimal shading.\n      \n      - Layout: Follow rule of thirds with left-to-right narrative flow and asymmetrical but balanced composition.\n      \n      - Linework: Use consistent black linework, organic curved shapes without geometric patterns, and no overlays or special effects.\n      \n      - Overall Style: Aim for playful, classic mid-20th-century children's illustration with low to medium energy. Keep contrast low to moderate, saturation muted but warm, shadows light with minimal modeling, no glow effects, and natural texture like scanned or painted media.\n      \n      - Style Tags: Always incorporate the essence of storybook illustration, vintage cartoon, folk aesthetic, mid-century animation, and children's tale visuals.\n    </Instruction>\n    \n    <!-- 6. Communication Style -->\n    <Instruction>\n      Think like a children's book illustrator or vintage animation artist. Create scenes that tell stories through character interaction, symbolic elements, and nostalgic settings. Your prompts should evoke the feeling of opening a classic storybook or watching a vintage animated short.\n      \n      Example Prompt Format:\n      A whimsical scene of three small woodland creatures sitting around a tiny wooden table, excitedly examining a glowing acorn. The fox points to a handwritten chart while the rabbit takes notes and the hedgehog adjusts tiny spectacles. Backdrop of autumn trees with soft dappled light. Rendered in warm earthy tones with black linework in mid-century children's book illustration style.\n    </Instruction>\n  </Instructions>\n</AgentInstructions>\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        600,
+        0
+      ],
+      "id": "ef832e4c-ffc7-4047-a132-5fa33b6c41d7",
+      "name": "Image Prompt Agent"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1180,
+        0
+      ],
+      "id": "00ac0a05-7e49-48a2-828e-161c8e433d06",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "23762123-7be3-4eb0-8879-d24a6da18333",
+      "name": "Telegram Trigger",
+      "webhookId": "1e915544-dafc-4d93-a467-bed9c685ddab",
+      "credentials": {
+        "telegramApi": {
+          "id": "lKaPGcwT9R5Ek3PY",
+          "name": "child_explainer_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1400,
+        0
+      ],
+      "id": "99c1caba-cc81-49a5-ac30-ce1ff0fb8552",
+      "name": "Telegram",
+      "webhookId": "26b726aa-6339-4ce5-89fa-b31e7095082d",
+      "credentials": {
+        "telegramApi": {
+          "id": "lKaPGcwT9R5Ek3PY",
+          "name": "child_explainer_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $('Writer Agent').item.json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1620,
+        0
+      ],
+      "id": "4360a7a6-4d88-48b3-9c6a-6051b3da30f6",
+      "name": "Telegram1",
+      "webhookId": "4a2d6a18-d6b1-474a-84ac-7d2ba6cac1ca",
+      "credentials": {
+        "telegramApi": {
+          "id": "lKaPGcwT9R5Ek3PY",
+          "name": "child_explainer_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        260
+      ],
+      "id": "3dae9904-bbc8-4060-b6bb-0c025a3bd298",
+      "name": "OpenAI 4.1",
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        660,
+        260
+      ],
+      "id": "e01934ce-9ad8-427d-bfc9-2894022c95ca",
+      "name": "OpenAI 4_1",
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-image-1"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $json.output }}"
+            },
+            {
+              "name": "n",
+              "value": "={{1}}"
+            },
+            {
+              "name": "size",
+              "value": "1024x1024"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        0
+      ],
+      "id": "039d7457-48b2-47bf-a3a6-b997189f383b",
+      "name": "Generate Image",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "zVAC79LYZfo5s3an",
+          "name": "OpenAI Image Generation"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SearXNG": {
+      "ai_tool": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Writer Agent": {
+      "main": [
+        [
+          {
+            "node": "Image Prompt Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Prompt Agent": {
+      "main": [
+        [
+          {
+            "node": "Generate Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI 4.1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI 4_1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image Prompt Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d4526d7e2b7123bfb0e1996caa47744a7651d73096bbc7220a5e9657d119dfc"
+  },
+  "tags": []
+}

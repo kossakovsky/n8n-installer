@@ -1,0 +1,139 @@
+{
+  "name": "LightRAG Request",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f0d975da-dbad-4130-86f3-10bd51e6ccd3",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://lightrag.4u70m471c4.com/login",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "password"
+            },
+            {
+              "name": "username",
+              "value": "admin_user"
+            },
+            {
+              "name": "password",
+              "value": "NUIibuscvyasrbvYSRvBSDvhSGEvay7w4tlhfurdgabrg"
+            },
+            {
+              "name": "scope"
+            },
+            {
+              "name": "client_id",
+              "value": "string"
+            },
+            {
+              "name": "client_secret",
+              "value": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "66c1c5ee-67e7-479e-95e0-139e43864386",
+      "name": "LighRAG Login"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://lightrag.4u70m471c4.com/query",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "Кто такой Руслан?"
+            },
+            {
+              "name": "mode",
+              "value": "global"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "f7e0e76f-200f-408e-b0ee-5a5e5c884acf",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "LighRAG Login",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LighRAG Login": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "a3dee2c6aba3365766e3abaf66908fcdd28e578f25779c6e4ace5101e13800bd"
+  },
+  "tags": []
+}

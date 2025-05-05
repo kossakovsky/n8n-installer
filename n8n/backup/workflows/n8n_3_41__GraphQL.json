@@ -1,0 +1,153 @@
+{
+  "name": "n8n-3-41: GraphQL",
+  "nodes": [
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "endpoint": "https://countries.trevorblades.com/",
+        "query": "=query {\n  country(code: \"{{ $json['Country Code'].toUpperCase() }}\") {\n    name\n    phone\n    emoji\n  } \n}",
+        "responseFormat": "string"
+      },
+      "name": "GraphQL",
+      "type": "n8n-nodes-base.graphql",
+      "position": [
+        220,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "d3c260c2-e309-4cef-a8f4-4dc19e051b32"
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "data",
+              "value": "=The country code of {{ $json.countryEmoji }} {{ $json.countryName }} is {{ $json.countryPhone }}"
+            }
+          ],
+          "boolean": []
+        },
+        "options": {}
+      },
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        640,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "3e24eb6b-e820-411a-a10b-3b2e02702863"
+    },
+    {
+      "parameters": {
+        "formTitle": "County Code and Name",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Country Code",
+              "placeholder": "RU",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "df8020cd-816e-4a29-a56c-a3591f316f34",
+      "name": "On form submission",
+      "webhookId": "3d7a0beb-3cf0-42ea-b0ca-73ba9c27f7c6"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем входные данные - они уже являются объектом, не нужно использовать JSON.parse\nconst inputData = items[0].json;\n\n// Просто обращаемся к нужным полям напрямую через точечную нотацию\nconst countryName = inputData.data.data.country.name;\nconst countryPhone = inputData.data.data.country.phone;\nconst countryEmoji = inputData.data.data.country.emoji;\n\n// Создаем новый объект с извлеченными полями\nreturn {\n  json: {\n    countryName,\n    countryPhone,\n    countryEmoji\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "7096eb45-d349-4077-8f09-2b2bf363a8e5",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Answer",
+        "completionMessage": "={{ $json.data }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        860,
+        0
+      ],
+      "id": "d01361c4-fee8-4eff-8f90-7fa3125cc45d",
+      "name": "Form",
+      "webhookId": "a6cf9024-5586-40f7-a5a5-b421eb370a30"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GraphQL": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "GraphQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set": {
+      "main": [
+        [
+          {
+            "node": "Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "2d4526d7e2b7123bfb0e1996caa47744a7651d73096bbc7220a5e9657d119dfc"
+  },
+  "tags": []
+}

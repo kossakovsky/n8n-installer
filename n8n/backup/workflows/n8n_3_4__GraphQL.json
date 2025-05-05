@@ -1,0 +1,78 @@
+{
+  "name": "n8n-3-4: GraphQL",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d812966e-0a7f-42a7-89b9-094063d571f3",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "endpoint": "https://countries.trevorblades.com/graphql",
+        "query": "query ExampleQuery {\n  continents {\n    code\n  }\n  countries {\n    code\n  }\n  languages {\n    code\n  }\n}"
+      },
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        0
+      ],
+      "id": "7dd64a82-27cd-45ba-8820-c93ecd96d50e",
+      "name": "Countries"
+    },
+    {
+      "parameters": {
+        "endpoint": "https://countries.trevorblades.com/graphql",
+        "query": "=query Query {\n  country(code: \"{{ $json.data.countries[1].code }}\") {\n    name\n    native\n    capital\n    emoji\n    currency\n    languages {\n      code\n      name\n    }\n  }\n} "
+      },
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        0
+      ],
+      "id": "bd5f6a83-2223-4c89-871e-f22714e019a6",
+      "name": "Country"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Countries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Countries": {
+      "main": [
+        [
+          {
+            "node": "Country",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d4526d7e2b7123bfb0e1996caa47744a7651d73096bbc7220a5e9657d119dfc"
+  },
+  "tags": []
+}

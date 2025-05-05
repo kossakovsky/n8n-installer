@@ -726,15 +726,13 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "19f9691c-4682-4704-81f2-33fdec9d0be2",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f722e3e1e81e942a38faa434ad0aee8699371bbff9f883b9d5c59a7c726605af"
   },
-  "id": "vTN9y2dLXqTiDfPT",
   "tags": []
 }

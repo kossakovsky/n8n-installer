@@ -1,0 +1,394 @@
+{
+  "name": "Telegram Voice Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -640,
+        100
+      ],
+      "id": "852c0c6a-b0cb-478b-b73e-145b1365fcf2",
+      "name": "Telegram Trigger",
+      "webhookId": "bffb7502-df2f-46df-b8e4-90d7f1647730",
+      "credentials": {
+        "telegramApi": {
+          "id": "yQkes8sDObDUJfH1",
+          "name": "r2d2_voice_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a6d6da92-8272-4f6f-97be-7b733fc5b6d2",
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "e1996294-7120-47f8-98b2-f28f0708e5d3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -420,
+        100
+      ],
+      "id": "7dcaa0d9-9bfa-438d-9a11-658cca2b905a",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "13f27e1a-8d2b-4e19-afe4-ee282c5098a7",
+              "name": "=text",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -100,
+        200
+      ],
+      "id": "2f2bb670-dc3a-457b-aabb-d4e55f27be83",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -200,
+        0
+      ],
+      "id": "28977e88-4384-4f93-8f23-8dd51ca69ff2",
+      "name": "Telegram",
+      "webhookId": "ee66e024-8d01-4c91-b7ac-7f6285f37f6c",
+      "credentials": {
+        "telegramApi": {
+          "id": "yQkes8sDObDUJfH1",
+          "name": "r2d2_voice_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        20,
+        0
+      ],
+      "id": "1d0a24bf-4e7b-48d3-9101-760caba7011e",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "I7fTgOsWW9vEbL8X",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=<AgentInstructions>\n    <Role>\n        <Name>AI Assistant with Image Generation</Name>\n        <Description>Помощник, который отвечает на вопросы пользователя и создает изображения по запросу.</Description>\n        <currentDate>{{$now}}</currentDate>\n    </Role>\n\n    <Goal>\n        <Primary>Помогать пользователю, предоставляя информацию и генерируя изображения по запросу через Replicate.</Primary>\n    </Goal>\n\n    <Instructions>\n        <!-- 1. Общая помощь -->\n        <Instruction>\n            Когда пользователь задает общий вопрос:\n            • Предоставляйте краткие, точные и информативные ответы.\n            • Используйте свои знания для ответа на вопросы в различных областях.\n            • При необходимости уточняйте детали запроса пользователя.\n        </Instruction>\n\n        <!-- 2. Генерация изображений -->\n        <Instruction>\n            Когда пользователь запрашивает создание изображения (например, \"Сгенерируй изображение горного пейзажа\"):\n            • Используйте инструмент \"replicate_generator\" для создания изображения.\n            • Уточните детали запроса, если они недостаточно конкретны.\n            • После генерации подтвердите создание изображения и спросите, соответствует ли оно ожиданиям пользователя.\n        </Instruction>\n\n        <!-- 3. Обработка сложных запросов -->\n        <Instruction>\n            При сложных запросах на генерацию изображений:\n            • Попросите пользователя предоставить более конкретные детали (стиль, цветовую палитру, композицию и т.д.).\n            • Предложите варианты параметров для улучшения результата.\n            • Используйте \"replicate_generator\" с уточненными параметрами.\n        </Instruction>\n\n        <!-- 4. Доступные инструменты -->\n        <Instruction>\n            Инструменты, доступные этому агенту:\n            1) replicate_generator - для создания изображений по запросу пользователя\n        </Instruction>\n\n        <!-- 5. Стиль общения -->\n        <Instruction>\n            Поддерживайте дружелюбный, профессиональный тон. Будьте лаконичны, но информативны. Всегда уточняйте детали запроса перед генерацией изображения. Если запрос неясен, задавайте уточняющие вопросы.\n        </Instruction>\n    </Instructions>\n</AgentInstructions>"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        240,
+        100
+      ],
+      "id": "dd9196ef-b05b-4b9d-9753-422db4c091ae",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        140,
+        320
+      ],
+      "id": "a55b1878-3290-43d0-b2a1-480ed2acbfbc",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "I7fTgOsWW9vEbL8X",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        280,
+        320
+      ],
+      "id": "8c97ca6b-8f44-43af-b136-16b140dbb1a9",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        616,
+        100
+      ],
+      "id": "8a0735ee-d869-4e88-8d8e-e0d830329ba5",
+      "name": "Reply",
+      "webhookId": "be561cac-5535-48d4-8382-ff1e21cd3984",
+      "credentials": {
+        "telegramApi": {
+          "id": "yQkes8sDObDUJfH1",
+          "name": "r2d2_voice_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "replicate_generator",
+        "description": "Call this tool to generate a FLUX Ultra image if requested by user.",
+        "workflowId": {
+          "__rl": true,
+          "value": "NGMa4HIdYW6tv7j8",
+          "mode": "list",
+          "cachedResultName": "Replicate Image Generator"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "prompt": "={{ $fromAI('prompt', 'image prompt requested by user', 'string') }}"
+          },
+          "matchingColumns": [
+            "prompt"
+          ],
+          "schema": [
+            {
+              "id": "prompt",
+              "displayName": "prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.1,
+      "position": [
+        480,
+        320
+      ],
+      "id": "398c483b-999d-4921-ab18-7988a3ec3984",
+      "name": "Replicate Generator"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replicate Generator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a3dee2c6aba3365766e3abaf66908fcdd28e578f25779c6e4ace5101e13800bd"
+  },
+  "tags": []
+}

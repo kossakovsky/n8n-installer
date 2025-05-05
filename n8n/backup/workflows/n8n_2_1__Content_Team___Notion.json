@@ -1,0 +1,647 @@
+{
+  "name": "n8n-2-1: Content Team — Notion",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Article Writer",
+        "formDescription": "Эта форма используется для того, чтобы создавать статьи на заданную тему. \n\nНапишите тему, по которой хотите написать статью и я начну исследование и создание материала.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Article Idea"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0f25fb27-789b-4bb6-92d0-894de9eb7dd3",
+      "name": "On form submission",
+      "webhookId": "546b1ba2-c863-4533-baf5-6a82b5e79bce"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a873c17e-6956-4bdc-8bae-5d2721ab95da",
+              "name": "article_Idea",
+              "value": "={{ $json[\"Article Idea\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "8f94b952-87bd-451e-b493-e9cd51cefc0e",
+              "name": "=request_id",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "id": "3d73f963-dcfb-4fb9-8a61-b402dfeb2ed6",
+      "name": "Set Data"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a suitable title for the research report which will be created from the user's query.\n<query>{{ $json.article_Idea }}</query>",
+        "hasOutputParser": true
+      },
+      "id": "eba9b51f-751c-4d36-93ba-17263eb311ff",
+      "name": "Report Page Generator",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        440,
+        0
+      ],
+      "typeVersion": 1.5
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        380,
+        180
+      ],
+      "id": "20680d3c-6df4-4c32-8b7a-25b2b24709e2",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n \"type\": \"object\",\n \"properties\": {\n \"title\": {\n \"type\": \"string\",\n \"description\":\" A short title summarising the research topic\"\n },\n \"description\": {\n \"type\": \"string\",\n \"description\": \"A short description to summarise the research topic\"\n }\n }\n}"
+      },
+      "id": "cef215c8-4492-46c3-93e4-27ab4acf6a5f",
+      "name": "Structured Output Parser4",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        660,
+        180
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to search the internet",
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"api_key\": \"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\",\n    \"query\": \"{searchTerm}\",\n    \"search_depth\": \"basic\",\n    \"include_answer\": true,\n    \"topic\": \"news\",\n    \"include_raw_content\": true,\n    \"max_results\": 3\n} ",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "searchTerm",
+              "description": "What the user has requested to write a blog about",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        1280,
+        200
+      ],
+      "id": "513a4561-8da4-4fcc-8661-183aeb1a9ad9",
+      "name": "Tavily"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a blog post on this topic: \n<topic>\n{{ $('Report Page Generator').item.json.output.title }}\n</topic>\n\nUse this description to help finalize ideas:\n<description>\n{{ $('Report Page Generator').item.json.output.description }}\n</description>\n",
+        "options": {
+          "systemMessage": "=<AgentInstructions>\n<Role>\n<Name>AI Blog Writer</Name>\n<Description>You are a skilled AI blog writer specializing in engaging, well-structured, and informative content. Your writing style is clear, compelling, and tailored to the target audience. You optimize for readability, SEO, and value, ensuring blogs are well-researched, original, and free of fluff.</Description>\n<currentDate>{{$now}}</currentDate>\n</Role>\n<Goal>\n<Primary>Create high-quality, engaging blog content that provides value to readers while maintaining SEO best practices and proper citations.</Primary>\n</Goal>\n<Instructions>\n<!-- 1. Content Quality -->\n<Instruction>\nProduce well-researched, original content that is free of fluff and provides genuine value to the reader. Ensure all information is factually accurate and properly cited.\n</Instruction>\n<!-- 2. Structure and Format -->\n<Instruction>\nFormat all blog content in HTML, using proper headings (<h1>, <h2>), paragraphs (<p>), bullet points (<ul>,<li>), and links (<a href=\"URL\">) for citations. Structure content for easy reading with concise paragraphs and logical flow.\n</Instruction>\n<!-- 3. Writing Style -->\n<Instruction>\nMaintain a natural, human-like tone, use varied sentence structures, and include relevant examples or data when needed. Tailor the writing style to the target audience and align the tone with the intended brand or purpose.\n</Instruction>\n<!-- 4. Tools Available -->\n<Instruction>\nTools accessible to this Agent:\n1) Tavily - Use this to search the web about the requested topic for the blog post.\n</Instruction>\n<!-- 5. Communication Style -->\n<Instruction>\nRespond with article text only, without including other text or comments. All citations from the Tavily tool must be preserved, with clickable hyperlinks so readers can access the original sources.\n</Instruction>\n</Instructions>\n</AgentInstructions>"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "9b2f8a5f-fa7d-49c0-a932-7a0456708267",
+      "name": "Content Creator Agent",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "14d9076e-27ea-4846-8b44-f83cf4022b9e",
+              "name": "response",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1480,
+        -100
+      ],
+      "id": "433494d7-c0c6-4ec8-b25a-e12d106ea960",
+      "name": "Response"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f2a8ff2d-6b59-4ad6-a2e7-8705354f4105",
+              "name": "response",
+              "value": "Error occurred. Please try again.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1480,
+        180
+      ],
+      "id": "d07b5919-3837-4501-8606-f27599fa3783",
+      "name": "Try Again"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1000,
+        200
+      ],
+      "id": "eff5d798-958b-4e0f-9e3b-cc0bbd77273c",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "Something went wrong"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        180
+      ],
+      "id": "d436e37d-ac61-4a4e-9c2b-ffd9d6a1e21e",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.response }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Convert the following html into its equivalent Notion Block as per Notion's API schema.\n* Ensure the content is always included and remains the same.\n* Return only a json response.\n* Generate child-level blocks. Should not define \"parent\" or \"children\" property.\n* Strongly prefer headings, paragraphs, tables and lists type blocks.\n* available headings are heading_1, heading_2 and heading_3 - h4,h5,h6 should use heading_3 type instead. ensure headings use the rich text definition.\n* ensure lists blocks include all list items.\n\n## Examples\n\n1. headings\n```\n<h3 id=\"references\">References</h3>\n```\nwould convert to \n```\n{\"object\": \"block\", \"type\": \"heading_3\", \"heading_3\": { \"rich_text\": [{\"type\": \"text\",\"text\": {\"content\": \"References\"}}]}}\n```\n\n2. lists\n```\n<ul><li>hello</li><li>world</li></ul>\n```\nwould convert to\n```\n[\n{\n \"object\": \"block\",\n \"type\": \"bulleted_list_item\",\n \"bulleted_list_item\": {\"rich_text\": [{\"type\": \"text\",\"text\": {\"content\": \"hello\"}}]}\n},\n{\n \"object\": \"block\",\n \"type\": \"bulleted_list_item\",\n \"bulleted_list_item\": {\"rich_text\": [{\"type\": \"text\",\"text\": {\"content\": \"world\"}}]}\n}\n]\n```\n\n3. tables\n```\n<table>\n <thead>\n <tr><th>Technology</th><th>Potential Impact</th></tr>\n </thead>\n <tbody>\n <tr>\n <td>5G Connectivity</td><td>Enables faster data speeds and advanced apps</td>\n </tr>\n </tbody>\n</table>\n```\nwould convert to\n```\n{\n \"object\": \"block\",\n \"type\": \"table\",\n \"table\": {\n \"table_width\": 2,\n \"has_column_header\": true,\n \"has_row_header\": false,\n \"children\": [\n {\n \"object\": \"block\",\n \"type\": \"table_row\",\n \"table_row\": {\n \"cells\": [\n [\n {\n \"type\": \"text\",\n \"text\": {\n \"content\": \"Technology\",\n \"link\": null\n }\n },\n {\n \"type\": \"text\",\n \"text\": {\n \"content\": \"Potential Impact\",\n \"link\": null\n }\n }\n ],\n [\n {\n \"type\": \"text\",\n \"text\": {\n \"content\": \"5G Connectivity\",\n \"link\": null\n }\n },\n {\n \"type\": \"text\",\n \"text\": {\n \"content\": \"Enables faster data speeds and advanced apps\",\n \"link\": null\n }\n }\n ]\n ]\n }\n }\n ]\n }\n}\n```\n4. anchor links\nSince Notion doesn't support anchor links, just convert them to rich text blocks instead.\n```\n<a href=\"#module-0-pre-course-setup-and-learning-principles\">Module 0: Pre-Course Setup and Learning Principles</a>\n```\nconverts to\n```\n{\n \"object\": \"block\",\n \"type\": \"paragraph\",\n \"paragraph\": {\n \"rich_text\": [\n {\n \"type\": \"text\",\n \"text\": {\n \"content\": \"Module 0: Pre-Course Setup and Learning Principles\"\n }\n }\n ]\n }\n}\n```\n5. Invalid html parts\nWhen the html is not syntax valid eg. orphaned closing tags, then just skip the conversion and use an empty rich text block.\n```\n</li>\\n</ol>\n```\ncan be substituted with\n```\n{\n \"object\": \"block\",\n \"type\": \"paragraph\",\n \"paragraph\": {\n \"rich_text\": [\n {\n \"type\": \"text\",\n \"text\": {\n \"content\": \" \"\n }\n }\n ]\n }\n}\n```"
+            }
+          ]
+        }
+      },
+      "id": "059e241d-786b-4d1e-854f-f19455356e1b",
+      "name": "Notion Block Generator",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        1680,
+        -100
+      ],
+      "typeVersion": 1.5
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1620,
+        60
+      ],
+      "id": "e0447885-251a-4120-a2bc-04805aa48c87",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "qKk5wVYPDLRt63R9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "73fcb8a0-2672-4bd5-86de-8075e1e02baf",
+              "name": "=block",
+              "type": "array",
+              "value": "={{\n(function(){\n const block = $json.text\n .replace('```json', '')\n .replace('```', '')\n .trim()\n .parseJson();\n if (Array.isArray(block)) return block;\n if (block.type.startsWith('heading_')) {\n const prev = Number(block.type.split('_')[1]);\n const next = Math.max(1, prev - 1);\n if (next !== prev) {\n block.type = `heading_${next}`;\n block[`heading_${next}`] = Object.assign({}, block[`heading_${prev}`]);\n block[`heading_${prev}`] = undefined;\n }\n }\n return [block];\n})()\n}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fc722f7f-2733-4f6b-bed4-1aa6b60055d3",
+      "name": "Parse JSON blocks",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        2040,
+        -100
+      ],
+      "executeOnce": false,
+      "typeVersion": 3.4,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "4b2f0144-8bfc-4696-a374-535e5d5d97ce",
+      "name": "For Each Block...",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        2320,
+        -100
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.notion.com/v1/blocks/{{ $('Create Notion Page').item.json.id }}/children",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "notionApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n{\n \"children\": $json.block\n}\n}}",
+        "options": {
+          "timeout": "={{ 1000 * 60 }}"
+        }
+      },
+      "id": "c41e68cd-0e7b-45af-87bf-8804565ac8a9",
+      "name": "Upload to Notion Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "maxTries": 2,
+      "position": [
+        2600,
+        40
+      ],
+      "retryOnFail": true,
+      "typeVersion": 4.2,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "notionApi": {
+          "id": "d9Kgw4AHYg6bY8ps",
+          "name": "Notion Writer Account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "1d85b18f-c583-805b-89ae-f1edad1e69d9",
+          "mode": "list",
+          "cachedResultName": "Articles",
+          "cachedResultUrl": "https://www.notion.so/1d85b18fc583805b89aef1edad1e69d9"
+        },
+        "title": "={{ $json.output.title }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Description|rich_text",
+              "textContent": "={{ $json.output.description }}"
+            },
+            {
+              "key": "Request ID|number",
+              "numberValue": "={{ parseInt($('Set Data').item.json.request_id) }}"
+            },
+            {
+              "key": "Status|status",
+              "statusValue": "Not started"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        820,
+        0
+      ],
+      "id": "4b34c4bc-36ee-4ce9-ad33-dee4e035cc48",
+      "name": "Create Notion Page",
+      "credentials": {
+        "notionApi": {
+          "id": "d9Kgw4AHYg6bY8ps",
+          "name": "Notion Writer Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Create Notion Page').item.json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|status",
+              "statusValue": "Done"
+            },
+            {
+              "key": "Publication Date|date",
+              "date": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        2600,
+        -200
+      ],
+      "id": "c242a63b-5220-47ed-977f-65850aa2bd4e",
+      "name": "Notion",
+      "credentials": {
+        "notionApi": {
+          "id": "d9Kgw4AHYg6bY8ps",
+          "name": "Notion Writer Account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Set Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Data": {
+      "main": [
+        [
+          {
+            "node": "Report Page Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Report Page Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Report Page Generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report Page Generator": {
+      "main": [
+        [
+          {
+            "node": "Create Notion Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "Content Creator Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Creator Agent": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Try Again",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content Creator Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Response": {
+      "main": [
+        [
+          {
+            "node": "Notion Block Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Try Again": {
+      "main": [
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Notion Block Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion Block Generator": {
+      "main": [
+        [
+          {
+            "node": "Parse JSON blocks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse JSON blocks": {
+      "main": [
+        [
+          {
+            "node": "For Each Block...",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "For Each Block...": {
+      "main": [
+        [
+          {
+            "node": "Notion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upload to Notion Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Notion Page": {
+      "main": [
+        [
+          {
+            "node": "For Each Block...",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Notion Page": {
+      "main": [
+        [
+          {
+            "node": "Content Creator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d4526d7e2b7123bfb0e1996caa47744a7651d73096bbc7220a5e9657d119dfc"
+  },
+  "tags": []
+}

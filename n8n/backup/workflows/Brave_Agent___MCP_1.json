@@ -1,0 +1,201 @@
+{
+  "name": "Brave Agent + MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d7531162-d193-436f-8e84-7ac6a2bc7c71",
+      "name": "When chat message received",
+      "webhookId": "9e06d4c3-c3bd-4101-9313-3cd25d977c2b"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        260,
+        260
+      ],
+      "id": "e0445ff5-0a5b-46a1-83b4-bb8b81a8cd5f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        400,
+        260
+      ],
+      "id": "03574f25-77a3-4cda-8447-16782de9b82e",
+      "name": "Brave List Tools",
+      "credentials": {
+        "mcpClientApi": {
+          "id": "wsYV6lRUVE2AHlP0",
+          "name": "Brave MCP Client (STDIO)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeTool",
+        "toolName": "={{ $fromAI(\"tool\", \"the selected tool to use\") }}",
+        "toolParameters": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Tool_Parameters', ``, 'json') }}"
+      },
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        540,
+        200
+      ],
+      "id": "ac100a34-e290-48a5-b372-4563d42ca405",
+      "name": "Brave Execute Tools",
+      "credentials": {
+        "mcpClientApi": {
+          "id": "wsYV6lRUVE2AHlP0",
+          "name": "Brave MCP Client (STDIO)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=<AgentInstructions>\n    <Role>\n        <Name>Helpful Assistant</Name>\n        <Description>\n            You are a helpful assistant who has access to a bunch of tools to assist with user queries.\n        </Description>\n    </Role>\n    <Goal>\n        <Primary>\n            To leverage available tools to effectively respond to user requests.\n        </Primary>\n    </Goal>\n    <Instructions>\n        <Instruction>\n            1. Before you try to execute any tool, you need to call the tool to list available tools for the capability you want to leverage.\n        </Instruction>\n        <Instruction>\n            2. When you list tools available, you'll get a list back of items that look like:\n               name:[tool_name]\n               description:[tool description to tell you when and how to use the tool]\n               schema\n               0:[param 1]\n               1:[param 2]\n               ...\n               n-1:[param n]\n        </Instruction>\n        <Instruction>\n            3. When you call a tool, you need to give the tool name exactly as given to you, and the tool parameters need to be a json object like:\n               {\n                 \"param 1\": \"param 1 value\",\n                 ...\n                 \"param n\": \"param n value\"\n               }\n        </Instruction>\n        <Instruction>\n            4. If there are no parameters for the tool, just pass in an empty object.\n        </Instruction>\n        <Instruction>\n            5. For the file system, you have access to the /files directory and that is it.\n        </Instruction>\n    </Instructions>\n</AgentInstructions>"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        220,
+        0
+      ],
+      "id": "02d9af79-deaa-4798-b30d-e481e1862d0c",
+      "name": "Brave AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "pixtral-large-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        200
+      ],
+      "id": "f0d6004f-a958-41b7-947c-8ee7c0137bcb",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "ASY1Vrp1K8dfRyFv",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        220
+      ],
+      "id": "1774b28b-adb0-4a81-8460-fa853b2c6b44",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "bXwnlp1afbkOM7R3",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Brave AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Brave AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brave List Tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "Brave AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brave Execute Tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "Brave AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Brave AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "934a9e7dd20e2fad5089c3fe1108650835bafed455e0c7044c6446a941e37c96"
+  },
+  "tags": []
+}
