@@ -60,19 +60,10 @@ Before you begin, make sure you have the following software installed:
 
 ## Installation
 
-Clone the repository and navigate to the project directory:
-
-```bash
-git clone https://github.com/coleam00/local-ai-packaged.git
-cd local-ai-packaged
-```
-
-### Quick Start with Scripts
-
 The recommended way to install is using the provided scripts. Run the main installation script:
 
 ```bash
-sudo bash ./scripts/install.sh
+git clone https://github.com/kossakovsky/n8n-installer && cd n8n-installer && bash ./scripts/install.sh
 ```
 
 This script automates the entire setup process, including:
