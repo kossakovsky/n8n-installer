@@ -146,23 +146,6 @@ The `install.sh` script automatically starts all services using Docker Compose a
 
 - Linux machine (preferably Unbuntu) with Nano, Git, and Docker installed
 
-### Extra steps
-
-Before running the above commands to pull the repo and install everything:
-
-1. Run the commands as root to open up the necessary ports:
-
-   - ufw enable
-   - ufw allow 8000 && ufw allow 3000 && ufw allow 5678 && ufw allow 3002 && ufw allow 80 && ufw allow 443
-   - ufw allow 3001 (if you want to expose Flowise, you will have to set up the [environment variables](https://docs.flowiseai.com/configuration/environment-variables) to enable authentication)
-   - ufw allow 8080 (if you want to expose SearXNG)
-   - ufw reload
-
-2. Set up A records for your DNS provider to point your subdomains you'll set up in the .env file for Caddy
-   to the IP address of your cloud instance.
-
-   For example, A record to point n8n to [cloud instance IP] for n8n.yourdomain.com
-
 ## ⚡️ Quick start and usage
 
 The main component of the starter kit is a docker compose file
