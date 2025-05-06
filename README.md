@@ -64,15 +64,18 @@ Before you begin, make sure you have the following software installed:
 
 1.  **Domain Name:** You need a registered domain name (e.g., `yourdomain.com`).
 2.  **DNS Configuration:** Before running the installation script, you **must** configure the following DNS A-records for your domain, pointing to the public IP address of the server where you intend to install the n8n ecosystem. Replace `yourdomain.com` with your actual domain:
-    - `A n8n.yourdomain.com` -> `YOUR_SERVER_IP`
-    - `A flowise.yourdomain.com` -> `YOUR_SERVER_IP`
-    - `A supabase.yourdomain.com` -> `YOUR_SERVER_IP`
-    - `A webui.yourdomain.com` -> `YOUR_SERVER_IP` (for Open WebUI)
-    - `A prometheus.yourdomain.com` -> `YOUR_SERVER_IP`
-    - `A grafana.yourdomain.com` -> `YOUR_SERVER_IP`
-    - `A langfuse.yourdomain.com` -> `YOUR_SERVER_IP`
-    - `A searxng.yourdomain.com` -> `YOUR_SERVER_IP`
-      Caddy (the included web server) will use these domains to automatically obtain and manage HTTPS/TLS certificates via Let's Encrypt.
+
+- `A n8n.yourdomain.com` -> `YOUR_SERVER_IP`
+- `A flowise.yourdomain.com` -> `YOUR_SERVER_IP`
+- `A supabase.yourdomain.com` -> `YOUR_SERVER_IP`
+- `A webui.yourdomain.com` -> `YOUR_SERVER_IP` (for Open WebUI)
+- `A prometheus.yourdomain.com` -> `YOUR_SERVER_IP`
+- `A grafana.yourdomain.com` -> `YOUR_SERVER_IP`
+- `A langfuse.yourdomain.com` -> `YOUR_SERVER_IP`
+- `A searxng.yourdomain.com` -> `YOUR_SERVER_IP`
+
+  Caddy (the included web server) will use these domains to automatically obtain and manage HTTPS/TLS certificates via Let's Encrypt.
+
 3.  **Server:** A Linux server (Ubuntu 24.04 LTS x64 recommended and tested). The installation was tested on a machine with **8 GB Memory / 4 Intel vCPUs / 120 GB Disk**.
 
 ### Running the Installer
