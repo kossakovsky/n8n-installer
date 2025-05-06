@@ -4,16 +4,16 @@
 
 This is Cole's version with a couple of improvements and the addition of Supabase, Open WebUI, Flowise, Langfuse, SearXNG, and Caddy!
 Also, the RAG AI Agent workflows from the video will be automatically in your
-n8n instance if you use this setup instead of the base one provided by n8n! Note: these workflows might require external LLM API keys or a separate Ollama instance if you wish to use local models.
+n8n instance if you use this setup instead of the base one provided by n8n! Note: these workflows might require external LLM API keys.
 Also, you have the option during setup to automatically import over 300 community workflows into your n8n instance!
 
 ## Important Links
 
 - Forked from [coleam00/local-ai-packaged](https://github.com/coleam00/local-ai-packaged)
 
-- [Original Local AI Starter Kit](https://github.com/n8n-io/self-hosted-ai-starter-kit) by the n8n team
+- [Original Starter Kit](https://github.com/n8n-io/self-hosted-ai-starter-kit) by the n8n team
 
-- [Local AI community](https://thinktank.ottomator.ai/c/local-ai/18) forum over in the oTTomator Think Tank
+- [Community](https://thinktank.ottomator.ai/c/local-ai/18) forum over in the oTTomator Think Tank
 
 - [GitHub Kanban board](https://github.com/users/coleam00/projects/2/views/1) for feature implementation and bug squashing.
 
@@ -162,7 +162,7 @@ Before running the above commands to pull the repo and install everything:
 
 ## ⚡️ Quick start and usage
 
-The main component of the self-hosted AI starter kit is a docker compose file
+The main component of the starter kit is a docker compose file
 pre-configured with network and disk so there isn't much else you need to
 install. After completing the installation steps above, follow the steps below
 to get started.
@@ -205,12 +205,10 @@ suite of basic and advanced AI nodes such as
 [AI Agent](https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.agent/),
 [Text classifier](https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.text-classifier/),
 and [Information Extractor](https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.information-extractor/)
-nodes. To keep everything local, just remember to use the Ollama node for your
-language model (if configured) and Qdrant or Supabase as your vector store.
-nodes. Remember to use Qdrant or Supabase as your vector store. If you wish to use local language models, you can configure the Ollama node in n8n, assuming you have an Ollama instance running separately.
+nodes. Remember to use Qdrant or Supabase as your vector store. If you wish to use language models, you can configure the n8n instance, assuming you have an LLM instance running separately.
 
 > [!NOTE]
-> This starter kit is designed to help you get started with self-hosted AI
+> This starter kit is designed to help you get started with
 > workflows. While it's not fully optimized for production environments, it
 > This installer is designed to help you get started quickly with n8n and related tools. While it's not fully optimized for production environments, it
 > combines robust components that work well together for proof-of-concept
@@ -291,7 +289,7 @@ your local n8n instance.
 
 ### Accessing local files
 
-The self-hosted AI starter kit will create a shared folder (by default,
+The starter kit will create a shared folder (by default,
 The installer will create a shared folder (by default,
 located in the same directory) which is mounted to the n8n container and
 allows n8n to access files on disk. This folder within the n8n container is
