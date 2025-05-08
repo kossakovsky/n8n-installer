@@ -63,18 +63,12 @@ Before you begin, make sure you have the following software installed:
 ### Prerequisites before Installation
 
 1.  **Domain Name:** You need a registered domain name (e.g., `yourdomain.com`).
-2.  **DNS Configuration:** Before running the installation script, you **must** configure the following DNS A-records for your domain, pointing to the public IP address of the server where you intend to install the n8n ecosystem. Replace `yourdomain.com` with your actual domain:
+2.  **DNS Configuration:** Before running the installation script, you **must** configure the following DNS A-record(s) for your domain, pointing to the public IP address of the server where you intend to install the n8n ecosystem. Replace `yourdomain.com` with your actual domain:
 
-- `A n8n.yourdomain.com` -> `YOUR_SERVER_IP`
-- `A flowise.yourdomain.com` -> `YOUR_SERVER_IP`
-- `A supabase.yourdomain.com` -> `YOUR_SERVER_IP`
-- `A webui.yourdomain.com` -> `YOUR_SERVER_IP` (for Open WebUI)
-- `A prometheus.yourdomain.com` -> `YOUR_SERVER_IP`
-- `A grafana.yourdomain.com` -> `YOUR_SERVER_IP`
-- `A langfuse.yourdomain.com` -> `YOUR_SERVER_IP`
-- `A searxng.yourdomain.com` -> `YOUR_SERVER_IP`
-
-  Caddy (the included web server) will use these domains to automatically obtain and manage HTTPS/TLS certificates via Let's Encrypt.
+    - **Wildcard Record (Required):**
+      `A *.yourdomain.com` -> `YOUR_SERVER_IP`
+    - **Apex/Root Domain Record (Recommended, if you plan to use `yourdomain.com` directly for any service or a landing page):**
+      `A yourdomain.com` -> `YOUR_SERVER_IP`
 
 3.  **Server:** A Linux server (Ubuntu 24.04 LTS x64 recommended and tested). The installation was tested on a machine with **8 GB Memory / 4 Intel vCPUs / 120 GB Disk**.
 
@@ -95,7 +89,7 @@ This single command automates the entire setup process, including:
 
 During the installation, the script will prompt you for:
 
-1.  Your **primary domain name** (Required, e.g., `yourdomain.com`). This must be the domain for which you configured the DNS records.
+1.  Your **primary domain name** (Required, e.g., `yourdomain.com`). This is the domain for which you've configured the wildcard DNS A-record.
 2.  Your **email address** (Required, used for service logins like Flowise, Supabase dashboard, Grafana, etc., and crucial for Let's Encrypt SSL certificates).
 3.  An optional **OpenAI API key** (Not required, used by Supabase AI features and Crawl4ai if provided. Press Enter to skip).
 4.  Whether you want to **import ~300 ready-made n8n community workflows** (y/n, Optional. This can take around 20-30 minutes depending on your server and network).
@@ -127,7 +121,7 @@ The script will generate secure values for necessary secrets like:
 The script will also configure hostnames in the `.env` file based on the domain you provide, for example:
 
 - `N8N_HOSTNAME=n8n.yourdomain.com`
-- `WEBUI_HOSTNAME=openwebui.yourdomain.com`
+- `WEBUI_HOSTNAME=webui.yourdomain.com` (Note: The example in the original README used `openwebui.yourdomain.com` for the variable `WEBUI_HOSTNAME`, ensure consistency with your `.env` and `Caddyfile` if `WEBUI_HOSTNAME` is indeed the variable used for Open WebUI)
 - `FLOWISE_HOSTNAME=flowise.yourdomain.com`
 - `SUPABASE_HOSTNAME=supabase.yourdomain.com`
 - `SEARXNG_HOSTNAME=searxng.yourdomain.com`
