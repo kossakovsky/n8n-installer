@@ -212,23 +212,3 @@ interact with the local filesystem.
 
 This project (originally created by the n8n team, link at the top of the README) is licensed under the Apache License 2.0 - see the
 [LICENSE](LICENSE) file for details.
-
-## Monitoring n8n with Prometheus and Grafana
-
-Prometheus and Grafana are included for monitoring your n8n instance.
-
-- Prometheus: http://localhost:9090/ or https://prometheus.a2.fyi/
-- Grafana: http://localhost:3002/ or https://grafana.a2.fyi/ (default admin password is set in `.env`)
-
-**To add n8n metrics:**
-
-- n8n exposes metrics at `http://n8n:5678/metrics` (if not, see n8n docs for enabling Prometheus metrics).
-- Prometheus is pre-configured to scrape n8n metrics.
-- Grafana can be configured to use Prometheus as a data source (default URL: `http://prometheus:9090`).
-
-**Default credentials for Grafana:**
-
-- Username: admin
-- Password: (set in `.env` as `GRAFANA_ADMIN_PASSWORD`)
-
-You can import community dashboards for n8n or create your own!
