@@ -9,11 +9,11 @@ Also, you have the option during setup to automatically import over 300 communit
 
 ## Important Links
 
-- Forked from [coleam00/local-ai-packaged](https://github.com/coleam00/local-ai-packaged)
+- Based on a project by [coleam00](https://github.com/coleam00/local-ai-packaged)
 
 - [Original Starter Kit](https://github.com/n8n-io/self-hosted-ai-starter-kit) by the n8n team
 
-- [Community](https://thinktank.ottomator.ai/c/local-ai/18) forum over in the oTTomator Think Tank
+- [Community forum](https://thinktank.ottomator.ai/c/local-ai/18) over in the oTTomator Think Tank
 
 - [GitHub Kanban board](https://github.com/users/coleam00/projects/2/views/1) for feature implementation and bug squashing.
 
@@ -28,7 +28,7 @@ integrations and advanced AI components
 most widely used database for AI agents
 
 ✅ [**Open WebUI**](https://openwebui.com/) - ChatGPT-like interface to
-privately interact with your local models and N8N agents
+privately interact with your models and N8N agents
 
 ✅ [**Flowise**](https://flowiseai.com/) - No/low code AI agent
 builder that pairs very well with n8n
@@ -38,7 +38,8 @@ store with an comprehensive API. Even though you can use Supabase for RAG, this 
 kept unlike Postgres since it's faster than Supabase so sometimes is the better option.
 
 ✅ [**SearXNG**](https://searxng.org/) - Open source, free internet metasearch engine which aggregates
-results from up to 229 search services. Users are neither tracked nor profiled, hence the fit with the local AI package.
+results from up to 229 search services. Users are neither tracked nor profiled,
+hence the fit with this AI package.
 
 ✅ [**Caddy**](https://caddyserver.com/) - Managed HTTPS/TLS for custom domains
 
@@ -147,8 +148,6 @@ Here are solutions to common issues you might encounter:
 
 - **Supabase Analytics Startup Failure**: If the supabase-analytics container fails to start after changing your Postgres password, delete the folder `supabase/docker/volumes/db/data`.
 
-- **If using Docker Desktop**: Go into the Docker settings and make sure "Expose daemon on tcp://localhost:2375 without TLS" is turned on
-
 - **Supabase Service Unavailable** - Make sure you don't have an "@" character in your Postgres password! If the connection to the kong container is working (the container logs say it is receiving requests from n8n) but n8n says it cannot connect, this is generally the problem from what the community has shared. Other characters might not be allowed too, the @ symbol is just the one I know for sure!
 
 ## 👓 Recommended reading
@@ -164,14 +163,14 @@ and nodes. If you run into an issue, go to [support](#support).
 
 ## 🎥 Video walkthrough
 
-- [Cole's Guide to the Local AI Starter Kit](https://youtu.be/pOsO40HSbOo)
+- [Cole's Guide to the AI Starter Kit](https://youtu.be/pOsO40HSbOo)
 
 ## 🛍️ More AI templates
 
 For more AI workflow ideas, visit the [**official n8n AI template
 gallery**](https://n8n.io/workflows/?categories=AI). From each workflow,
-select the **Use workflow** button to automatically import the workflow into
-your local n8n instance.
+select the **Use workflow** button to automatically import the workflow into your
+n8n instance.
 
 ### Learn AI key concepts
 
@@ -182,27 +181,27 @@ your local n8n instance.
 - [Chat with PDF docs using AI (quoting sources)](https://n8n.io/workflows/2165-chat-with-pdf-docs-using-ai-quoting-sources/)
 - [AI agent that can scrape webpages](https://n8n.io/workflows/2006-ai-agent-that-can-scrape-webpages/)
 
-### Local AI templates
+### AI Templates
 
 - [Tax Code Assistant](https://n8n.io/workflows/2341-build-a-tax-code-assistant-with-qdrant-mistralai-and-openai/)
 - [Breakdown Documents into Study Notes with MistralAI and Qdrant](https://n8n.io/workflows/2339-breakdown-documents-into-study-notes-using-templating-mistralai-and-qdrant/)
 - [Financial Documents Assistant using Qdrant and](https://n8n.io/workflows/2335-build-a-financial-documents-assistant-using-qdrant-and-mistralai/) [Mistral.ai](http://mistral.ai/)
 - [Recipe Recommendations with Qdrant and Mistral](https://n8n.io/workflows/2333-recipe-recommendations-with-qdrant-and-mistral/)
 
-### Example AI templates (May require external APIs or separate local model setup)
+### Example AI templates (May require external APIs or separate model setup)
 
 ## Tips & tricks
 
-### Accessing local files
+### Accessing Files on the Server
 
 The starter kit will create a shared folder (by default,
 The installer will create a shared folder (by default,
 located in the same directory) which is mounted to the n8n container and
-allows n8n to access files on disk. This folder within the n8n container is
+allows n8n to access files on the server's disk. This folder within the n8n container is
 located at `/data/shared` -- this is the path you'll need to use in nodes that
-interact with the local filesystem.
+interact with the server's filesystem.
 
-**Nodes that interact with the local filesystem**
+**Nodes that interact with the server's filesystem**
 
 - [Read/Write Files from Disk](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.filesreadwrite/)
 - [Local File Trigger](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.localfiletrigger/)
