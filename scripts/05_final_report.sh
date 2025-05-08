@@ -66,6 +66,14 @@ echo "Internal API Gateway: http://kong:8000"
 echo "Studio User: ${DASHBOARD_USERNAME:-<not_set_in_env>}"
 echo "Studio Password: ${DASHBOARD_PASSWORD:-<not_set_in_env>}"
 echo
+echo "================================= PostgreSQL (Supabase) ============================"
+echo
+echo "Host: ${POSTGRES_HOST:-db}"
+echo "Port: ${POSTGRES_PORT:-5432}"
+echo "Database: ${POSTGRES_DB:-postgres}"
+echo "User: ${POSTGRES_USER:-postgres}"
+echo "Password: ${POSTGRES_PASSWORD:-<not_set_in_env>}"
+echo
 echo "================================= Grafana ============================="
 echo
 echo "Host: ${GRAFANA_HOSTNAME:-<hostname_not_set>}"
