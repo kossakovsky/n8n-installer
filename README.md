@@ -50,14 +50,6 @@ results from up to 229 search services. Users are neither tracked nor profiled, 
 
 ✅ [**Grafana**](https://grafana.com/) - Open source platform for monitoring and observability, often used with Prometheus.
 
-## Prerequisites
-
-Before you begin, make sure you have the following software installed:
-
-- [Python](https://www.python.org/downloads/) - Required to run the setup script
-- [Git/GitHub Desktop](https://desktop.github.com/) - For easy repository management
-- [Docker/Docker Desktop](https://www.docker.com/products/docker-desktop/) - Required to run all services
-
 ## Installation
 
 ### Prerequisites before Installation
@@ -99,86 +91,20 @@ Upon successful completion, the script will display a summary report containing 
 > [!NOTE]
 > The `install.sh` script handles the creation and population of the `.env` file based on `.env.example` and the information you provide. You typically do not need to manually create or edit this file unless making advanced customizations _after_ the initial setup.
 
-The script will generate secure values for necessary secrets like:
-
-- `N8N_ENCRYPTION_KEY`
-- `N8N_USER_MANAGEMENT_JWT_SECRET`
-- `POSTGRES_PASSWORD`
-- `JWT_SECRET`
-- `ANON_KEY` (derived from JWT_SECRET)
-- `SERVICE_ROLE_KEY` (derived from JWT_SECRET)
-- `DASHBOARD_PASSWORD`
-- `CLICKHOUSE_PASSWORD`
-- `MINIO_ROOT_PASSWORD`
-- `LANGFUSE_SALT`
-- `NEXTAUTH_SECRET`
-- `ENCRYPTION_KEY` (Langfuse)
-- `GRAFANA_ADMIN_PASSWORD`
-- And others...
-
-> The installation script handles the generation of these secrets automatically.
-
-The script will also configure hostnames in the `.env` file based on the domain you provide, for example:
-
-- `N8N_HOSTNAME=n8n.yourdomain.com`
-- `WEBUI_HOSTNAME=webui.yourdomain.com` (Note: The example in the original README used `openwebui.yourdomain.com` for the variable `WEBUI_HOSTNAME`, ensure consistency with your `.env` and `Caddyfile` if `WEBUI_HOSTNAME` is indeed the variable used for Open WebUI)
-- `FLOWISE_HOSTNAME=flowise.yourdomain.com`
-- `SUPABASE_HOSTNAME=supabase.yourdomain.com`
-- `SEARXNG_HOSTNAME=searxng.yourdomain.com`
-- `LANGFUSE_HOSTNAME=langfuse.yourdomain.com`
-- `GRAFANA_HOSTNAME=grafana.yourdomain.com`
-- `PROMETHEUS_HOSTNAME=prometheus.yourdomain.com`
-- `LETSENCRYPT_EMAIL=your-email-address` (filled with the email you provide)
-
-Service Startup
-
-The `install.sh` script automatically starts all services using Docker Compose after the configuration is complete. You generally do not need to start services manually after the initial installation. If you need to restart services after stopping them manually, the `scripts/04_run_services.sh` script can be used, or you can manage them via standard `docker compose` commands (though using the provided scripts is recommended).
-
-## Deploying to the Cloud
-
-### Prerequisites for the below steps
-
-- Linux machine (preferably Unbuntu) with Nano, Git, and Docker installed
+The installation script handles the generation of these secrets automatically.
 
 ## ⚡️ Quick start and usage
 
-The main component of the starter kit is a docker compose file
-pre-configured with network and disk so there isn't much else you need to
-install. After completing the installation steps above, follow the steps below
-to get started.
+The services will be available at the following hostnames (replace `yourdomain.com` with your actual domain):
 
-1. Open <http://localhost:5678/> in your browser to set up n8n. You'll only
-   have to do this once. You are NOT creating an account with n8n in the setup here,
-   it is only a local account for your instance!
-2. Open the included workflow:
-   <http://localhost:5678/workflow/vTN9y2dLXqTiDfPT>
-3. Create credentials for every service:
-
-   Postgres (through Supabase): use DB, username, and password from .env. IMPORTANT: Host is 'db'
-   (name of the Supabase Postgres service within the Docker network).
-
-   Qdrant URL: http://qdrant:6333 (API key can be whatever since this is running locally)
-
-   Google Drive: Follow [this guide from n8n](https://docs.n8n.io/integrations/builtin/credentials/google/).
-   Don't use localhost for the redirect URI, just use another domain you have, it will still work!
-   Alternatively, you can set up [local file triggers](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.localfiletrigger/).
-
-4. Select **Test workflow** to start running the workflow.
-5. Make sure to toggle the workflow as active and copy the "Production" webhook URL!
-6. Open <http://localhost:3000/> in your browser to set up Open WebUI.
-   You'll only have to do this once. You are NOT creating an account with Open WebUI in the
-   setup here, it is only a local account for your instance!
-7. Go to Workspace -> Functions -> Add Function -> Give name + description then paste in
-   the code from `n8n_pipe.py`
-
-   The function is also [published here on Open WebUI's site](https://openwebui.com/f/coleam/n8n_pipe/).
-
-8. Click on the gear icon and set the n8n_url to the production URL for the webhook
-   you copied in a previous step.
-9. Toggle the function on and now it will be available in your model dropdown in the top left!
-
-To open n8n at any time, visit <http://localhost:5678/> in your browser.
-To open Open WebUI at any time, visit <http://localhost:3000/>.
+- n8n: `n8n.yourdomain.com`
+- Open WebUI: `webui.yourdomain.com`
+- Flowise: `flowise.yourdomain.com`
+- Supabase: `supabase.yourdomain.com`
+- Langfuse: `langfuse.yourdomain.com`
+- Grafana: `grafana.yourdomain.com`
+- SearXNG: `searxng.yourdomain.com`
+- Prometheus: `prometheus.yourdomain.com`
 
 With your n8n instance, you'll have access to over 400 integrations and a
 suite of basic and advanced AI nodes such as
