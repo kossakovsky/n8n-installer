@@ -1,0 +1,22 @@
+{
+  "tags": [
+    "docker",
+    "docker-compose",
+    "bash",
+    "n8n",
+    "qdrant",
+    "open-webui",
+    "flowise",
+    "caddy",
+    "langfuse",
+    "postgresql",
+    "redis",
+    "minio",
+    "clickhouse",
+    "grafana",
+    "prometheus",
+    "searxng",
+    "ufw",
+    "fail2ban"
+  ]
+}
