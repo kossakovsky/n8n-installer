@@ -48,8 +48,22 @@ declare -A VARS_TO_GENERATE=(
 
 # Check if .env file already exists
 if [ -f "$OUTPUT_FILE" ]; then
-    log_info "$OUTPUT_FILE already exists. Skipping generation."
-    exit 0
+    log_info "$OUTPUT_FILE already exists. Reading existing values and will only fill missing ones."
+    declare -A existing_env_vars # Declare here if only used after this block
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        if [[ -n "$line" && ! "$line" =~ ^\\s*# && "$line" == *"="* ]]; then
+            varName=$(echo "$line" | cut -d'=' -f1 | xargs)
+            varValue=$(echo "$line" | cut -d'=' -f2-)
+            # Simple unquote for "value" or 'value'
+            if [[ "$varValue" =~ ^\\"(.*)\\"$ || "$varValue" =~ ^\\'(.*)\\'$ ]]; then
+                varValue="${BASH_REMATCH[1]}"
+            fi
+            existing_env_vars["$varName"]="$varValue"
+        fi
+    done < "$OUTPUT_FILE"
+else
+    log_info "No existing $OUTPUT_FILE found. Will generate a new one."
+    declare -A existing_env_vars # Ensure it's declared even if file doesn't exist
 fi
 
 # Install Caddy
@@ -95,42 +109,64 @@ echo "   - Login to SearXNG"
 echo "   - Login to Grafana"
 echo "   - Login to Prometheus"
 echo "   - SSL certificate generation with Let's Encrypt"
-while true; do
-    read -p "Email: " USER_EMAIL
 
-    # Validate email input
-    if [[ -z "$USER_EMAIL" ]]; then
-        log_error "Email cannot be empty." >&2
-        continue # Ask again
-    fi
+if [[ -n "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
+    USER_EMAIL="${existing_env_vars[LETSENCRYPT_EMAIL]}"
+    log_info "Using existing email from .env: $USER_EMAIL"
+else
+    while true; do
+        read -p "Email: " USER_EMAIL
 
-    # Basic email format validation
-    if [[ ! "$USER_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-        log_warning "Warning: Email format appears to be invalid: '$USER_EMAIL'" >&2
-    fi
+        # Validate email input
+        if [[ -z "$USER_EMAIL" ]]; then
+            log_error "Email cannot be empty." >&2
+            continue # Ask again
+        fi
 
-    read -p "Are you sure '$USER_EMAIL' is correct? (y/N): " confirm_email
-    if [[ "$confirm_email" =~ ^[Yy]$ ]]; then
-        break # Confirmed, exit loop
-    else
-        log_info "Please try entering the email address again."
-    fi
-done
+        # Basic email format validation
+        if [[ ! "$USER_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$ ]]; then
+            log_warning "Warning: Email format appears to be invalid: '$USER_EMAIL'" >&2
+        fi
+
+        read -p "Are you sure '$USER_EMAIL' is correct? (y/N): " confirm_email
+        if [[ "$confirm_email" =~ ^[Yy]$ ]]; then
+            break # Confirmed, exit loop
+        else
+            log_info "Please try entering the email address again."
+        fi
+    done
+fi
 
 # Prompt for OpenAI API key (optional)
 echo "OpenAI API Key (optional). This key will be used for:"
 echo "   - Supabase: AI services to help with writing SQL queries, statements, and policies"
 echo "   - Crawl4AI: Default LLM configuration for web crawling capabilities"
 echo "   You can skip this by leaving it empty."
-read -p "OpenAI API Key: " OPENAI_API_KEY
+
+if [[ -v existing_env_vars[OPENAI_API_KEY] ]]; then # -v checks if variable is set (even if empty)
+    OPENAI_API_KEY="${existing_env_vars[OPENAI_API_KEY]}"
+    if [[ -n "$OPENAI_API_KEY" ]]; then
+      log_info "Using existing OpenAI API Key from .env."
+    else
+      log_info "Found empty OpenAI API Key in .env. You can provide one now or leave empty."
+      read -p "OpenAI API Key: " OPENAI_API_KEY # Allow update if it was empty
+    fi
+else
+    read -p "OpenAI API Key: " OPENAI_API_KEY
+fi
 
 # Ask if user wants to import ready-made workflow for n8n
 echo "Do you want to import 300 ready-made workflows for n8n? This process may take about 30 minutes to complete."
-read -p "Import workflows? (y/n): " import_workflow
-if [[ "$import_workflow" =~ ^[Yy]$ ]]; then
-    RUN_N8N_IMPORT="true"
+if [[ -n "${existing_env_vars[RUN_N8N_IMPORT]}" ]]; then
+    RUN_N8N_IMPORT="${existing_env_vars[RUN_N8N_IMPORT]}"
+    log_info "Using existing RUN_N8N_IMPORT value from .env: $RUN_N8N_IMPORT"
 else
-    RUN_N8N_IMPORT="false"
+    read -p "Import workflows? (y/n): " import_workflow
+    if [[ "$import_workflow" =~ ^[Yy]$ ]]; then
+        RUN_N8N_IMPORT="true"
+    else
+        RUN_N8N_IMPORT="false"
+    fi
 fi
 
 log_info "Generating secrets and creating .env file..."
@@ -174,7 +210,14 @@ fi
 # Associative array to store generated values
 declare -A generated_values
 
-# Store user input values
+# Pre-populate generated_values with non-empty values from existing_env_vars
+for key_from_existing in "${!existing_env_vars[@]}"; do
+    if [[ -n "${existing_env_vars[$key_from_existing]}" ]]; then
+        generated_values["$key_from_existing"]="${existing_env_vars[$key_from_existing]}"
+    fi
+done
+
+# Store user input values (potentially overwriting if user was re-prompted and gave new input)
 generated_values["FLOWISE_USERNAME"]="$USER_EMAIL"
 generated_values["DASHBOARD_USERNAME"]="$USER_EMAIL"
 generated_values["LETSENCRYPT_EMAIL"]="$USER_EMAIL"
@@ -212,21 +255,13 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         varName=$(echo "$processed_line" | cut -d'=' -f1 | xargs) # Trim whitespace
         currentValue=$(echo "$processed_line" | cut -d'=' -f2-)
 
-        # Check if this is one of our custom variables
-        if [[ "$varName" == "FLOWISE_USERNAME" || "$varName" == "DASHBOARD_USERNAME" || 
-              "$varName" == "LETSENCRYPT_EMAIL" || "$varName" == "RUN_N8N_IMPORT" || 
-              "$varName" == "PROMETHEUS_USERNAME" ||
-              "$varName" == "SEARXNG_USERNAME" || "$varName" == "OPENAI_API_KEY" ||
-              "$varName" == "LANGFUSE_INIT_USER_EMAIL" ]]; then
-            
-            found_vars["$varName"]=1
-            
-            # If we have a value for this variable, use it
-            if [[ -v generated_values["$varName"] ]]; then
-                processed_line="${varName}=\"${generated_values[$varName]}\"" # Ensure quoting
-            fi
-        # Check if variable needs generation
-        elif [[ -v VARS_TO_GENERATE["$varName"] ]]; then # Always generate if in VARS_TO_GENERATE
+        # If already have a non-empty value from existing .env or prior generation/user input, use it
+        if [[ -n "${generated_values[$varName]}" ]]; then
+            processed_line="${varName}=\\\\\"${generated_values[$varName]}\\\\\""
+        # Check if this is one of our user-input derived variables that might not have a value yet
+        # (e.g. OPENAI_API_KEY if user left it blank). These are handled by `found_vars` later if needed.
+        # Or, if variable needs generation AND is not already populated (or is empty) in generated_values
+        elif [[ -v VARS_TO_GENERATE["$varName"] && -z "${generated_values[$varName]}" ]]; then
             IFS=':' read -r type length <<< "${VARS_TO_GENERATE[$varName]}"
             newValue=""
             case "$type" in
@@ -239,18 +274,50 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             esac
 
             if [[ -n "$newValue" ]]; then
-                processed_line="${varName}=\"${newValue}\"" # Quote generated values
-                generated_values["$varName"]="$newValue"
+                processed_line="${varName}=\\\\\"${newValue}\\\\\"" # Quote generated values
+                generated_values["$varName"]="$newValue"    # Store newly generated
             else
-                # Keep original line structure but ensure value is empty
-                processed_line="${varName}="
+                # Keep original line structure but ensure value is empty if generation failed
+                # but it was in VARS_TO_GENERATE
+                processed_line="${varName}=\""
+                generated_values["$varName"]="" # Explicitly mark as empty in generated_values
             fi
+        # For variables from the template that are not in VARS_TO_GENERATE and not already in generated_values
+        # store their template value if it's a direct assignment (not a ${...} substitution)
+        # This allows them to be used in later ${VAR} substitutions if they are referenced.
         else
-            # Store existing value if it might be needed for substitution later
-            # Trim potential quotes for storage, add them back during substitution
-            trimmed_value=$(echo "$currentValue" | sed -e 's/^"//' -e 's/"$//')
-            if [[ -n "$varName" && -n "$trimmed_value" && "$trimmed_value" != "\${"* ]]; then
-                generated_values["$varName"]="$trimmed_value"
+            # This 'else' block is for lines from template not covered by existing values or VARS_TO_GENERATE.
+            # Check if it is one of the user input vars - these are handled by found_vars later if not in template.
+            is_user_input_var=0
+            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL")
+            for uivar in "${user_input_vars[@]}"; do
+                if [[ "$varName" == "$uivar" ]]; then
+                    is_user_input_var=1
+                    # Mark as found if it's in template, value taken from generated_values if already set or blank
+                    found_vars["$varName"]=1 
+                    if [[ -v generated_values[$varName] ]]; then # if it was set (even to empty by user)
+                        processed_line="${varName}=\\\\\"${generated_values[$varName]}\\\\\""
+                    else # Not set in generated_values, keep template's default if any, or make it empty
+                        if [[ "$currentValue" =~ ^\\$\\{.*\\} || -z "$currentValue" ]]; then # if template is ${VAR} or empty
+                            processed_line="${varName}=\""
+                        else # template has a default simple value
+                            processed_line="${varName}=\\\\\"$currentValue\\\\\"\" # Use template's default, and quote it
+                            # Don't add to generated_values here, let the original logic handle it if needed
+                        fi
+                    fi
+                    break
+                fi
+            done
+
+            if [[ $is_user_input_var -eq 0 ]]; then # Not a user input var, not in VARS_TO_GENERATE, not in existing
+                trimmed_value=$(echo "$currentValue" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'//")
+                if [[ -n "$varName" && -n "$trimmed_value" && "$trimmed_value" != "\${INSTANCE_DOMAIN}" && "$trimmed_value" != "\${SUBDOMAIN_WILDCARD_CERT}" && ! "$trimmed_value" =~ ^\\$\\{ ]]; then # Check for other placeholders
+                    # Only store if not already in generated_values and not a placeholder reference
+                    if [[ -z "${generated_values[$varName]}" ]]; then
+                        generated_values["$varName"]="$trimmed_value"
+                    fi
+                fi
+                # processed_line remains as is (from template, after domain sub) for these cases
             fi
         fi
     fi
@@ -285,16 +352,36 @@ create_jwt() {
 }
 
 # Get JWT secret from previously generated values
-JWT_SECRET="${generated_values["JWT_SECRET"]}"
+JWT_SECRET_TO_USE="${generated_values["JWT_SECRET"]}"
 
-# Generate the actual JWT tokens using the JWT_SECRET
-generated_values["ANON_KEY"]=$(create_jwt "anon" "$JWT_SECRET")
-generated_values["SERVICE_ROLE_KEY"]=$(create_jwt "service_role" "$JWT_SECRET")
+if [[ -z "$JWT_SECRET_TO_USE" ]]; then
+    # This should ideally have been generated by VARS_TO_GENERATE if it was missing
+    # and JWT_SECRET is in VARS_TO_GENERATE. For safety, generate if truly empty.
+    log_warning "JWT_SECRET was empty, attempting to generate it now."
+    # Assuming JWT_SECRET definition is 'base64:64'
+    JWT_SECRET_TO_USE=$(gen_base64 64)
+    generated_values["JWT_SECRET"]="$JWT_SECRET_TO_USE"
+fi
+
+# Generate the actual JWT tokens using the JWT_SECRET_TO_USE, if not already set
+if [[ -z "${generated_values[ANON_KEY]}" ]]; then
+    log_info "Generating ANON_KEY..."
+    generated_values["ANON_KEY"]=$(create_jwt "anon" "$JWT_SECRET_TO_USE")
+else
+    log_info "Using existing ANON_KEY."
+fi
+
+if [[ -z "${generated_values[SERVICE_ROLE_KEY]}" ]]; then
+    log_info "Generating SERVICE_ROLE_KEY..."
+    generated_values["SERVICE_ROLE_KEY"]=$(create_jwt "service_role" "$JWT_SECRET_TO_USE")
+else
+    log_info "Using existing SERVICE_ROLE_KEY."
+fi
 
 # Add any custom variables that weren't found in the template
 for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
-        echo "${var}=\"${generated_values[$var]}\"" >> "$TMP_ENV_FILE" # Ensure quoting
+        echo "${var}=\\\\\"${generated_values[$var]}\\\\\"" >> "$TMP_ENV_FILE" # Ensure quoting
     fi
 done
 
@@ -335,27 +422,27 @@ for key in "${!generated_values[@]}"; do
         
         # Handle specific cases
         if [[ "$key" == "ANON_KEY" && "$line" == "ANON_KEY="* ]]; then
-            line="ANON_KEY=\"$(cat "$value_file")\""
+            line="ANON_KEY=\\\\\"$(cat "$value_file")\\\\\""
         fi
         
         if [[ "$key" == "SERVICE_ROLE_KEY" && "$line" == "SERVICE_ROLE_KEY="* ]]; then
-            line="SERVICE_ROLE_KEY=\"$(cat "$value_file")\""
+            line="SERVICE_ROLE_KEY=\\\\\"$(cat "$value_file")\\\\\""
         fi
         
         if [[ "$key" == "ANON_KEY" && "$line" == "SUPABASE_ANON_KEY="* ]]; then
-            line="SUPABASE_ANON_KEY=\"$(cat "$value_file")\""
+            line="SUPABASE_ANON_KEY=\\\\\"$(cat "$value_file")\\\\\""
         fi
         
         if [[ "$key" == "SERVICE_ROLE_KEY" && "$line" == "SUPABASE_SERVICE_ROLE_KEY="* ]]; then
-            line="SUPABASE_SERVICE_ROLE_KEY=\"$(cat "$value_file")\""
+            line="SUPABASE_SERVICE_ROLE_KEY=\\\\\"$(cat "$value_file")\\\\\""
         fi
         
         if [[ "$key" == "JWT_SECRET" && "$line" == "SUPABASE_JWT_SECRET="* ]]; then
-            line="SUPABASE_JWT_SECRET=\"$(cat "$value_file")\""
+            line="SUPABASE_JWT_SECRET=\\\\\"$(cat "$value_file")\\\\\""
         fi
         
         if [[ "$key" == "POSTGRES_PASSWORD" && "$line" == "SUPABASE_POSTGRES_PASSWORD="* ]]; then
-            line="SUPABASE_POSTGRES_PASSWORD=\"$(cat "$value_file")\""
+            line="SUPABASE_POSTGRES_PASSWORD=\\\\\"$(cat "$value_file")\\\\\""
         fi
         
         # Write the processed line to the new file
@@ -374,26 +461,32 @@ log_info "Hashing passwords with caddy using bcrypt..."
 PROMETHEUS_PLAIN_PASS="${generated_values["PROMETHEUS_PASSWORD"]}"
 SEARXNG_PLAIN_PASS="${generated_values["SEARXNG_PASSWORD"]}"
 
-if [[ -n "$PROMETHEUS_PLAIN_PASS" ]]; then
+if [[ -n "${generated_values[PROMETHEUS_PASSWORD_HASH]}" ]]; then
+    log_info "PROMETHEUS_PASSWORD_HASH already exists. Skipping re-hashing."
+elif [[ -n "$PROMETHEUS_PLAIN_PASS" ]]; then
     PROMETHEUS_HASH=$(caddy hash-password --algorithm bcrypt --plaintext "$PROMETHEUS_PLAIN_PASS" 2>/dev/null)
     if [[ $? -eq 0 && -n "$PROMETHEUS_HASH" ]]; then
         echo "PROMETHEUS_PASSWORD_HASH='$PROMETHEUS_HASH'" >> "$OUTPUT_FILE"
+        generated_values["PROMETHEUS_PASSWORD_HASH"]="$PROMETHEUS_HASH" # Store for consistency, though primarily written to file
     else
         log_warning "Failed to hash Prometheus password using caddy."
     fi
 else
-    log_warning "Prometheus password was not generated, skipping hash."
+    log_warning "Prometheus password was not generated or found, skipping hash."
 fi
 
-if [[ -n "$SEARXNG_PLAIN_PASS" ]]; then
+if [[ -n "${generated_values[SEARXNG_PASSWORD_HASH]}" ]]; then
+    log_info "SEARXNG_PASSWORD_HASH already exists. Skipping re-hashing."
+elif [[ -n "$SEARXNG_PLAIN_PASS" ]]; then
     SEARXNG_HASH=$(caddy hash-password --algorithm bcrypt --plaintext "$SEARXNG_PLAIN_PASS" 2>/dev/null)
     if [[ $? -eq 0 && -n "$SEARXNG_HASH" ]]; then
         echo "SEARXNG_PASSWORD_HASH='$SEARXNG_HASH'" >> "$OUTPUT_FILE"
+        generated_values["SEARXNG_PASSWORD_HASH"]="$SEARXNG_HASH"
     else
         log_warning "Failed to hash SearXNG password using caddy."
     fi
 else
-    log_warning "SearXNG password was not generated, skipping hash."
+    log_warning "SearXNG password was not generated or found, skipping hash."
 fi
 
 if [ $? -eq 0 ]; then
