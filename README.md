@@ -63,7 +63,7 @@ hence the fit with this AI package.
     - **Apex/Root Domain Record (Recommended, if you plan to use `yourdomain.com` directly for any service or a landing page):**
       `A yourdomain.com` -> `YOUR_SERVER_IP`
 
-3.  **Server:** A Linux server (Ubuntu 24.04 LTS x64 recommended and tested). The installation was tested on a machine with **8 GB Memory / 4 Intel vCPUs / 120 GB Disk**.
+3.  **Server:** Minimum server system requirements: Ubuntu 24.04 LTS x64, **8 GB Memory / 4 Intel vCPUs / 60 GB Disk**.
 
 ### Running the Installer
 
