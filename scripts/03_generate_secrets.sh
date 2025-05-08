@@ -41,6 +41,9 @@ declare -A VARS_TO_GENERATE=(
     ["LOGFLARE_API_KEY"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
     ["PROMETHEUS_PASSWORD"]="password:32" # Added Prometheus password
     ["SEARXNG_PASSWORD"]="password:32" # Added SearXNG admin password
+    ["LANGFUSE_INIT_USER_PASSWORD"]="password:32"
+    ["LANGFUSE_INIT_PROJECT_PUBLIC_KEY"]="langfuse_pk:32"
+    ["LANGFUSE_INIT_PROJECT_SECRET_KEY"]="langfuse_sk:32"
 )
 
 # Check if .env file already exists
@@ -178,6 +181,7 @@ generated_values["LETSENCRYPT_EMAIL"]="$USER_EMAIL"
 generated_values["RUN_N8N_IMPORT"]="$RUN_N8N_IMPORT"
 generated_values["PROMETHEUS_USERNAME"]="$USER_EMAIL"
 generated_values["SEARXNG_USERNAME"]="$USER_EMAIL"
+generated_values["LANGFUSE_INIT_USER_EMAIL"]="$USER_EMAIL"
 if [[ -n "$OPENAI_API_KEY" ]]; then
     generated_values["OPENAI_API_KEY"]="$OPENAI_API_KEY"
 fi
@@ -196,6 +200,7 @@ found_vars["RUN_N8N_IMPORT"]=0
 found_vars["PROMETHEUS_USERNAME"]=0
 found_vars["SEARXNG_USERNAME"]=0
 found_vars["OPENAI_API_KEY"]=0
+found_vars["LANGFUSE_INIT_USER_EMAIL"]=0
 
 # Read template, substitute domain, generate initial values
 while IFS= read -r line || [[ -n "$line" ]]; do
@@ -211,7 +216,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         if [[ "$varName" == "FLOWISE_USERNAME" || "$varName" == "DASHBOARD_USERNAME" || 
               "$varName" == "LETSENCRYPT_EMAIL" || "$varName" == "RUN_N8N_IMPORT" || 
               "$varName" == "PROMETHEUS_USERNAME" ||
-              "$varName" == "SEARXNG_USERNAME" || "$varName" == "OPENAI_API_KEY" ]]; then
+              "$varName" == "SEARXNG_USERNAME" || "$varName" == "OPENAI_API_KEY" ||
+              "$varName" == "LANGFUSE_INIT_USER_EMAIL" ]]; then
             
             found_vars["$varName"]=1
             
@@ -227,6 +233,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                 password|alphanum) newValue=$(gen_password "$length") ;;
                 secret|base64) newValue=$(gen_base64 "$length") ;;
                 hex) newValue=$(gen_hex "$length") ;;
+                langfuse_pk) newValue="pk-lf-$(gen_hex "$length")" ;;
+                langfuse_sk) newValue="sk-lf-$(gen_hex "$length")" ;;
                 *) log_warning "Unknown generation type '$type' for $varName" ;;
             esac
 
@@ -284,7 +292,7 @@ generated_values["ANON_KEY"]=$(create_jwt "anon" "$JWT_SECRET")
 generated_values["SERVICE_ROLE_KEY"]=$(create_jwt "service_role" "$JWT_SECRET")
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME"; do
+for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
         echo "${var}=\"${generated_values[$var]}\"" >> "$TMP_ENV_FILE" # Ensure quoting
     fi
