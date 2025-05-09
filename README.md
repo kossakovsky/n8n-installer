@@ -1,28 +1,13 @@
 # n8n Ecosystem Installer
 
-**n8n Ecosystem Installer** is an open, docker compose template designed to significantly simplify the setup of a comprehensive development environment centered around n8n and Flowise. It bundles essential supporting tools like Open WebUI (as an interface for n8n agents), Supabase (database, vector store, auth), Qdrant (high-performance vector store), Langfuse (LLM observability), SearXNG (private metasearch), Grafana/Prometheus (monitoring), Crawl4ai (web crawling), and Caddy (managed HTTPS).
-
-This is Cole's version with a couple of improvements and the addition of Supabase, Open WebUI, Flowise, Langfuse, SearXNG, and Caddy!
-Also, the RAG AI Agent workflows from the video will be automatically in your
-n8n instance if you use this setup instead of the base one provided by n8n! Note: these workflows might require external LLM API keys.
-Also, you have the option during setup to automatically import over 300 community workflows into your n8n instance!
-
-## Important Links
-
-- Based on a project by [coleam00](https://github.com/coleam00/local-ai-packaged)
-
-- [Original Starter Kit](https://github.com/n8n-io/self-hosted-ai-starter-kit) by the n8n team
-
-- [Community forum](https://thinktank.ottomator.ai/c/local-ai/18) over in the oTTomator Think Tank
-
-- [GitHub Kanban board](https://github.com/users/coleam00/projects/2/views/1) for feature implementation and bug squashing.
-
-- Download my N8N + OpenWebUI integration [directly on the Open WebUI site.](https://openwebui.com/f/coleam/n8n_pipe/) (more instructions below)
+**n8n Ecosystem Installer** is an open, docker compose template designed to significantly simplify the setup of a comprehensive development environment centered around n8n and Flowise. It bundles essential supporting tools like Open WebUI (as an interface for n8n agents), Supabase (database, vector store, auth), Qdrant (high-performance vector store), Langfuse (LLM observability), SearXNG (private metasearch), Grafana/Prometheus (monitoring), Crawl4ai (web crawling), and Caddy (managed HTTPS). Also, you have the option during setup to automatically import over 300 community workflows into your n8n instance!
 
 ### What's included
 
 ✅ [**Self-hosted n8n**](https://n8n.io/) - Low-code platform with over 400
 integrations and advanced AI components
+
+✅ **Optional import of ~300 n8n community workflows** during setup.
 
 ✅ [**Supabase**](https://supabase.com/) - Open source database as a service -
 most widely used database for AI agents
@@ -137,6 +122,18 @@ This script will:
 3.  Pull the latest Docker images for all services using `docker compose pull`.
 4.  Ask if you want to re-run the n8n workflow import (useful if new workflows were added).
 5.  Restart the services using the `scripts/04_run_services.sh` script.
+
+## Important Links
+
+- Based on a project by [coleam00](https://github.com/coleam00/local-ai-packaged)
+
+- [Original Starter Kit](https://github.com/n8n-io/self-hosted-ai-starter-kit) by the n8n team
+
+- [Community forum](https://thinktank.ottomator.ai/c/local-ai/18) over in the oTTomator Think Tank
+
+- [GitHub Kanban board](https://github.com/users/coleam00/projects/2/views/1) for feature implementation and bug squashing.
+
+- Download my N8N + OpenWebUI integration [directly on the Open WebUI site.](https://openwebui.com/f/coleam/n8n_pipe/) (more instructions below)
 
 ## Troubleshooting
 
