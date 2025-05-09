@@ -51,7 +51,9 @@ The installer also makes the following powerful open-source tools **available fo
       _This allows services like `n8n.yourdomain.com` and `webui.yourdomain.com` to work automatically._
     - **Apex/Root Domain Record (Recommended):** `A yourdomain.com` -> `YOUR_SERVER_IP`
       _This is useful if you plan to use your main domain (e.g., `yourdomain.com`) for a service or landing page._
-3.  **Server:** Minimum server system requirements: Ubuntu 24.04 LTS (or a compatible Linux distribution), 64-bit, **8 GB Memory / 4 CPU Cores / 60 GB Disk Space**.
+3.  **Server:** Minimum server system requirements: Ubuntu 24.04 LTS, 64-bit, **60 GB Disk Space**.
+    - For running **all available services**: at least **8 GB Memory / 4 CPU Cores**.
+    - For a minimal setup with only **n8n and Flowise**: approximately **4 GB Memory / 2 CPU Cores** might be sufficient, though performance may vary.
 
 ### Running the Installer
 
