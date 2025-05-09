@@ -15,8 +15,11 @@ This installer helps you create your own powerful, private AI workshop. Imagine 
 ### What's Included
 
 ✅ [**Self-hosted n8n**](https://n8n.io/) - A low-code platform with over 400 integrations and advanced AI components to automate workflows.
+✅ **Caddy, Postgres, and Redis** - Core services for web proxy, database, and caching, which are always included.
 
-✅ **300+ n8n Community Workflows Included** - Get started quickly with a vast library of pre-built automations.
+The installer also makes the following powerful open-source tools **available for you to select and deploy** via an interactive wizard during setup:
+
+✅ **300+ n8n Community Workflows Included** - Get started quickly with a vast library of pre-built automations (optional import).
 
 ✅ [**Supabase**](https://supabase.com/) - An open-source alternative to Firebase, providing database storage, user authentication, and more. It's a popular choice for AI applications.
 
@@ -74,6 +77,7 @@ During the installation, the script will prompt you for:
 2.  Your **email address** (Required, used for service logins like Flowise, Supabase dashboard, Grafana, and for SSL certificate registration with Let's Encrypt).
 3.  An optional **OpenAI API key** (Not required. If provided, it can be used by Supabase AI features and Crawl4ai. Press Enter to skip).
 4.  Whether you want to **import ~300 ready-made n8n community workflows** (y/n, Optional. This can take 20-30 minutes, depending on your server and network speed).
+5.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
 
 Upon successful completion, the script will display a summary report. This report contains the access URLs and credentials for the deployed services. **Save this information in a safe place!**
 
