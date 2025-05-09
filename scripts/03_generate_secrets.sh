@@ -257,7 +257,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
 
         # If already have a non-empty value from existing .env or prior generation/user input, use it
         if [[ -n "${generated_values[$varName]}" ]]; then
-            processed_line="${varName}=\\\\\"${generated_values[$varName]}\\\\\""
+            processed_line="${varName}=\"${generated_values[$varName]}\""
         # Check if this is one of our user-input derived variables that might not have a value yet
         # (e.g. OPENAI_API_KEY if user left it blank). These are handled by `found_vars` later if needed.
         # Or, if variable needs generation AND is not already populated (or is empty) in generated_values
@@ -274,7 +274,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             esac
 
             if [[ -n "$newValue" ]]; then
-                processed_line="${varName}=\\\\\"${newValue}\\\\\"" # Quote generated values
+                processed_line="${varName}=\"${newValue}\"" # Quote generated values
                 generated_values["$varName"]="$newValue"    # Store newly generated
             else
                 # Keep original line structure but ensure value is empty if generation failed
@@ -296,12 +296,12 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                     # Mark as found if it's in template, value taken from generated_values if already set or blank
                     found_vars["$varName"]=1 
                     if [[ -v generated_values[$varName] ]]; then # if it was set (even to empty by user)
-                        processed_line="${varName}=\\\\\"${generated_values[$varName]}\\\\\""
+                        processed_line="${varName}=\"${generated_values[$varName]}\""
                     else # Not set in generated_values, keep template's default if any, or make it empty
-                        if [[ "$currentValue" =~ ^\\$\\{.*\\} || -z "$currentValue" ]]; then # if template is ${VAR} or empty
-                            processed_line="${varName}=\""
+                        if [[ "$currentValue" =~ ^\$\{.*\} || -z "$currentValue" ]]; then # if template is ${VAR} or empty
+                            processed_line="${varName}=\"\""
                         else # template has a default simple value
-                            processed_line="${varName}=\\\\\"$currentValue\\\\\"" # Use template's default, and quote it
+                            processed_line="${varName}=\"$currentValue\"" # Use template's default, and quote it
                             # Don't add to generated_values here, let the original logic handle it if needed
                         fi
                     fi
@@ -381,7 +381,7 @@ fi
 # Add any custom variables that weren't found in the template
 for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
-        echo "${var}=\\\\\"${generated_values[$var]}\\\\\"" >> "$TMP_ENV_FILE" # Ensure quoting
+        echo "${var}=\"${generated_values[$var]}\"" >> "$TMP_ENV_FILE" # Ensure quoting
     fi
 done
 
@@ -422,27 +422,27 @@ for key in "${!generated_values[@]}"; do
         
         # Handle specific cases
         if [[ "$key" == "ANON_KEY" && "$line" == "ANON_KEY="* ]]; then
-            line="ANON_KEY=\\\\\"$(cat "$value_file")\\\\\""
+            line="ANON_KEY=\"$(cat "$value_file")\""
         fi
         
         if [[ "$key" == "SERVICE_ROLE_KEY" && "$line" == "SERVICE_ROLE_KEY="* ]]; then
-            line="SERVICE_ROLE_KEY=\\\\\"$(cat "$value_file")\\\\\""
+            line="SERVICE_ROLE_KEY=\"$(cat "$value_file")\""
         fi
         
         if [[ "$key" == "ANON_KEY" && "$line" == "SUPABASE_ANON_KEY="* ]]; then
-            line="SUPABASE_ANON_KEY=\\\\\"$(cat "$value_file")\\\\\""
+            line="SUPABASE_ANON_KEY=\"$(cat "$value_file")\""
         fi
         
         if [[ "$key" == "SERVICE_ROLE_KEY" && "$line" == "SUPABASE_SERVICE_ROLE_KEY="* ]]; then
-            line="SUPABASE_SERVICE_ROLE_KEY=\\\\\"$(cat "$value_file")\\\\\""
+            line="SUPABASE_SERVICE_ROLE_KEY=\"$(cat "$value_file")\""
         fi
         
         if [[ "$key" == "JWT_SECRET" && "$line" == "SUPABASE_JWT_SECRET="* ]]; then
-            line="SUPABASE_JWT_SECRET=\\\\\"$(cat "$value_file")\\\\\""
+            line="SUPABASE_JWT_SECRET=\"$(cat "$value_file")\""
         fi
         
         if [[ "$key" == "POSTGRES_PASSWORD" && "$line" == "SUPABASE_POSTGRES_PASSWORD="* ]]; then
-            line="SUPABASE_POSTGRES_PASSWORD=\\\\\"$(cat "$value_file")\\\\\""
+            line="SUPABASE_POSTGRES_PASSWORD=\"$(cat "$value_file")\""
         fi
         
         # Write the processed line to the new file
