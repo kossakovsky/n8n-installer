@@ -22,6 +22,23 @@ set -a
 source "$ENV_FILE"
 set +a
 
+# Function to check if a profile is active
+is_profile_active() {
+    local profile_to_check="$1"
+    # COMPOSE_PROFILES is sourced from .env and will be available here
+    if [ -z "$COMPOSE_PROFILES" ]; then
+        return 1 # Not active if COMPOSE_PROFILES is empty or not set
+    fi
+    # Check if the profile_to_check is in the comma-separated list
+    # Adding commas at the beginning and end of both strings handles edge cases
+    # (e.g., single profile, profile being a substring of another)
+    if [[ ",$COMPOSE_PROFILES," == *",$profile_to_check,"* ]]; then
+        return 0 # Active
+    else
+        return 1 # Not active
+    fi
+}
+
 # --- Installation Summary ---
 log_info "Installation Summary. The following steps were performed by the scripts:"
 log_success "- System updated and basic utilities installed"
@@ -40,68 +57,96 @@ echo "======================================================================="
 echo
 log_info "Service Access Credentials. Save this information securely!"
 # Display credentials, checking if variables exist
-echo
-echo "================================= n8n ================================="
-echo
-echo "Host: ${N8N_HOSTNAME:-<hostname_not_set>}"
-echo
-echo "================================= Langfuse ============================"
-echo
-echo "Host: ${LANGFUSE_HOSTNAME:-<hostname_not_set>}"
-echo
-echo "================================= WebUI ==============================="
-echo
-echo "Host: ${WEBUI_HOSTNAME:-<hostname_not_set>}"
-echo
-echo "================================= Flowise ============================="
-echo
-echo "Host: ${FLOWISE_HOSTNAME:-<hostname_not_set>}"
-echo "User: ${FLOWISE_USERNAME:-<not_set_in_env>}"
-echo "Password: ${FLOWISE_PASSWORD:-<not_set_in_env>}"
-echo
-echo "================================= Supabase ============================"
-echo
-echo "External Host (via Caddy): ${SUPABASE_HOSTNAME:-<hostname_not_set>}"
-echo "Internal API Gateway: http://kong:8000"
-echo "Studio User: ${DASHBOARD_USERNAME:-<not_set_in_env>}"
-echo "Studio Password: ${DASHBOARD_PASSWORD:-<not_set_in_env>}"
-echo
-echo "================================= PostgreSQL (Supabase) ============================"
-echo
-echo "Host: ${POSTGRES_HOST:-db}"
-echo "Port: ${POSTGRES_PORT:-5432}"
-echo "Database: ${POSTGRES_DB:-postgres}"
-echo "User: ${POSTGRES_USER:-postgres}"
-echo "Password: ${POSTGRES_PASSWORD:-<not_set_in_env>}"
-echo
-echo "================================= Grafana ============================="
-echo
-echo "Host: ${GRAFANA_HOSTNAME:-<hostname_not_set>}"
-echo "User: admin"
-echo "Password: ${GRAFANA_ADMIN_PASSWORD:-<not_set_in_env>}"
-echo
-echo "================================= Prometheus =========================="
-echo
-echo "Host: ${PROMETHEUS_HOSTNAME:-<hostname_not_set>}"
-echo "User: ${PROMETHEUS_USERNAME:-<not_set_in_env>}"
-echo "Password: ${PROMETHEUS_PASSWORD:-<not_set_in_env>}"
-echo
-echo "================================= Searxng ============================="
-echo
-echo "Host: ${SEARXNG_HOSTNAME:-<hostname_not_set>}"
-echo "User: ${SEARXNG_USERNAME:-<not_set_in_env>}"
-echo "Password: ${SEARXNG_PASSWORD:-<not_set_in_env>}"
-echo
-echo "================================= Qdrant =============================="
-echo
-echo "Internal gRPC Access (e.g., from backend): qdrant:6333"
-echo "Internal REST API Access (e.g., from backend): http://qdrant:6334"
-echo "(Note: Not exposed externally via Caddy by default)"
-echo
-echo "================================= Crawl4AI ============================"
-echo
-echo "Internal Access (e.g., from n8n): http://crawl4ai:11235"
-echo "(Note: Not exposed externally via Caddy by default)"
+
+if is_profile_active "n8n"; then
+  echo
+  echo "================================= n8n ================================="
+  echo
+  echo "Host: ${N8N_HOSTNAME:-<hostname_not_set>}"
+fi
+
+if is_profile_active "langfuse"; then
+  echo
+  echo "================================= Langfuse ============================"
+  echo
+  echo "Host: ${LANGFUSE_HOSTNAME:-<hostname_not_set>}"
+fi
+
+if is_profile_active "open-webui"; then
+  echo
+  echo "================================= WebUI ==============================="
+  echo
+  echo "Host: ${WEBUI_HOSTNAME:-<hostname_not_set>}"
+fi
+
+if is_profile_active "flowise"; then
+  echo
+  echo "================================= Flowise ============================="
+  echo
+  echo "Host: ${FLOWISE_HOSTNAME:-<hostname_not_set>}"
+  echo "User: ${FLOWISE_USERNAME:-<not_set_in_env>}"
+  echo "Password: ${FLOWISE_PASSWORD:-<not_set_in_env>}"
+fi
+
+if is_profile_active "supabase"; then
+  echo
+  echo "================================= Supabase ============================"
+  echo
+  echo "External Host (via Caddy): ${SUPABASE_HOSTNAME:-<hostname_not_set>}"
+  echo "Internal API Gateway: http://kong:8000"
+  echo "Studio User: ${DASHBOARD_USERNAME:-<not_set_in_env>}"
+  echo "Studio Password: ${DASHBOARD_PASSWORD:-<not_set_in_env>}"
+  echo
+  echo "================================= PostgreSQL (Supabase) ============================"
+  echo
+  echo "Host: ${POSTGRES_HOST:-db}"
+  echo "Port: ${POSTGRES_PORT:-5432}"
+  echo "Database: ${POSTGRES_DB:-postgres}"
+  echo "User: ${POSTGRES_USER:-postgres}"
+  echo "Password: ${POSTGRES_PASSWORD:-<not_set_in_env>}"
+fi
+
+if is_profile_active "monitoring"; then
+  echo
+  echo "================================= Grafana ============================="
+  echo
+  echo "Host: ${GRAFANA_HOSTNAME:-<hostname_not_set>}"
+  echo "User: admin"
+  echo "Password: ${GRAFANA_ADMIN_PASSWORD:-<not_set_in_env>}"
+  echo
+  echo "================================= Prometheus =========================="
+  echo
+  echo "Host: ${PROMETHEUS_HOSTNAME:-<hostname_not_set>}"
+  echo "User: ${PROMETHEUS_USERNAME:-<not_set_in_env>}"
+  echo "Password: ${PROMETHEUS_PASSWORD:-<not_set_in_env>}"
+fi
+
+if is_profile_active "searxng"; then
+  echo
+  echo "================================= Searxng ============================="
+  echo
+  echo "Host: ${SEARXNG_HOSTNAME:-<hostname_not_set>}"
+  echo "User: ${SEARXNG_USERNAME:-<not_set_in_env>}"
+  echo "Password: ${SEARXNG_PASSWORD:-<not_set_in_env>}"
+fi
+
+if is_profile_active "qdrant"; then
+  echo
+  echo "================================= Qdrant =============================="
+  echo
+  echo "Internal gRPC Access (e.g., from backend): qdrant:6333"
+  echo "Internal REST API Access (e.g., from backend): http://qdrant:6334"
+  echo "(Note: Not exposed externally via Caddy by default)"
+fi
+
+if is_profile_active "crawl4ai"; then
+  echo
+  echo "================================= Crawl4AI ============================"
+  echo
+  echo "Internal Access (e.g., from n8n): http://crawl4ai:11235"
+  echo "(Note: Not exposed externally via Caddy by default)"
+fi
+
 echo
 echo "======================================================================="
 echo

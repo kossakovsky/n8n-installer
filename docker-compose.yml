@@ -17,7 +17,7 @@ x-n8n: &service-n8n
   image: n8nio/n8n:latest
   environment: &service-n8n-env
     DB_TYPE: postgresdb
-    DB_POSTGRESDB_HOST: db
+    DB_POSTGRESDB_HOST: postgres
     DB_POSTGRESDB_USER: postgres
     DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
     DB_POSTGRESDB_DATABASE: postgres
