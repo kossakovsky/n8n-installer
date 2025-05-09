@@ -14,7 +14,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Project root directory (one level up from scripts)
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." &> /dev/null && pwd )"
 # Path to the 04_run_services.sh script
-RUN_SERVICES_SCRIPT="$SCRIPT_DIR/04_run_services.sh"
+RUN_SERVICES_SCRIPT="$SCRIPT_DIR/05_run_services.sh"
 # Compose files
 MAIN_COMPOSE_FILE="$PROJECT_ROOT/docker-compose.yml"
 SUPABASE_COMPOSE_FILE="$PROJECT_ROOT/supabase/docker/docker-compose.yml"
