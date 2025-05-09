@@ -93,7 +93,6 @@ services:
 
   n8n-worker:
     <<: *service-n8n
-    container_name: n8n-worker
     profiles: ["n8n"]
     restart: unless-stopped
     command: worker
