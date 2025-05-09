@@ -10,12 +10,12 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Check if all required scripts exist and are executable in the current directory
 required_scripts=(
-    "00_wizard.sh"
     "01_system_preparation.sh"
     "02_install_docker.sh"
     "03_generate_secrets.sh"
-    "04_run_services.sh"
-    "05_final_report.sh"
+    "04_wizard.sh"
+    "05_run_services.sh"
+    "06_final_report.sh"
 )
 
 missing_scripts=()
