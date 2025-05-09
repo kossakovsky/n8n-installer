@@ -10,6 +10,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Check if all required scripts exist and are executable in the current directory
 required_scripts=(
+    "00_wizard.sh"
     "01_system_preparation.sh"
     "02_install_docker.sh"
     "03_generate_secrets.sh"
@@ -56,6 +57,7 @@ if [ ${#non_executable_scripts[@]} -gt 0 ]; then
 fi
 
 # Run installation steps sequentially using their full paths
+
 log_info "Step 1: System Preparation..."
 bash "$SCRIPT_DIR/01_system_preparation.sh" || { log_error "System Preparation failed"; exit 1; }
 log_success "System preparation complete!"
@@ -68,12 +70,18 @@ log_info "Step 3: Generating Secrets and Configuration..."
 bash "$SCRIPT_DIR/03_generate_secrets.sh" || { log_error "Secret/Config Generation failed"; exit 1; }
 log_success "Secret/Config Generation complete!"
 
-log_info "Step 4: Running Services..."
-bash "$SCRIPT_DIR/04_run_services.sh" || { log_error "Running Services failed"; exit 1; }
+log_info "Step 4: Running Service Selection Wizard..."
+bash "$SCRIPT_DIR/04_wizard.sh" || { log_error "Service Selection Wizard failed"; exit 1; }
+log_success "Service Selection Wizard complete!"
+
+log_info "Step 5: Running Services..."
+bash "$SCRIPT_DIR/05_run_services.sh" || { log_error "Running Services failed"; exit 1; }
 log_success "Running Services complete!"
 
-log_info "Step 5: Generating Final Report..."
-bash "$SCRIPT_DIR/05_final_report.sh" || { log_error "Final Report Generation failed"; exit 1; }
+log_info "Step 6: Generating Final Report..."
+bash "$SCRIPT_DIR/06_final_report.sh" || { log_error "Final Report Generation failed"; exit 1; }
 log_success "Final Report Generation complete!"
+
+log_message "SUCCESS" "Installation process completed!"
 
 exit 0 

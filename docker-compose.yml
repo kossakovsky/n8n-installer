@@ -41,6 +41,7 @@ services:
     image: flowiseai/flowise
     restart: unless-stopped
     container_name: flowise
+    profiles: ["flowise"]
     environment:
       - PORT=3001
       - FLOWISE_USERNAME
@@ -55,6 +56,7 @@ services:
     image: ghcr.io/open-webui/open-webui:main
     restart: unless-stopped
     container_name: open-webui
+    profiles: ["open-webui"]
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -63,6 +65,7 @@ services:
   n8n-import:
     <<: *service-n8n
     container_name: n8n-import
+    profiles: ["n8n"]
     environment:
       <<: *service-n8n-env
       RUN_N8N_IMPORT: ${RUN_N8N_IMPORT:-false}
@@ -78,6 +81,7 @@ services:
   n8n:
     <<: *service-n8n
     container_name: n8n
+    profiles: ["n8n"]
     restart: unless-stopped
     volumes:
       - n8n_storage:/home/node/.n8n
@@ -90,6 +94,7 @@ services:
   n8n-worker:
     <<: *service-n8n
     container_name: n8n-worker
+    profiles: ["n8n"]
     restart: unless-stopped
     command: worker
     volumes:
@@ -106,6 +111,7 @@ services:
   qdrant:
     image: qdrant/qdrant
     container_name: qdrant
+    profiles: ["qdrant"]
     restart: unless-stopped
     volumes:
       - qdrant_storage:/qdrant/storage
@@ -148,6 +154,7 @@ services:
   langfuse-worker:
     image: langfuse/langfuse-worker:3
     restart: always
+    profiles: ["langfuse"]
     depends_on: &langfuse-depends-on
       postgres:
         condition: service_healthy
@@ -204,6 +211,7 @@ services:
   langfuse-web:
     image: langfuse/langfuse:3
     restart: always
+    profiles: ["langfuse"]
     depends_on: *langfuse-depends-on
     environment:
       <<: *langfuse-worker-env
@@ -223,6 +231,7 @@ services:
   clickhouse:
     image: clickhouse/clickhouse-server
     restart: always
+    profiles: ["langfuse"]
     user: "101:101"
     environment:
       CLICKHOUSE_DB: default
@@ -241,6 +250,7 @@ services:
   minio:
     image: minio/minio
     restart: always
+    profiles: ["langfuse"]
     entrypoint: sh
     # create the 'langfuse' bucket before starting the service
     command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
@@ -298,6 +308,7 @@ services:
   searxng:
     container_name: searxng
     image: docker.io/searxng/searxng:latest
+    profiles: ["searxng"]
     restart: unless-stopped
     volumes:
       - ./searxng:/etc/searxng:rw
@@ -320,6 +331,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
+    profiles: ["monitoring"]
     restart: unless-stopped
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -330,6 +342,7 @@ services:
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
+    profiles: ["monitoring"]
     restart: unless-stopped
     volumes:
       - /proc:/host/proc:ro
@@ -345,6 +358,7 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
+    profiles: ["monitoring"]
     restart: unless-stopped
     volumes:
       - /:/rootfs:ro
@@ -357,6 +371,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    profiles: ["monitoring"]
     restart: unless-stopped
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
@@ -373,6 +388,7 @@ services:
   crawl4ai:
     image: unclecode/crawl4ai:latest # Use official image
     container_name: crawl4ai
+    profiles: ["crawl4ai"]
     restart: unless-stopped
     shm_size: 1g # Recommended for browser operations
     env_file:
