@@ -124,7 +124,7 @@ else
         fi
 
         # Basic email format validation
-        if [[ ! "$USER_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$ ]]; then
+        if [[ ! "$USER_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
             log_warning "Warning: Email format appears to be invalid: '$USER_EMAIL'" >&2
         fi
 
@@ -301,7 +301,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                         if [[ "$currentValue" =~ ^\\$\\{.*\\} || -z "$currentValue" ]]; then # if template is ${VAR} or empty
                             processed_line="${varName}=\""
                         else # template has a default simple value
-                            processed_line="${varName}=\\\\\"$currentValue\\\\\"\" # Use template's default, and quote it
+                            processed_line="${varName}=\\\\\"$currentValue\\\\\"" # Use template's default, and quote it
                             # Don't add to generated_values here, let the original logic handle it if needed
                         fi
                     fi
