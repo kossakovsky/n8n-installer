@@ -169,6 +169,65 @@ else
     fi
 fi
 
+# Prompt for number of n8n workers
+echo "" # Add a newline for better formatting
+log_info "Configuring n8n worker count..."
+if [[ -n "${existing_env_vars[N8N_WORKER_COUNT]}" ]]; then
+    N8N_WORKER_COUNT_CURRENT="${existing_env_vars[N8N_WORKER_COUNT]}"
+    log_info "Found existing N8N_WORKER_COUNT in .env: $N8N_WORKER_COUNT_CURRENT"
+    read -p "Do you want to change the number of n8n workers? Current: $N8N_WORKER_COUNT_CURRENT. (Enter new number, or press Enter to keep current): " N8N_WORKER_COUNT_INPUT_RAW
+    if [[ -z "$N8N_WORKER_COUNT_INPUT_RAW" ]]; then
+        N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
+        log_info "Keeping N8N_WORKER_COUNT at $N8N_WORKER_COUNT."
+    else
+        # Validate the new input
+        if [[ "$N8N_WORKER_COUNT_INPUT_RAW" =~ ^0*[1-9][0-9]*$ ]]; then
+            N8N_WORKER_COUNT_TEMP="$((10#$N8N_WORKER_COUNT_INPUT_RAW))" # Sanitize (e.g. 01 -> 1)
+            if [[ "$N8N_WORKER_COUNT_TEMP" -ge 1 ]]; then
+                 read -p "Update n8n workers to $N8N_WORKER_COUNT_TEMP? (y/N): " confirm_change
+                 if [[ "$confirm_change" =~ ^[Yy]$ ]]; then
+                    N8N_WORKER_COUNT="$N8N_WORKER_COUNT_TEMP"
+                    log_info "N8N_WORKER_COUNT set to $N8N_WORKER_COUNT."
+                 else
+                    N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
+                    log_info "Change declined. Keeping N8N_WORKER_COUNT at $N8N_WORKER_COUNT."
+                 fi
+            else # Should not happen with regex but as a safeguard
+                log_warning "Invalid input '$N8N_WORKER_COUNT_INPUT_RAW'. Number must be positive. Keeping $N8N_WORKER_COUNT_CURRENT."
+                N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
+            fi
+        else
+            log_warning "Invalid input '$N8N_WORKER_COUNT_INPUT_RAW'. Please enter a positive integer. Keeping $N8N_WORKER_COUNT_CURRENT."
+            N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
+        fi
+    fi
+else
+    while true; do
+        read -p "Enter the number of n8n workers to run (e.g., 1, 2, 3; default is 1): " N8N_WORKER_COUNT_INPUT_RAW
+        N8N_WORKER_COUNT_CANDIDATE="${N8N_WORKER_COUNT_INPUT_RAW:-1}" # Default to 1 if empty
+
+        if [[ "$N8N_WORKER_COUNT_CANDIDATE" =~ ^0*[1-9][0-9]*$ ]]; then
+            N8N_WORKER_COUNT_VALIDATED="$((10#$N8N_WORKER_COUNT_CANDIDATE))"
+            if [[ "$N8N_WORKER_COUNT_VALIDATED" -ge 1 ]]; then
+                read -p "Run $N8N_WORKER_COUNT_VALIDATED n8n worker(s)? (y/N): " confirm_workers
+                if [[ "$confirm_workers" =~ ^[Yy]$ ]]; then
+                    N8N_WORKER_COUNT="$N8N_WORKER_COUNT_VALIDATED"
+                    log_info "N8N_WORKER_COUNT set to $N8N_WORKER_COUNT."
+                    break
+                else
+                    log_info "Please try entering the number of workers again."
+                fi
+            else # Should not be reached if regex is correct
+                log_error "Number of workers must be a positive integer." >&2
+            fi
+        else
+            log_error "Invalid input '$N8N_WORKER_COUNT_CANDIDATE'. Please enter a positive integer (e.g., 1, 2)." >&2
+        fi
+    done
+fi
+# Ensure N8N_WORKER_COUNT is definitely set (should be by logic above)
+N8N_WORKER_COUNT="${N8N_WORKER_COUNT:-1}"
+
 log_info "Generating secrets and creating .env file..."
 
 # --- Helper Functions ---
@@ -225,6 +284,7 @@ generated_values["RUN_N8N_IMPORT"]="$RUN_N8N_IMPORT"
 generated_values["PROMETHEUS_USERNAME"]="$USER_EMAIL"
 generated_values["SEARXNG_USERNAME"]="$USER_EMAIL"
 generated_values["LANGFUSE_INIT_USER_EMAIL"]="$USER_EMAIL"
+generated_values["N8N_WORKER_COUNT"]="$N8N_WORKER_COUNT"
 if [[ -n "$OPENAI_API_KEY" ]]; then
     generated_values["OPENAI_API_KEY"]="$OPENAI_API_KEY"
 fi
@@ -244,6 +304,7 @@ found_vars["PROMETHEUS_USERNAME"]=0
 found_vars["SEARXNG_USERNAME"]=0
 found_vars["OPENAI_API_KEY"]=0
 found_vars["LANGFUSE_INIT_USER_EMAIL"]=0
+found_vars["N8N_WORKER_COUNT"]=0
 
 # Read template, substitute domain, generate initial values
 while IFS= read -r line || [[ -n "$line" ]]; do
@@ -288,8 +349,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         else
             # This 'else' block is for lines from template not covered by existing values or VARS_TO_GENERATE.
             # Check if it is one of the user input vars - these are handled by found_vars later if not in template.
-            is_user_input_var=0
-            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL")
+            is_user_input_var=0 # Reset for each line
+            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT")
             for uivar in "${user_input_vars[@]}"; do
                 if [[ "$varName" == "$uivar" ]]; then
                     is_user_input_var=1
@@ -379,7 +440,7 @@ else
 fi
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL"; do
+for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
         echo "${var}=\"${generated_values[$var]}\"" >> "$TMP_ENV_FILE" # Ensure quoting
     fi
