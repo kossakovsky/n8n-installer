@@ -93,6 +93,7 @@ services:
 
   n8n-worker:
     <<: *service-n8n
+    container_name: n8n-worker
     profiles: ["n8n"]
     restart: unless-stopped
     command: worker
@@ -268,6 +269,7 @@ services:
       start_period: 1s
 
   postgres:
+    container_name: postgres
     image: postgres:${POSTGRES_VERSION:-latest}
     restart: unless-stopped
     healthcheck:
