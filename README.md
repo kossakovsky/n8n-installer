@@ -1,13 +1,13 @@
-# n8n Ecosystem Installer
+# n8n Installer
 
-**n8n Ecosystem Installer** is an open, docker compose template designed to significantly simplify the setup of a comprehensive development environment centered around n8n and Flowise. It bundles essential supporting tools like Open WebUI (as an interface for n8n agents), Supabase (database, vector store, auth), Qdrant (high-performance vector store), Langfuse (LLM observability), SearXNG (private metasearch), Grafana/Prometheus (monitoring), Crawl4ai (web crawling), and Caddy (managed HTTPS). Also, you have the option during setup to automatically import over 300 community workflows into your n8n instance!
+**n8n Installer** is an open, docker compose template designed to significantly simplify the setup of a comprehensive development environment centered around n8n and Flowise. It bundles essential supporting tools like Open WebUI (as an interface for n8n agents), Supabase (database, vector store, auth), Qdrant (high-performance vector store), Langfuse (LLM observability), SearXNG (private metasearch), Grafana/Prometheus (monitoring), Crawl4ai (web crawling), and Caddy (managed HTTPS). Also, you have the option during setup to automatically import over 300 community workflows into your n8n instance!
 
 ### What's included
 
 ✅ [**Self-hosted n8n**](https://n8n.io/) - Low-code platform with over 400
 integrations and advanced AI components
 
-✅ **Optional import of ~300 n8n community workflows** during setup.
+✅ **300 n8n Community Workflows Included**
 
 ✅ [**Supabase**](https://supabase.com/) - Open source database as a service -
 most widely used database for AI agents
@@ -34,7 +34,7 @@ hence the fit with this AI package.
 
 ✅ [**Prometheus**](https://prometheus.io/) - Open source monitoring and alerting toolkit.
 
-✅ [**Grafana**](https://grafana.com/) - Open source platform for monitoring and observability, often used with Prometheus.
+✅ [**Grafana**](https://grafana.com/) - Open source platform for monitoring and observability.
 
 ## Installation
 
@@ -74,11 +74,6 @@ During the installation, the script will prompt you for:
 
 Upon successful completion, the script will display a summary report containing the access URLs and credentials for the deployed services.
 
-> [!NOTE]
-> The `install.sh` script handles the creation and population of the `.env` file based on `.env.example` and the information you provide. You typically do not need to manually create or edit this file unless making advanced customizations _after_ the initial setup.
-
-The installation script handles the generation of these secrets automatically.
-
 ## ⚡️ Quick start and usage
 
 The services will be available at the following hostnames (replace `yourdomain.com` with your actual domain):
@@ -99,13 +94,6 @@ suite of basic and advanced AI nodes such as
 and [Information Extractor](https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.information-extractor/)
 nodes. Remember to use Qdrant or Supabase as your vector store. If you wish to use language models, you can configure the n8n instance, assuming you have an LLM instance running separately.
 
-> [!NOTE]
-> This starter kit is designed to help you get started with
-> workflows. While it's not fully optimized for production environments, it
-> This installer is designed to help you get started quickly with n8n and related tools. While it's not fully optimized for production environments, it
-> combines robust components that work well together for proof-of-concept
-> projects. You can customize it to meet your specific needs
-
 ## Upgrading
 
 To update all containers to their latest versions (n8n, Open WebUI, etc.), run these commands:
@@ -118,10 +106,10 @@ sudo bash ./scripts/update.sh
 This script will:
 
 1.  Pull the latest changes from the Git repository.
-2.  Stop the currently running services using `docker compose down`.
-3.  Pull the latest Docker images for all services using `docker compose pull`.
-4.  Ask if you want to re-run the n8n workflow import (useful if new workflows were added).
-5.  Restart the services using the `scripts/04_run_services.sh` script.
+2.  Stop the currently running services.
+3.  Pull the latest Docker images for all services.
+4.  Ask if you want to re-run the n8n workflow import (useful if you skipped import during installation).
+5.  Restart the services.
 
 ## Important Links
 
@@ -184,8 +172,6 @@ n8n instance.
 - [Breakdown Documents into Study Notes with MistralAI and Qdrant](https://n8n.io/workflows/2339-breakdown-documents-into-study-notes-using-templating-mistralai-and-qdrant/)
 - [Financial Documents Assistant using Qdrant and](https://n8n.io/workflows/2335-build-a-financial-documents-assistant-using-qdrant-and-mistralai/) [Mistral.ai](http://mistral.ai/)
 - [Recipe Recommendations with Qdrant and Mistral](https://n8n.io/workflows/2333-recipe-recommendations-with-qdrant-and-mistral/)
-
-### Example AI templates (May require external APIs or separate model setup)
 
 ## Tips & tricks
 
