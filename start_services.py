@@ -14,6 +14,13 @@ import time
 import argparse
 import platform
 import sys
+from dotenv import dotenv_values
+
+def is_supabase_enabled():
+    """Check if 'supabase' is in COMPOSE_PROFILES in .env file."""
+    env_values = dotenv_values(".env")
+    compose_profiles = env_values.get("COMPOSE_PROFILES", "")
+    return "supabase" in compose_profiles.split(',')
 
 def run_command(cmd, cwd=None):
     """Run a shell command and print it."""
@@ -22,6 +29,9 @@ def run_command(cmd, cwd=None):
 
 def clone_supabase_repo():
     """Clone the Supabase repository using sparse checkout if not already present."""
+    if not is_supabase_enabled():
+        print("Supabase is not enabled, skipping clone.")
+        return
     if not os.path.exists("supabase"):
         print("Cloning the Supabase repository...")
         run_command([
@@ -41,6 +51,9 @@ def clone_supabase_repo():
 
 def prepare_supabase_env():
     """Copy .env to .env in supabase/docker."""
+    if not is_supabase_enabled():
+        print("Supabase is not enabled, skipping env preparation.")
+        return
     env_path = os.path.join("supabase", "docker", ".env")
     env_example_path = os.path.join(".env")
     print("Copying .env in root to .env in supabase/docker...")
@@ -49,16 +62,21 @@ def prepare_supabase_env():
 def stop_existing_containers():
     """Stop and remove existing containers for our unified project ('localai')."""
     print("Stopping and removing existing containers for the unified project 'localai'...")
-    run_command([
+    cmd = [
         "docker", "compose",
         "-p", "localai",
-        "-f", "docker-compose.yml",
-        "-f", "supabase/docker/docker-compose.yml",
-        "down"
-    ])
+        "-f", "docker-compose.yml"
+    ]
+    if is_supabase_enabled():
+        cmd.extend(["-f", "supabase/docker/docker-compose.yml"])
+    cmd.append("down")
+    run_command(cmd)
 
 def start_supabase():
     """Start the Supabase services (using its compose file)."""
+    if not is_supabase_enabled():
+        print("Supabase is not enabled, skipping start.")
+        return
     print("Starting Supabase services...")
     run_command([
         "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d"
@@ -212,8 +230,9 @@ def check_and_fix_docker_compose_for_searxng():
         print(f"Error checking/modifying docker-compose.yml for SearXNG: {e}")
 
 def main():
-    clone_supabase_repo()
-    prepare_supabase_env()
+    if is_supabase_enabled():
+        clone_supabase_repo()
+        prepare_supabase_env()
     
     # Generate SearXNG secret key and check docker-compose.yml
     generate_searxng_secret_key()
@@ -222,11 +241,12 @@ def main():
     stop_existing_containers()
     
     # Start Supabase first
-    start_supabase()
+    if is_supabase_enabled():
+        start_supabase()
     
-    # Give Supabase some time to initialize
-    print("Waiting for Supabase to initialize...")
-    time.sleep(10)
+        # Give Supabase some time to initialize
+        print("Waiting for Supabase to initialize...")
+        time.sleep(10)
     
     # Then start the local AI services
     start_local_ai()
