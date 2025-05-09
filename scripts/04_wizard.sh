@@ -29,6 +29,10 @@ check_whiptail() {
 # Call the check
 check_whiptail
 
+# Store original DEBIAN_FRONTEND and set to dialog for whiptail
+ORIGINAL_DEBIAN_FRONTEND="$DEBIAN_FRONTEND"
+export DEBIAN_FRONTEND=dialog
+
 # Define available services and their descriptions for the checklist
 # Format: "tag" "description" "ON/OFF"
 # Caddy, Postgres, and Redis are core services and will always be enabled implicitly
@@ -45,9 +49,17 @@ services=(
 )
 
 # Use whiptail to display the checklist
-CHOICES=$(whiptail --title "Service Selection Wizard" --checklist \\
-"Choose the services you want to deploy.\\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 22 78 10 \\
-"${services[@]}" 3>&1 1>&2 2>&3)
+CHOICES=$(whiptail --title "Service Selection Wizard" --checklist \
+  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 22 78 10 \
+  "${services[@]}" \
+  3>&1 1>&2 2>&3)
+
+# Restore original DEBIAN_FRONTEND
+if [ -n "$ORIGINAL_DEBIAN_FRONTEND" ]; then
+  export DEBIAN_FRONTEND="$ORIGINAL_DEBIAN_FRONTEND"
+else
+  unset DEBIAN_FRONTEND
+fi
 
 # Exit if user pressed Cancel or Esc
 exitstatus=$?
@@ -113,6 +125,6 @@ fi
 echo "--------------------------------------------------------------------"
 
 # Make the script executable (though install.sh calls it with bash)
-chmod +x "$SCRIPT_DIR/00_wizard.sh"
+chmod +x "$SCRIPT_DIR/04_wizard.sh"
 
 exit 0 
