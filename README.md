@@ -10,7 +10,12 @@ This installer helps you create your own powerful, private AI workshop. Imagine 
 - Build smart assistants tailored to your needs.
 - Analyze information and gain insights.
 - Generate creative content.
-  All of this is hosted by you, giving you full control over your data and operations.
+
+This setup provides a comprehensive suite of cutting-edge services, all pre-configured to work together. Key advantages include:
+
+- **Rich Toolset:** Get a curated collection of powerful open-source tools for AI development, automation, and monitoring, all in one place.
+- **Scalable n8n Performance:** n8n runs in `queue` mode by default, leveraging Redis for task management and Postgres for data storage. You can dynamically specify the number of n8n workers during installation, allowing for robust parallel processing of your workflows to handle demanding loads.
+- **Full Control:** All of this is hosted by you, giving you full control over your data, operations, and how resources are allocated.
 
 ### What's Included
 
@@ -46,21 +51,18 @@ The installer also makes the following powerful open-source tools **available fo
 ### Prerequisites before Installation
 
 1.  **Domain Name:** You need a registered domain name (e.g., `yourdomain.com`).
-2.  **DNS Configuration:** Before running the installation script, you **must** configure DNS A-records for your domain, pointing to the public IP address of the server where you'll install this system. Replace `yourdomain.com` with your actual domain:
-    - **Wildcard Record (Required):** `A *.yourdomain.com` -> `YOUR_SERVER_IP`
-      _This allows services like `n8n.yourdomain.com` and `webui.yourdomain.com` to work automatically._
-    - **Apex/Root Domain Record (Recommended):** `A yourdomain.com` -> `YOUR_SERVER_IP`
-      _This is useful if you plan to use your main domain (e.g., `yourdomain.com`) for a service or landing page._
-3.  **Server:** Minimum server system requirements: Ubuntu 24.04 LTS, 64-bit, **60 GB Disk Space**.
-    - For running **all available services**: at least **8 GB Memory / 4 CPU Cores**.
-    - For a minimal setup with only **n8n and Flowise**: approximately **4 GB Memory / 2 CPU Cores** might be sufficient, though performance may vary.
+2.  **DNS Configuration:** Before running the installation script, you **must** configure DNS A-record for your domain, pointing to the public IP address of the server where you'll install this system. Replace `yourdomain.com` with your actual domain:
+    - **Wildcard Record:** `A *.yourdomain.com` -> `YOUR_SERVER_IP`
+3.  **Server:** Minimum server system requirements: Ubuntu 24.04 LTS, 64-bit.
+    - For running **all available services**: at least **8 GB Memory / 4 CPU Cores / 60 GB Disk Space **.
+    - For a minimal setup with only **n8n and Flowise**: **4 GB Memory / 2 CPU Cores / 30 GB Disk Space**.
 
 ### Running the Installer
 
 The recommended way to install is using the provided main installation script.
 
 1.  Connect to your server via SSH.
-2.  Run the following commands:
+2.  Run the following command:
 
     ```bash
     git clone https://github.com/kossakovsky/n8n-installer && cd n8n-installer && bash ./scripts/install.sh
@@ -79,7 +81,8 @@ During the installation, the script will prompt you for:
 2.  Your **email address** (Required, used for service logins like Flowise, Supabase dashboard, Grafana, and for SSL certificate registration with Let's Encrypt).
 3.  An optional **OpenAI API key** (Not required. If provided, it can be used by Supabase AI features and Crawl4ai. Press Enter to skip).
 4.  Whether you want to **import ~300 ready-made n8n community workflows** (y/n, Optional. This can take 20-30 minutes, depending on your server and network speed).
-5.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
+5.  The **number of n8n workers** you want to run (Required, e.g., 1, 2, 3, 4. This determines how many workflows can be processed in parallel. Defaults to 1 if not specified).
+6.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
 
 Upon successful completion, the script will display a summary report. This report contains the access URLs and credentials for the deployed services. **Save this information in a safe place!**
 
@@ -100,7 +103,7 @@ With your n8n instance, you'll have access to over 400 integrations and powerful
 
 ## Upgrading
 
-To update all components (n8n, Open WebUI, etc.) to their latest versions and incorporate the newest changes from this installer project, use the update script:
+To update all components (n8n, Open WebUI, etc.) to their latest versions and incorporate the newest changes from this installer project, use the update script from the project root:
 
 ```bash
 bash ./scripts/update.sh
