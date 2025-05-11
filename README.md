@@ -135,6 +135,10 @@ Here are solutions to common issues you might encounter:
 - **Supabase Analytics Startup Failure:** If the `supabase-analytics` component fails to start after changing your Postgres password, you might need to reset its data. **Warning: This will delete your Supabase database data. Proceed with extreme caution and ensure you have backups if needed.** The technical step involves deleting the `supabase/docker/volumes/db/data` folder.
 - **Supabase Service Unavailable:** Ensure your Postgres database password does not contain special characters like "@". Other special characters might also cause issues. If services like n8n report they cannot connect to Supabase, and other diagnostics seem fine, this is a common cause.
 
+### General Issues
+
+- **VPN Conflicts:** Using a VPN might interfere with downloading Docker images. If you encounter issues pulling images, try temporarily disabling your VPN.
+
 ## 👓 Recommended Reading
 
 n8n offers excellent resources for getting started with its AI capabilities:
