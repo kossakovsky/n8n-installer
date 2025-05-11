@@ -138,6 +138,7 @@ Here are solutions to common issues you might encounter:
 ### General Issues
 
 - **VPN Conflicts:** Using a VPN might interfere with downloading Docker images. If you encounter issues pulling images, try temporarily disabling your VPN.
+- **Server Requirements:** If you experience unexpected issues, ensure your server meets the minimum hardware and operating system requirements (including version) as specified in the "Prerequisites before Installation" section.
 
 ## 👓 Recommended Reading
 
