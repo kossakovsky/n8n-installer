@@ -54,10 +54,20 @@ if [ -f "$OUTPUT_FILE" ]; then
         if [[ -n "$line" && ! "$line" =~ ^\\s*# && "$line" == *"="* ]]; then
             varName=$(echo "$line" | cut -d'=' -f1 | xargs)
             varValue=$(echo "$line" | cut -d'=' -f2-)
-            # Simple unquote for "value" or 'value'
-            if [[ "$varValue" =~ ^\\"(.*)\\"$ || "$varValue" =~ ^\\'(.*)\\'$ ]]; then
-                varValue="${BASH_REMATCH[1]}"
-            fi
+            # Repeatedly unquote "value" or 'value' to get the bare value
+            _tempVal="$varValue"
+            while true; do
+                if [[ "$_tempVal" =~ ^\"(.*)\"$ ]]; then # Check double quotes
+                    _tempVal="${BASH_REMATCH[1]}"
+                    continue
+                fi
+                if [[ "$_tempVal" =~ ^\'(.*)\'$ ]]; then # Check single quotes
+                    _tempVal="${BASH_REMATCH[1]}"
+                    continue
+                fi
+                break # No more surrounding quotes of these types
+            done
+            varValue="$_tempVal"
             existing_env_vars["$varName"]="$varValue"
         fi
     done < "$OUTPUT_FILE"
