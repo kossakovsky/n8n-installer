@@ -52,13 +52,13 @@ Get started quickly with a vast library of pre-built automations (optional impor
 
 - **AI Agents & Chatbots:** RAG, LLM, LangChain, Ollama, OpenAI, Claude, Gemini, and more
 - **Gmail & Outlook:** Smart labeling, auto-replies, PDF handling, and email-to-Notion
-- **Telegram, WhatsApp, Discord:** Bots, notifications, voice, and image workflows
+- **HR, E-commerce, IT, Security, Research, and more!**
 - **Notion, Airtable, Google Sheets:** Data sync, AI summaries, knowledge bases
-- **WordPress, WooCommerce:** AI content, chatbots, auto-tagging
+- **PDF, Image, Audio, Video:** Extraction, summarization, captioning, speech-to-text
 - **Slack, Mattermost:** Ticketing, feedback analysis, notifications
 - **Social Media:** LinkedIn, Pinterest, Instagram, Twitter/X, YouTube, TikTok automations
-- **PDF, Image, Audio, Video:** Extraction, summarization, captioning, speech-to-text
-- **HR, E-commerce, IT, Security, Research, and more!**
+- **Telegram, WhatsApp, Discord:** Bots, notifications, voice, and image workflows
+- **WordPress, WooCommerce:** AI content, chatbots, auto-tagging
 
 ## Installation
 
