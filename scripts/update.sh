@@ -12,6 +12,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Project root directory (one level up from scripts)
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." &> /dev/null && pwd )"
 # Path to the apply_update.sh script
+APPLY_UPDATE_SCRIPT="$SCRIPT_DIR/apply_update.sh"
 
 # Check if apply update script exists
 if [ ! -f "$APPLY_UPDATE_SCRIPT" ]; then
