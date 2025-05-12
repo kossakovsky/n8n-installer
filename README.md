@@ -24,8 +24,6 @@ This setup provides a comprehensive suite of cutting-edge services, all pre-conf
 
 The installer also makes the following powerful open-source tools **available for you to select and deploy** via an interactive wizard during setup:
 
-✅ **300+ n8n Community Workflows Included** - Get started quickly with a vast library of pre-built automations (optional import).
-
 ✅ [**Supabase**](https://supabase.com/) - An open-source alternative to Firebase, providing database storage, user authentication, and more. It's a popular choice for AI applications.
 
 ✅ [**Open WebUI**](https://openwebui.com/) - A user-friendly, ChatGPT-like interface to interact privately with your AI models and n8n agents.
@@ -45,6 +43,22 @@ The installer also makes the following powerful open-source tools **available fo
 ✅ [**Prometheus**](https://prometheus.io/) - An open-source monitoring and alerting toolkit to keep an eye on system health.
 
 ✅ [**Grafana**](https://grafana.com/) - An open-source platform for visualizing monitoring data, helping you understand system performance at a glance.
+
+### Included Community Workflows
+
+Get started quickly with a vast library of pre-built automations (optional import during setup)! This collection includes over 300 workflows covering a wide range of use cases:
+
+🚦 **What's inside?**
+
+- **AI Agents & Chatbots:** RAG, LLM, LangChain, Ollama, OpenAI, Claude, Gemini, and more
+- **Gmail & Outlook:** Smart labeling, auto-replies, PDF handling, and email-to-Notion
+- **Telegram, WhatsApp, Discord:** Bots, notifications, voice, and image workflows
+- **Notion, Airtable, Google Sheets:** Data sync, AI summaries, knowledge bases
+- **WordPress, WooCommerce:** AI content, chatbots, auto-tagging
+- **Slack, Mattermost:** Ticketing, feedback analysis, notifications
+- **Social Media:** LinkedIn, Pinterest, Instagram, Twitter/X, YouTube, TikTok automations
+- **PDF, Image, Audio, Video:** Extraction, summarization, captioning, speech-to-text
+- **HR, E-commerce, IT, Security, Research, and more!**
 
 ## Installation
 
