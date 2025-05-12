@@ -65,13 +65,6 @@ if is_profile_active "n8n"; then
   echo "Host: ${N8N_HOSTNAME:-<hostname_not_set>}"
 fi
 
-if is_profile_active "langfuse"; then
-  echo
-  echo "================================= Langfuse ============================"
-  echo
-  echo "Host: ${LANGFUSE_HOSTNAME:-<hostname_not_set>}"
-fi
-
 if is_profile_active "open-webui"; then
   echo
   echo "================================= WebUI ==============================="
@@ -104,6 +97,15 @@ if is_profile_active "supabase"; then
   echo "Database: ${POSTGRES_DB:-postgres}"
   echo "User: ${POSTGRES_USER:-postgres}"
   echo "Password: ${POSTGRES_PASSWORD:-<not_set_in_env>}"
+fi
+
+if is_profile_active "langfuse"; then
+  echo
+  echo "================================= Langfuse ============================"
+  echo
+  echo "Host: ${LANGFUSE_HOSTNAME:-<hostname_not_set>}"
+  echo "User: ${LANGFUSE_INIT_USER_EMAIL:-<not_set_in_env>}"
+  echo "Password: ${LANGFUSE_INIT_USER_PASSWORD:-<not_set_in_env>}"
 fi
 
 if is_profile_active "monitoring"; then
