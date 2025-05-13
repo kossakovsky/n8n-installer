@@ -15,7 +15,7 @@ volumes:
 
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
-  command: /bin/sh -c "npm install cheerio && n8n"
+  command: sh -c "npm install cheerio && n8n"
   environment: &service-n8n-env
     DB_TYPE: postgresdb
     DB_POSTGRESDB_HOST: postgres
