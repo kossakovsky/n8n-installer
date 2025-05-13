@@ -143,6 +143,14 @@ This script will:
 
 Here are solutions to common issues you might encounter:
 
+### Temporary "Dangerous Site" Warning in Browser
+
+- **Symptom:** Immediately after deploying the services, your browser (e.g., Chrome) might display a "Dangerous Site" or similar security warning when you try to access your services. This warning typically disappears after some time (e.g., within a few hours or by the next day).
+- **Cause:** This can happen for a couple of reasons:
+  1.  **Brief use of a self-signed certificate:** When Caddy (the web server managing your SSL certificates) starts up for a new domain, it might briefly use a temporary, self-signed certificate while it's in the process of requesting and obtaining a valid SSL certificate from Let's Encrypt.
+  2.  **Delay in applying the new certificate:** There might also be a short delay before the newly obtained certificate from Let's Encrypt is fully applied and recognized by all systems.
+- **Solution:** This is usually a temporary issue and resolves itself. Give it some time. If the warning persists for more than 24 hours, check your Caddy logs for any errors related to certificate acquisition and ensure your DNS settings are correctly pointing your domain to the server's IP address. You can also try clearing your browser's cache or using an incognito/private window to re-check.
+
 ### Supabase Issues
 
 - **Supabase Pooler Restarting:** If the `supabase-pooler` component keeps restarting, follow the instructions in [this GitHub issue](https://github.com/supabase/supabase/issues/30210#issuecomment-2456955578).
