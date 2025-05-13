@@ -79,7 +79,7 @@ The recommended way to install is using the provided main installation script.
 2.  Run the following command:
 
     ```bash
-    git clone https://github.com/kossakovsky/n8n-installer && cd n8n-installer && bash ./scripts/install.sh
+    git clone https://github.com/kossakovsky/n8n-installer && cd n8n-installer && sudo bash ./scripts/install.sh
     ```
 
 This single command automates the entire setup process, including:
@@ -120,7 +120,7 @@ With your n8n instance, you'll have access to over 400 integrations and powerful
 To update all components (n8n, Open WebUI, etc.) to their latest versions and incorporate the newest changes from this installer project, use the update script from the project root:
 
 ```bash
-bash ./scripts/update.sh
+sudo bash ./scripts/update.sh
 ```
 
 This script will:
