@@ -149,6 +149,16 @@ if is_profile_active "crawl4ai"; then
   echo "(Note: Not exposed externally via Caddy by default)"
 fi
 
+if is_profile_active "n8n" || is_profile_active "langfuse"; then
+  echo
+  echo "================================= Redis (Valkey) ======================"
+  echo
+  echo "Internal Host: ${REDIS_HOST:-redis}"
+  echo "Internal Port: ${REDIS_PORT:-6379}"
+  echo "Password: ${REDIS_AUTH:-LOCALONLYREDIS} (Note: Default if not set in .env)"
+  echo "(Note: Primarily for internal service communication, not exposed externally by default)"
+fi
+
 echo
 echo "======================================================================="
 echo
