@@ -15,7 +15,6 @@ volumes:
 
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
-  command: sh -c "npm install cheerio && n8n"
   environment: &service-n8n-env
     DB_TYPE: postgresdb
     DB_POSTGRESDB_HOST: postgres
@@ -36,6 +35,8 @@ x-n8n: &service-n8n
     QUEUE_BULL_REDIS_PORT: ${REDIS_PORT:-6379}
     N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: true
     N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE: true
+    NODE_FUNCTION_ALLOW_BUILTIN: "*"
+    NODE_FUNCTION_ALLOW_EXTERNAL: cheerio,axios,moment,lodash
 
 services:
   flowise:
