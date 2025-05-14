@@ -41,7 +41,7 @@ $COMPOSE_CMD pull || { log_error "Failed to pull Docker images. Check network co
 # Ask user about n8n import and modify .env file
 if [ -f "$ENV_FILE" ]; then
     echo ""
-    read -p $'Import n8n workflow? (y/n). Select N if you did it already: \n' import_choice
+    read -p $'Import n8n workflow? (y/n). Enter \'n\' if you did it already: \n' import_choice
     case "$import_choice" in
         [yY] | [yY][eE][sS] )
             # Use a temporary file for sed portability
