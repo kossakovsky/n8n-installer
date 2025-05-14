@@ -41,7 +41,7 @@ $COMPOSE_CMD pull || { log_error "Failed to pull Docker images. Check network co
 # Ask user about n8n import and modify .env file
 if [ -f "$ENV_FILE" ]; then
     echo ""
-    read -p $'Import n8n workflow? (y/n). Enter \'n\' if you did it already: \n' import_choice
+    read -p "Import n8n workflow? (y/n). Enter 'n' if you did it already: " import_choice
     case "$import_choice" in
         [yY] | [yY][eE][sS] )
             # Use a temporary file for sed portability
@@ -64,7 +64,7 @@ if [ -f "$ENV_FILE" ]; then
         CURRENT_WORKER_COUNT=$(grep "^N8N_WORKER_COUNT=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '"')
         log_info "Current n8n worker count: $CURRENT_WORKER_COUNT"
         echo ""
-        read -p "$(printf "Enter new n8n worker count (leave empty to keep current: %s): \n" "$CURRENT_WORKER_COUNT")" new_worker_count_raw
+        read -p "Enter new n8n worker count (leave empty to keep current: $CURRENT_WORKER_COUNT): " new_worker_count_raw
 
         if [[ -n "$new_worker_count_raw" ]]; then
             # Validate input: must be a positive integer
@@ -88,7 +88,7 @@ if [ -f "$ENV_FILE" ]; then
         log_warning "N8N_WORKER_COUNT line not found in $ENV_FILE. Cannot update worker count during this update."
         # Optionally, prompt user to add it if needed:
         # echo ""
-        # read -p $'N8N_WORKER_COUNT line not found. Add it now? (Enter number, or leave empty to skip): \n' add_worker_count
+        # read -p "N8N_WORKER_COUNT line not found. Add it now? (Enter number, or leave empty to skip): " add_worker_count
         # if [[ "$add_worker_count" =~ ^[1-9][0-9]*$ ]]; then
         #     echo "N8N_WORKER_COUNT="$add_worker_count"" >> "$ENV_FILE"
         #     log_info "Added N8N_WORKER_COUNT=$add_worker_count to $ENV_FILE."
