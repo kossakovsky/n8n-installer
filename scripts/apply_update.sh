@@ -40,23 +40,28 @@ $COMPOSE_CMD pull || { log_error "Failed to pull Docker images. Check network co
 
 # Ask user about n8n import and modify .env file
 if [ -f "$ENV_FILE" ]; then
-    read -p "Import n8n workflow? (y/n): " import_choice
-    case "$import_choice" in
-        [yY] | [yY][eE][sS] )
-            # Use a temporary file for sed portability
-            sed 's/^RUN_N8N_IMPORT=.*/RUN_N8N_IMPORT=true/' "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE" || {
-                log_error "Failed to set RUN_N8N_IMPORT in $ENV_FILE. Check permissions."
-                rm -f "${ENV_FILE}.tmp" # Clean up temp file on failure
-            }
-            ;;
-        * )
-            # Use a temporary file for sed portability
-            sed 's/^RUN_N8N_IMPORT=.*/RUN_N8N_IMPORT=false/' "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE" || {
-                log_error "Failed to set RUN_N8N_IMPORT in $ENV_FILE. Check permissions."
-                rm -f "${ENV_FILE}.tmp" # Clean up temp file on failure
-            }
-            ;;
-    esac
+    # Check if RUN_N8N_IMPORT is already true
+    if grep -q "^RUN_N8N_IMPORT=true" "$ENV_FILE"; then
+        log_info "RUN_N8N_IMPORT is already set to true in $ENV_FILE. Skipping import."
+    else
+        read -p "Import n8n workflow? (y/n): " import_choice
+        case "$import_choice" in
+            [yY] | [yY][eE][sS] )
+                # Use a temporary file for sed portability
+                sed 's/^RUN_N8N_IMPORT=.*/RUN_N8N_IMPORT=true/' "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE" || {
+                    log_error "Failed to set RUN_N8N_IMPORT in $ENV_FILE. Check permissions."
+                    rm -f "${ENV_FILE}.tmp" # Clean up temp file on failure
+                }
+                ;;
+            * )
+                # Use a temporary file for sed portability
+                sed 's/^RUN_N8N_IMPORT=.*/RUN_N8N_IMPORT=false/' "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE" || {
+                    log_error "Failed to set RUN_N8N_IMPORT in $ENV_FILE. Check permissions."
+                    rm -f "${ENV_FILE}.tmp" # Clean up temp file on failure
+                }
+                ;;
+        esac
+    fi
 
     # Ask user about n8n worker count
     if grep -q "^N8N_WORKER_COUNT=" "$ENV_FILE"; then
