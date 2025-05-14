@@ -40,7 +40,8 @@ $COMPOSE_CMD pull || { log_error "Failed to pull Docker images. Check network co
 
 # Ask user about n8n import and modify .env file
 if [ -f "$ENV_FILE" ]; then
-    read -p "Import n8n workflow? (y/n). Select N if you did it already: " import_choice
+    echo ""
+    read -p $'Import n8n workflow? (y/n). Select N if you did it already: \n' import_choice
     case "$import_choice" in
         [yY] | [yY][eE][sS] )
             # Use a temporary file for sed portability
@@ -62,7 +63,8 @@ if [ -f "$ENV_FILE" ]; then
     if grep -q "^N8N_WORKER_COUNT=" "$ENV_FILE"; then
         CURRENT_WORKER_COUNT=$(grep "^N8N_WORKER_COUNT=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '"')
         log_info "Current n8n worker count: $CURRENT_WORKER_COUNT"
-        read -p "Enter new n8n worker count (leave empty to keep current: $CURRENT_WORKER_COUNT): " new_worker_count_raw
+        echo ""
+        read -p $"Enter new n8n worker count (leave empty to keep current: $CURRENT_WORKER_COUNT): \n" new_worker_count_raw
 
         if [[ -n "$new_worker_count_raw" ]]; then
             # Validate input: must be a positive integer
@@ -85,11 +87,11 @@ if [ -f "$ENV_FILE" ]; then
         # 03_generate_secrets.sh should ensure it exists on initial setup.
         log_warning "N8N_WORKER_COUNT line not found in $ENV_FILE. Cannot update worker count during this update."
         # Optionally, prompt user to add it if needed:
-        # read -p "N8N_WORKER_COUNT line not found. Add it now? (Enter number, or leave empty to skip): " add_worker_count
+        # echo ""
+        # read -p $'N8N_WORKER_COUNT line not found. Add it now? (Enter number, or leave empty to skip): \n' add_worker_count
         # if [[ "$add_worker_count" =~ ^[1-9][0-9]*$ ]]; then
-        #     echo "N8N_WORKER_COUNT=\"$add_worker_count\"" >> "$ENV_FILE"
+        #     echo "N8N_WORKER_COUNT="$add_worker_count"" >> "$ENV_FILE"
         #     log_info "Added N8N_WORKER_COUNT=$add_worker_count to $ENV_FILE."
-        # fi
     fi
 else
     log_warning "$ENV_FILE not found. Cannot configure RUN_N8N_IMPORT or N8N_WORKER_COUNT."

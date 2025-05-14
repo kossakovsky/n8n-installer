@@ -90,7 +90,8 @@ fi
 
 # Prompt for the domain name
 while true; do
-    read -p "Enter the primary domain name for your services (e.g., example.com): " DOMAIN
+    echo ""
+    read -p $'Enter the primary domain name for your services (e.g., example.com): \n' DOMAIN
 
     # Validate domain input
     if [[ -z "$DOMAIN" ]]; then
@@ -103,7 +104,8 @@ while true; do
         log_warning "Warning: Domain name contains potentially invalid characters: '$DOMAIN'" >&2
     fi
 
-    read -p "Are you sure '$DOMAIN' is correct? (y/N): " confirm_domain
+    echo ""
+    read -p $"Are you sure '$DOMAIN' is correct? (y/N): \n" confirm_domain
     if [[ "$confirm_domain" =~ ^[Yy]$ ]]; then
         break # Confirmed, exit loop
     else
@@ -125,7 +127,8 @@ if [[ -n "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
     log_info "Using existing email from .env: $USER_EMAIL"
 else
     while true; do
-        read -p "Email: " USER_EMAIL
+        echo ""
+        read -p $'Email: \n' USER_EMAIL
 
         # Validate email input
         if [[ -z "$USER_EMAIL" ]]; then
@@ -138,7 +141,8 @@ else
             log_warning "Warning: Email format appears to be invalid: '$USER_EMAIL'" >&2
         fi
 
-        read -p "Are you sure '$USER_EMAIL' is correct? (y/N): " confirm_email
+        echo ""
+        read -p $"Are you sure '$USER_EMAIL' is correct? (y/N): \n" confirm_email
         if [[ "$confirm_email" =~ ^[Yy]$ ]]; then
             break # Confirmed, exit loop
         else
@@ -159,10 +163,12 @@ if [[ -v existing_env_vars[OPENAI_API_KEY] ]]; then # -v checks if variable is s
       log_info "Using existing OpenAI API Key from .env."
     else
       log_info "Found empty OpenAI API Key in .env. You can provide one now or leave empty."
-      read -p "OpenAI API Key: " OPENAI_API_KEY # Allow update if it was empty
+      echo ""
+      read -p $'OpenAI API Key: \n' OPENAI_API_KEY # Allow update if it was empty
     fi
 else
-    read -p "OpenAI API Key: " OPENAI_API_KEY
+    echo ""
+    read -p $'OpenAI API Key: \n' OPENAI_API_KEY
 fi
 
 # Ask if user wants to import ready-made workflow for n8n
@@ -171,7 +177,8 @@ if [[ -n "${existing_env_vars[RUN_N8N_IMPORT]}" ]]; then
     RUN_N8N_IMPORT="${existing_env_vars[RUN_N8N_IMPORT]}"
     log_info "Using existing RUN_N8N_IMPORT value from .env: $RUN_N8N_IMPORT"
 else
-    read -p "Import workflows? (y/n): " import_workflow
+    echo ""
+    read -p $'Import workflows? (y/n): \n' import_workflow
     if [[ "$import_workflow" =~ ^[Yy]$ ]]; then
         RUN_N8N_IMPORT="true"
     else
@@ -185,7 +192,8 @@ log_info "Configuring n8n worker count..."
 if [[ -n "${existing_env_vars[N8N_WORKER_COUNT]}" ]]; then
     N8N_WORKER_COUNT_CURRENT="${existing_env_vars[N8N_WORKER_COUNT]}"
     log_info "Found existing N8N_WORKER_COUNT in .env: $N8N_WORKER_COUNT_CURRENT"
-    read -p "Do you want to change the number of n8n workers? Current: $N8N_WORKER_COUNT_CURRENT. (Enter new number, or press Enter to keep current): " N8N_WORKER_COUNT_INPUT_RAW
+    echo ""
+    read -p $"Do you want to change the number of n8n workers? Current: $N8N_WORKER_COUNT_CURRENT. (Enter new number, or press Enter to keep current): \n" N8N_WORKER_COUNT_INPUT_RAW
     if [[ -z "$N8N_WORKER_COUNT_INPUT_RAW" ]]; then
         N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
         log_info "Keeping N8N_WORKER_COUNT at $N8N_WORKER_COUNT."
@@ -194,7 +202,8 @@ if [[ -n "${existing_env_vars[N8N_WORKER_COUNT]}" ]]; then
         if [[ "$N8N_WORKER_COUNT_INPUT_RAW" =~ ^0*[1-9][0-9]*$ ]]; then
             N8N_WORKER_COUNT_TEMP="$((10#$N8N_WORKER_COUNT_INPUT_RAW))" # Sanitize (e.g. 01 -> 1)
             if [[ "$N8N_WORKER_COUNT_TEMP" -ge 1 ]]; then
-                 read -p "Update n8n workers to $N8N_WORKER_COUNT_TEMP? (y/N): " confirm_change
+                 echo ""
+                 read -p $"Update n8n workers to $N8N_WORKER_COUNT_TEMP? (y/N): \n" confirm_change
                  if [[ "$confirm_change" =~ ^[Yy]$ ]]; then
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_TEMP"
                     log_info "N8N_WORKER_COUNT set to $N8N_WORKER_COUNT."
@@ -213,13 +222,15 @@ if [[ -n "${existing_env_vars[N8N_WORKER_COUNT]}" ]]; then
     fi
 else
     while true; do
-        read -p "Enter the number of n8n workers to run (e.g., 1, 2, 3; default is 1): " N8N_WORKER_COUNT_INPUT_RAW
+        echo ""
+        read -p $'Enter the number of n8n workers to run (e.g., 1, 2, 3; default is 1): \n' N8N_WORKER_COUNT_INPUT_RAW
         N8N_WORKER_COUNT_CANDIDATE="${N8N_WORKER_COUNT_INPUT_RAW:-1}" # Default to 1 if empty
 
         if [[ "$N8N_WORKER_COUNT_CANDIDATE" =~ ^0*[1-9][0-9]*$ ]]; then
             N8N_WORKER_COUNT_VALIDATED="$((10#$N8N_WORKER_COUNT_CANDIDATE))"
             if [[ "$N8N_WORKER_COUNT_VALIDATED" -ge 1 ]]; then
-                read -p "Run $N8N_WORKER_COUNT_VALIDATED n8n worker(s)? (y/N): " confirm_workers
+                echo ""
+                read -p $"Run $N8N_WORKER_COUNT_VALIDATED n8n worker(s)? (y/N): \n" confirm_workers
                 if [[ "$confirm_workers" =~ ^[Yy]$ ]]; then
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_VALIDATED"
                     log_info "N8N_WORKER_COUNT set to $N8N_WORKER_COUNT."
