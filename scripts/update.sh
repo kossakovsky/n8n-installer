@@ -36,6 +36,7 @@ if ! command -v git &> /dev/null; then
 else
     # Change to project root for git pull
     cd "$PROJECT_ROOT" || { log_error "Failed to change directory to $PROJECT_ROOT"; exit 1; }
+    git reset --hard HEAD || { log_warning "Failed to reset repository. Continuing update with potentially unreset local changes..."; }
     git pull || { log_warning "Failed to pull latest repository changes. Continuing update with potentially old version of apply_update.sh..."; }
     # Change back to script dir or ensure apply_update.sh uses absolute paths or cd's itself
     # (apply_update.sh already handles cd to PROJECT_ROOT, so we're good)
