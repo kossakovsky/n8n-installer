@@ -105,7 +105,7 @@ while true; do
     fi
 
     echo ""
-    read -p $"Are you sure '$DOMAIN' is correct? (y/N): \n" confirm_domain
+    read -p "$(printf "Are you sure '%s' is correct? (y/N): \n" "$DOMAIN")" confirm_domain
     if [[ "$confirm_domain" =~ ^[Yy]$ ]]; then
         break # Confirmed, exit loop
     else
@@ -142,7 +142,7 @@ else
         fi
 
         echo ""
-        read -p $"Are you sure '$USER_EMAIL' is correct? (y/N): \n" confirm_email
+        read -p "$(printf "Are you sure '%s' is correct? (y/N): \n" "$USER_EMAIL")" confirm_email
         if [[ "$confirm_email" =~ ^[Yy]$ ]]; then
             break # Confirmed, exit loop
         else
@@ -193,7 +193,7 @@ if [[ -n "${existing_env_vars[N8N_WORKER_COUNT]}" ]]; then
     N8N_WORKER_COUNT_CURRENT="${existing_env_vars[N8N_WORKER_COUNT]}"
     log_info "Found existing N8N_WORKER_COUNT in .env: $N8N_WORKER_COUNT_CURRENT"
     echo ""
-    read -p $"Do you want to change the number of n8n workers? Current: $N8N_WORKER_COUNT_CURRENT. (Enter new number, or press Enter to keep current): \n" N8N_WORKER_COUNT_INPUT_RAW
+    read -p "$(printf "Do you want to change the number of n8n workers? Current: %s. (Enter new number, or press Enter to keep current): \n" "$N8N_WORKER_COUNT_CURRENT")" N8N_WORKER_COUNT_INPUT_RAW
     if [[ -z "$N8N_WORKER_COUNT_INPUT_RAW" ]]; then
         N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
         log_info "Keeping N8N_WORKER_COUNT at $N8N_WORKER_COUNT."
@@ -203,7 +203,7 @@ if [[ -n "${existing_env_vars[N8N_WORKER_COUNT]}" ]]; then
             N8N_WORKER_COUNT_TEMP="$((10#$N8N_WORKER_COUNT_INPUT_RAW))" # Sanitize (e.g. 01 -> 1)
             if [[ "$N8N_WORKER_COUNT_TEMP" -ge 1 ]]; then
                  echo ""
-                 read -p $"Update n8n workers to $N8N_WORKER_COUNT_TEMP? (y/N): \n" confirm_change
+                 read -p "$(printf "Update n8n workers to %s? (y/N): \n" "$N8N_WORKER_COUNT_TEMP")" confirm_change
                  if [[ "$confirm_change" =~ ^[Yy]$ ]]; then
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_TEMP"
                     log_info "N8N_WORKER_COUNT set to $N8N_WORKER_COUNT."
@@ -230,7 +230,7 @@ else
             N8N_WORKER_COUNT_VALIDATED="$((10#$N8N_WORKER_COUNT_CANDIDATE))"
             if [[ "$N8N_WORKER_COUNT_VALIDATED" -ge 1 ]]; then
                 echo ""
-                read -p $"Run $N8N_WORKER_COUNT_VALIDATED n8n worker(s)? (y/N): \n" confirm_workers
+                read -p "$(printf "Run %s n8n worker(s)? (y/N): \n" "$N8N_WORKER_COUNT_VALIDATED")" confirm_workers
                 if [[ "$confirm_workers" =~ ^[Yy]$ ]]; then
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_VALIDATED"
                     log_info "N8N_WORKER_COUNT set to $N8N_WORKER_COUNT."

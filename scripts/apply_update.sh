@@ -64,7 +64,7 @@ if [ -f "$ENV_FILE" ]; then
         CURRENT_WORKER_COUNT=$(grep "^N8N_WORKER_COUNT=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '"')
         log_info "Current n8n worker count: $CURRENT_WORKER_COUNT"
         echo ""
-        read -p $"Enter new n8n worker count (leave empty to keep current: $CURRENT_WORKER_COUNT): \n" new_worker_count_raw
+        read -p "$(printf "Enter new n8n worker count (leave empty to keep current: %s): \n" "$CURRENT_WORKER_COUNT")" new_worker_count_raw
 
         if [[ -n "$new_worker_count_raw" ]]; then
             # Validate input: must be a positive integer
