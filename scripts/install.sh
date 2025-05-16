@@ -2,6 +2,9 @@
 
 set -e
 
+# Source the utilities file
+source "$(dirname "$0")/utils.sh"
+
 # Check for nested n8n-installer directory
 current_path=$(pwd)
 if [[ "$current_path" == *"/n8n-installer/n8n-installer" ]]; then
@@ -24,9 +27,6 @@ if [[ "$current_path" == *"/n8n-installer/n8n-installer" ]]; then
         exec sudo bash "./scripts/install.sh" "$@"
     fi
 fi
-
-# Source the utilities file
-source "$(dirname "$0")/utils.sh"
 
 # Get the directory where this script is located (which is the scripts directory)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
