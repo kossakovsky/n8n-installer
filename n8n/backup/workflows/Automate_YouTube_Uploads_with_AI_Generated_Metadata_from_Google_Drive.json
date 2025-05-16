@@ -1,0 +1,391 @@
+{
+  "name": "Automate YouTube Uploads with AI-Generated Metadata from Google Drive",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "options": {}
+      },
+      "id": "159ab152-63e5-4b88-bee0-76666fabf32c",
+      "name": "Download New Video",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [-400, 80],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOURIDHERE"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "id": "6480169c-ad51-4f22-9a66-3dfbefa3ea18",
+      "name": "New Video?",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "position": [-620, 80],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-nano",
+          "cachedResultName": "GPT-4.1-NANO"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a professional copywriter.  \nYou receive the transcript of an economics-related video and create a detailed but concise summary (with paragraphs) about its content.  \n\nWrite a detailed summary (with paragraphs) about the content of the podcast.  \n\nYour output will be used for the YouTube video description. Start with something like: \"In this video...\" or \"In this episode...\".  \nWrite from my perspective, using phrases like \"my opinion\" or \"in my view,\" in the first person, but never phrases like \"In this episode, I learn...\" or similar, as I always explain or discuss the content. YOU NEVER WRITE THINGS LIKE \"THE SPEAKER SAYS\"! Always from my position.  \n\nImportant: Use clear and assertive statements as formulated in the transcript. Avoid neutral or uncertain phrases like \"it could,\" \"I assume that,\" \"possibly,\" or similar. The statements should be confident and definitive to powerfully convey the podcast’s content.  \nInclude a few (2-4) emojis where appropriate.  \nEnd the post with 2-5 relevant hashtags. The hashtags should be broad, like #economics #money #gold, or similar, depending on what fits.",
+              "role": "system"
+            },
+            {
+              "content": "=Here is the transcript:\n\n{{ $json.transcript }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "92edc3e2-16e6-4535-8747-d5b4fd228af9",
+      "name": "Create Description",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [740, 40],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-preview-04-17",
+        "options": {}
+      },
+      "id": "f6985c25-2259-4821-814d-65a4096a23a9",
+      "name": "2.5FlashPrev",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [1080, 40],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Now follows the actual topic/transcript. Give me the YouTube tags for it:\n\n{{ $('Adjust Transcript Format').item.json.transcript }}",
+        "options": {
+          "systemMessage": "This video is about the future gold price and how it affects the returns of high-performing assets like stocks and bonds in their adjusted returns.\n\nExpected output:\nGold price, future gold price, gold investments, asset returns, stocks and bonds, investment returns, adjusted returns, gold market, financial markets, gold price forecast, economic trends, investing in gold, stock market analysis, bond market, investment strategies, inflation and gold, gold vs. stocks, financial analysis, precious metals, portfolio management, market outlook, investment tips"
+        }
+      },
+      "id": "09e5f146-472f-43b6-b836-f60a29760ff2",
+      "name": "YT Tags",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [1040, -160],
+      "typeVersion": 1.9
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.apify.com/v2/acts/pintostudio~youtube-transcript-scraper/run-sync-get-dataset-items",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "={{$json.token}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"videoUrl\": \"https://www.youtube.com/watch?v={{ $json.id }}\"\n}",
+        "options": {}
+      },
+      "id": "d5670035-762d-4273-810f-bf8cf156576f",
+      "name": "Get Transcript",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [240, 80],
+      "typeVersion": 4.2,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst transcriptStrings = items.flatMap(item => {\n  const dataArray = item.json.data;\n\n  if (!dataArray || !Array.isArray(dataArray)) {\n    return [];\n  }\n\n  const segmentTexts = dataArray.map(segment => {\n      if (segment && typeof segment.text === 'string') {\n          return segment.text;\n      } else {\n          return '';\n      }\n  });\n\n  return segmentTexts;\n});\n\nconst transcript = transcriptStrings.join(' ');\n\nreturn [\n  {\n    json: {\n      transcript: transcript,\n    },\n  },\n];"
+      },
+      "id": "a28cae4a-be11-433e-9a68-001adc260e69",
+      "name": "Adjust Transcript Format",
+      "type": "n8n-nodes-base.code",
+      "position": [420, 80],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "update",
+        "videoId": "={{ $('Upload Video to Youtube').item.json.uploadId }}",
+        "title": "={{ $('YT Title').item.json.title }}",
+        "regionCode": "DE",
+        "categoryId": "25",
+        "updateFields": {
+          "description": "={{ $('Create Description').first().json.message.content }}\n\nDiese textbasierte Zusammenfassung des Videos wurde automatisch mit dem KI-Modell gpt-4.1-nano erstellt.]\n",
+          "tags": "={{ $('YT Tags').item.json.message.content }}"
+        }
+      },
+      "id": "b85c75d9-9333-4804-a435-f050890788ce",
+      "name": "Update Video's Metadata",
+      "type": "n8n-nodes-base.youTube",
+      "position": [1900, 100],
+      "typeVersion": 1,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "content": "# Upload New Video to Youtube 🎥⬆️",
+        "height": 240,
+        "width": 700,
+        "color": 4
+      },
+      "id": "63879f44-a30c-41e9-b2ff-fbeee43bc6cc",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-640, 20],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# Get Transcript for Context and Generate Metadata from It 📝🔍",
+        "height": 500,
+        "width": 2660,
+        "color": 4
+      },
+      "id": "062c7db9-8baa-40dd-99fa-61cf668cee3d",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [60, -240],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-nano",
+          "cachedResultName": "GPT-4.1-NANO"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a professional copywriter for SEO-optimized YouTube titles.",
+              "role": "system"
+            },
+            {
+              "content": "=Write me a suitable SEO YouTube title for the transcript of the following video transcript. Only the title, nothing else. Max 100 characters, so keep it short."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "164b38ba-e6cd-4be6-98d4-a19d4703b3b3",
+      "name": "YT Title",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [1460, -160],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Download New Video').item.json.id }}"
+        },
+        "options": {}
+      },
+      "id": "f49e5c2b-8c0a-4cc0-832a-599bc522a083",
+      "name": "Delete File from Upload Folder (Optional)",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [2200, -160],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "adadada",
+        "regionCode": "DE",
+        "categoryId": "25",
+        "options": {
+          "privacyStatus": "private",
+          "selfDeclaredMadeForKids": false
+        }
+      },
+      "id": "54aacc05-a6e9-4654-97fb-3befe5227f06",
+      "name": "Upload Video to Youtube",
+      "type": "n8n-nodes-base.youTube",
+      "position": [-120, 80],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2eb41a6f-d0ef-4ca2-be47-f93b1d5c1edb",
+              "name": "token",
+              "type": "string",
+              "value": "YOURTOKENHERE"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6c2ea785-af6d-44c5-a625-12884bdcc4e2",
+      "name": "ApifyToken",
+      "type": "n8n-nodes-base.set",
+      "position": [60, 80],
+      "typeVersion": 3.4
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "YT Tags": {
+      "main": [
+        [
+          {
+            "node": "YT Title",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YT Title": {
+      "main": [
+        [
+          {
+            "node": "Update Video's Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ApifyToken": {
+      "main": [
+        [
+          {
+            "node": "Get Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New Video?": {
+      "main": [
+        [
+          {
+            "node": "Download New Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2.5FlashPrev": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "YT Tags",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Transcript": {
+      "main": [
+        [
+          {
+            "node": "Adjust Transcript Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Description": {
+      "main": [
+        [
+          {
+            "node": "YT Tags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download New Video": {
+      "main": [
+        [
+          {
+            "node": "Upload Video to Youtube",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Video's Metadata": {
+      "main": [
+        [
+          {
+            "node": "Delete File from Upload Folder (Optional)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Video to Youtube": {
+      "main": [
+        [
+          {
+            "node": "ApifyToken",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adjust Transcript Format": {
+      "main": [
+        [
+          {
+            "node": "Create Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "8c6df3d9c78e998324a3cf0914556b82948ee6c29f96c9e0a377e8c1060125d7"
+  },
+  "tags": []
+}
