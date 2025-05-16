@@ -92,7 +92,7 @@ if is_profile_active "supabase"; then
   echo
   echo "================================= PostgreSQL (Supabase) ============================"
   echo
-  echo "Host: ${POSTGRES_HOST:-db}"
+  echo "Host: ${POSTGRES_HOST:-db}" # Note: Supabase uses 'db' as the hostname for its internal Postgres by default
   echo "Port: ${POSTGRES_PORT:-5432}"
   echo "Database: ${POSTGRES_DB:-postgres}"
   echo "User: ${POSTGRES_USER:-postgres}"
@@ -165,6 +165,35 @@ if is_profile_active "letta"; then
   echo
   echo "Host: ${LETTA_HOSTNAME:-<hostname_not_set>}"
   echo "Authorization: Bearer ${LETTA_SERVER_PASSWORD}"
+fi
+
+if is_profile_active "cpu" || is_profile_active "gpu-nvidia" || is_profile_active "gpu-amd"; then
+  echo
+  echo "================================= Ollama =============================="
+  echo
+  echo "Internal Access (e.g., from n8n, Open WebUI): http://ollama:11434"
+  echo "(Note: Ollama runs with the selected profile: cpu, gpu-nvidia, or gpu-amd)"
+fi
+
+# Standalone PostgreSQL (used by n8n, Langfuse, etc.)
+# Check if n8n or langfuse is active, as they use this PostgreSQL instance.
+# The Supabase section already details its own internal Postgres.
+if is_profile_active "n8n" || is_profile_active "langfuse"; then
+  # Check if Supabase is NOT active, to avoid confusion with Supabase's Postgres if both are present
+  # However, the main POSTGRES_PASSWORD is used by this standalone instance.
+  # Supabase has its own environment variables for its internal Postgres if configured differently,
+  # but the current docker-compose.yml uses the main POSTGRES_PASSWORD for langfuse's postgres dependency too.
+  # For clarity, we will label this distinctly.
+  echo
+  echo "==================== Standalone PostgreSQL (for n8n, Langfuse, etc.) ====================="
+  echo
+  echo "Host: ${POSTGRES_HOST:-postgres}"
+  echo "Port: ${POSTGRES_PORT:-5432}"
+  echo "Database: ${POSTGRES_DB:-postgres}" # This is typically 'postgres' or 'n8n' for n8n, and 'langfuse' for langfuse, but refers to the service.
+  echo "User: ${POSTGRES_USER:-postgres}"
+  echo "Password: ${POSTGRES_PASSWORD:-<not_set_in_env>}"
+  echo "(Note: This is the PostgreSQL instance used by services like n8n and Langfuse.)"
+  echo "(It is separate from Supabase's internal PostgreSQL if Supabase is also enabled.)"
 fi
 
 echo
