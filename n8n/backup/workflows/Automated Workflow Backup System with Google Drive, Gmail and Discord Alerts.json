@@ -1,0 +1,645 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 1,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "id": "d5532016-a7c6-4d84-b80c-753673b58008",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [840, 360],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "filters": {},
+        "requestOptions": {}
+      },
+      "id": "b11cb7ae-721f-488f-a336-34d7fc48699a",
+      "name": "Get all n8n Workflows",
+      "type": "n8n-nodes-base.n8n",
+      "position": [1060, 360],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "changeFileContent": true,
+        "newUpdatedFileName": "={{  $('Workflow Data').item.json.name + \"_\" + $('Workflow Data').item.json.id+ \".json\"}}",
+        "options": {}
+      },
+      "id": "6c3df98b-4f04-4e6b-9619-88992d9befd3",
+      "name": "Backup to Google Drive2",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [1640, 780],
+      "retryOnFail": true,
+      "typeVersion": 3,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "2524c9a6-e001-445b-8257-867a5f6a6632",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [1300, 360],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "name": "={{  $('Workflow Data').item.json.name + \"_\" + $('Workflow Data').item.json.id+ \".json\"}}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "13clPf8pnv_-GLeeNXLhuVzQiqnKo_7Ev",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/13clPf8pnv_-GLeeNXLhuVzQiqnKo_7Ev",
+          "cachedResultName": "n8nWorkflows"
+        },
+        "options": {}
+      },
+      "id": "b7d7af4a-e480-4c2a-b4aa-ce35d37850f7",
+      "name": "Backup to Google Drive4",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [1760, 1100],
+      "retryOnFail": true,
+      "typeVersion": 3,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "5ec1b850-e0ce-4bd6-a8be-504e01825c00",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              },
+              "leftValue": "={{$('getDriveFileData').item.json.name}}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f0fbdde1-138d-49dc-856a-37719e14102a",
+      "name": "ifDriveEmpty",
+      "type": "n8n-nodes-base.if",
+      "position": [1060, 800],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $('Workflow Data').item.json.toJsonString() }}\n",
+        "options": {}
+      },
+      "id": "f4a0b1a8-5317-4758-a2bb-e2ed7cefcfdf",
+      "name": "firstWorkflowJson",
+      "type": "n8n-nodes-base.set",
+      "position": [1380, 1100],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const jsonData = JSON.stringify(item.json);\n  const binaryData = Buffer.from(jsonData).toString('base64');\n  item.binary = {\n    data: {\n      data: binaryData,\n      mimeType: 'application/json',\n      fileName: 'data.json'\n    }\n  };\n  return item;\n});"
+      },
+      "id": "b1d6d8c6-42ca-4566-ad11-7a38f6045771",
+      "name": "JsonToFile",
+      "type": "n8n-nodes-base.code",
+      "position": [1560, 1100],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const jsonData = JSON.stringify( $('Workflow Data').item.json);\n  const binaryData = Buffer.from(jsonData).toString('base64');\n  item.binary = {\n    data: {\n      data: binaryData,\n      mimeType: 'application/json',\n      fileName: 'data.json'\n    }\n  };\n  return item;\n});"
+      },
+      "id": "51d1546c-78bd-4efe-8c3b-73ce7767261e",
+      "name": "CodeJsonToFile1",
+      "type": "n8n-nodes-base.code",
+      "position": [1460, 780],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {},
+      "id": "142bfe78-148c-4d22-86cc-cf0acfd71375",
+      "name": "Limit",
+      "type": "n8n-nodes-base.limit",
+      "position": [1480, 340],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "4ee0b44a-9260-487d-9c23-1e552f7c38ae",
+      "name": "Workflow Data",
+      "type": "n8n-nodes-base.executionData",
+      "position": [240, 800],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "sendTo": "your email address",
+        "subject": "google drive workflow backup success",
+        "emailType": "text",
+        "message": "={{ $now.format('yyyy-MM-dd HH:mm') }} workflow backup success.",
+        "options": {}
+      },
+      "id": "ba292b97-8b41-4a22-bbfc-437fafeafd5f",
+      "name": "successEmail",
+      "type": "n8n-nodes-base.gmail",
+      "position": [1740, 340],
+      "webhookId": "b6cdbf4b-3abf-4eda-aa49-c19012e3133b",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "sendTo": "your email address",
+        "subject": "google drive workflow backup error",
+        "emailType": "text",
+        "message": "={{ $now }} {{ $('Workflow Data').item.json.name }} workflow backup .",
+        "options": {}
+      },
+      "id": "4cca48b3-30e4-4150-bfd3-b439a453907c",
+      "name": "failureEmail",
+      "type": "n8n-nodes-base.gmail",
+      "position": [2000, 800],
+      "webhookId": "f38fba13-3970-43a5-8afd-ea873289015b",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "content": "## Set n8n API",
+        "height": 220,
+        "width": 260,
+        "color": 5
+      },
+      "id": "6441eda3-446d-4f74-84be-fb14926b396c",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [980, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Edit this node 👇",
+        "height": 80,
+        "width": 150,
+        "color": 4
+      },
+      "id": "849a8750-b716-4a72-a2ac-b8df0d8075b9",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [980, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{  $('Workflow Data').item.json.name + \"_\" + $('Workflow Data').item.json.id+ \".json\"}}",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "mode": "url",
+            "value": "={{ $('Parameters').item.json.directory }}"
+          },
+          "whatToSearch": "files"
+        },
+        "options": {}
+      },
+      "id": "6c12e0d0-ba92-4526-9ba0-f868c492f354",
+      "name": "getDriveFileData",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [680, 800],
+      "retryOnFail": true,
+      "typeVersion": 3,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "a6fbb123-1d8c-469e-8aea-1e1e26f40f58",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [80, 800],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "DfMF9CmVw6FU4hYm"
+        },
+        "workflowInputs": {
+          "value": {},
+          "schema": [],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "892bc87b-f1f5-40bb-a0fc-40a204cd9b81",
+      "name": "Execute Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [1480, 480],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1b65def6-4984-497d-a4bc-232af22927ad",
+              "name": "directory",
+              "type": "string",
+              "value": "https://drive.google.com/drive/folders/13clPf8pnv_-GLeeNXLhuVzQiqnKo_7Ev?usp=share_link"
+            },
+            {
+              "id": "c8c98f88-9f22-4574-88b8-1db99f6e4ec4",
+              "name": "parentdrive",
+              "type": "string",
+              "value": "https://drive.google.com/drive/u/0/my-drive"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ab283057-ae1e-48a1-a8d9-ff435b2ed0c3",
+      "name": "Parameters",
+      "type": "n8n-nodes-base.set",
+      "position": [400, 800],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "content": "## Edit this node 👇",
+        "height": 80,
+        "width": 150,
+        "color": 4
+      },
+      "id": "e650208c-afaf-4c75-b803-b3087e12835b",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [360, 680],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Send complete message",
+        "height": 220,
+        "width": 340
+      },
+      "id": "187f6d45-8298-4a51-a327-438afd8625e2",
+      "name": "Sticky Note10",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1620, 280],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "channelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1365663078880116756",
+          "cachedResultUrl": "https://discord.com/channels/1365624783781494854/1365663078880116756",
+          "cachedResultName": "backup-status"
+        },
+        "content": "={{ $now.format('yyyy-MM-dd HH:mm') }} Google Drive workflow backup success.",
+        "options": {
+          "tts": false
+        }
+      },
+      "id": "b13d631e-8bbc-418f-8a70-7612a613cfc0",
+      "name": "Discord",
+      "type": "n8n-nodes-base.discord",
+      "position": [1740, 460],
+      "webhookId": "65ce702c-8f03-4016-b192-a2503a7fbca7",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "content": "## 重要！ 👇\n\n**啟動前： **\n\n### 作者資訊與資源\n作者：Hochien Chang\nYouTube 頻道：[HC AI說人話](https://www.youtube.com/channel/UCvGfUB-wBdG4i_TdDGBCwJg)\n說明影片連結： https://youtu.be/PA15H5qunC0\n\n1.  **更新認證：** 確認已設定「Google Drive OAuth2 API」認證。\n2.  **設定參數：** 編輯「參數」節點，設定所需的 Google Drive 資料夾 URL。\n3.  **設定電子郵件：** 使用您的收件者電子郵件地址更新「Gmail」節點。\n\n\n參考工作流：https://n8n.io/workflows/3112-backup-n8n-workflows-to-google-drive/",
+        "height": 480,
+        "width": 370,
+        "color": 7
+      },
+      "id": "3cdbff45-02b1-48c3-afaa-ba820aea70d3",
+      "name": "Sticky Note8",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [400, 100],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### IMPORTANT! 👇\n\n**Before activating:**\n### Author Information and Resources\nCreator：Hochien Chang\nYouTube 頻道：[HC HumanizeAI](www.youtube.com/@HC-HumanizeAI)\nExplanation Video Link: https://youtu.be/PA15H5qunC0\n\n1.  **Update Credentials:** Ensure 'Google Drive OAuth2 API' credentials are set up.\n2.  **Configure Parameters:** Edit the 'Parameters' node to set your desired Google Drive folder URL.\n3.  **Set Email:** Update the 'Gmail' nodes with your recipient email address.\n\n\nBase on: https://n8n.io/workflows/3112-backup-n8n-workflows-to-google-drive/",
+        "height": 480,
+        "width": 390,
+        "color": 7
+      },
+      "id": "48ccae99-eeda-438f-b97b-e0432da3a611",
+      "name": "Sticky Note9",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [0, 100],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 新工作流上傳\n## New Workflow upload👇",
+        "height": 300,
+        "width": 620,
+        "color": 3
+      },
+      "id": "a8604dc8-c761-46fc-a0de-4179ce7f4353",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1300, 980],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 現有工作流更新\n## existing Workflow update👇",
+        "height": 280,
+        "width": 620,
+        "color": 6
+      },
+      "id": "9a87d564-1eaa-486b-9d7b-b3e72d3325d7",
+      "name": "Sticky Note11",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1300, 680],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 取得 Google Drive 現有的檔案資訊\n## Get Google Drive existing file info👇",
+        "height": 280,
+        "width": 440
+      },
+      "id": "99125929-dd0a-4034-bb05-04a1b8d7eb8b",
+      "name": "Sticky Note12",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [520, 680],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 確認是否為第一次備份\n## Only for initialing👇",
+        "height": 280,
+        "width": 320,
+        "color": 4
+      },
+      "id": "2cd91eb8-6596-4963-92a6-c0ddb0ad9f76",
+      "name": "Sticky Note13",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [960, 680],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# HC AI 說人話",
+        "height": 80,
+        "width": 760,
+        "color": 6
+      },
+      "id": "42474090-96b0-4540-add5-60fb60ec071f",
+      "name": "Sticky Note14",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [0, 0],
+      "typeVersion": 1,
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "successEmail",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JsonToFile": {
+      "main": [
+        [
+          {
+            "node": "Backup to Google Drive4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parameters": {
+      "main": [
+        [
+          {
+            "node": "getDriveFileData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ifDriveEmpty": {
+      "main": [
+        [
+          {
+            "node": "CodeJsonToFile1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "firstWorkflowJson",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Data": {
+      "main": [
+        [
+          {
+            "node": "Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CodeJsonToFile1": {
+      "main": [
+        [
+          {
+            "node": "Backup to Google Drive2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get all n8n Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getDriveFileData": {
+      "main": [
+        [
+          {
+            "node": "ifDriveEmpty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "firstWorkflowJson": {
+      "main": [
+        [
+          {
+            "node": "JsonToFile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all n8n Workflows": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Backup to Google Drive2": {
+      "main": [
+        [],
+        [
+          {
+            "node": "failureEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Backup to Google Drive4": {
+      "main": [
+        [],
+        [
+          {
+            "node": "failureEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Workflow Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "8c6df3d9c78e998324a3cf0914556b82948ee6c29f96c9e0a377e8c1060125d7"
+  },
+  "tags": []
+}
