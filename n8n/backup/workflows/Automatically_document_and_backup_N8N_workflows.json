@@ -1,0 +1,754 @@
+{
+  "name": "Automatically document and backup N8N workflows",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1744510d-7ed7-46d8-acd3-f975ab73f298",
+              "name": "active",
+              "type": "boolean",
+              "value": "={{ $json.active }}"
+            },
+            {
+              "id": "7e76f5dc-0c32-4b26-a289-975155b80112",
+              "name": "url",
+              "type": "string",
+              "value": "=https://<n8n_host_name>/workflow/{{ $json.id }}"
+            },
+            {
+              "id": "a7b069bf-8090-4dca-a432-f4fd7aa84e6f",
+              "name": "errorWorkflow",
+              "type": "boolean",
+              "value": "={{ !!$json.settings?.errorWorkflow }}"
+            },
+            {
+              "id": "0bff7a9b-0860-4552-b0f6-5fc279fc75d6",
+              "name": "workflow-name",
+              "type": "string",
+              "value": "={{ $json.name }}"
+            },
+            {
+              "id": "3065ee2f-d1bb-42b7-b341-7bb38b0f6720",
+              "name": "updatedAt",
+              "type": "string",
+              "value": "={{ $json.updatedAt }}"
+            },
+            {
+              "id": "ea9d39e4-50ca-4c79-b6ab-8b22cafd0257",
+              "name": "createdAt",
+              "type": "string",
+              "value": "={{ $json.createdAt }}"
+            },
+            {
+              "id": "265d66cd-1796-40eb-ae5b-dca8d1a91871",
+              "name": "envId",
+              "type": "string",
+              "value": "=internal-{{ $json.id }}"
+            },
+            {
+              "id": "6ffb9c13-82a7-4f40-b2e6-887c018b747c",
+              "name": "workflow-definition",
+              "type": "string",
+              "value": "={{ JSON.stringify($json, null, 2) }}"
+            },
+            {
+              "id": "8b2a1098-125f-44b0-b8c0-99098e582156",
+              "name": "workflow-export-filename",
+              "type": "string",
+              "value": "={{ $json.name.replace(/ /g, \"_\").replace(/-/g, \"_\") + \".json\" }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "365c1bbf-3a66-4d5b-b6c9-89ff5a520176",
+      "name": "Set fields",
+      "type": "n8n-nodes-base.set",
+      "position": [740, 100],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/<your_db_id_here>/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "notionApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"filter\": { \"and\": [\n    {\n        \"property\": \"envId\",\n        \"rich_text\": { \"contains\": \"{{ $json.envId }}\" }\n    }]\n}\n}",
+        "options": {}
+      },
+      "id": "c0e8315d-faca-4141-a435-a2092dc0a985",
+      "name": "Get notion page with workflow id",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [900, 100],
+      "typeVersion": 4.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "49092f3a-7f42-4067-b8ea-1073ef1d1bb8",
+              "name": "input",
+              "type": "object",
+              "value": "={{ $('Set fields').item.json }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "60dee927-70e5-40fb-8887-3fec2648607d",
+      "name": "Map fields",
+      "type": "n8n-nodes-base.set",
+      "position": [1060, 100],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "<replace_me>",
+          "cachedResultUrl": "https://www.notion.so/<replace_me>",
+          "cachedResultName": "Workflow Sync"
+        },
+        "title": "={{ $('Map fields').item.json.input['workflow-name'] }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Workflow Name|title",
+              "title": "={{ $('Map fields').item.json.input['workflow-name'] }}"
+            },
+            {
+              "key": "URL (dev)|url",
+              "urlValue": "={{ $('Map fields').item.json.input.url }}"
+            },
+            {
+              "key": "isActive (dev)|checkbox",
+              "checkboxValue": "={{ $('Map fields').item.json.input.active }}"
+            },
+            {
+              "key": "Workflow created at|date",
+              "date": "={{ $('Map fields').item.json.input.createdAt }}"
+            },
+            {
+              "key": "Workflow updated at|date",
+              "date": "={{ $('Map fields').item.json.input.updatedAt }}"
+            },
+            {
+              "key": "Error workflow setup|checkbox",
+              "checkboxValue": "={{ $('Map fields').item.json.input.errorWorkflow }}"
+            },
+            {
+              "key": "Record last update|date",
+              "date": "={{ $now }}"
+            },
+            {
+              "key": "AI Summary|rich_text",
+              "textContent": "={{ $json.message.content }}"
+            },
+            {
+              "key": "envId|rich_text",
+              "textContent": "={{ $('Map fields').item.json.input.envId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "85dfc279-dba8-4b1a-b68e-001a70d4d2ee",
+      "name": "Add to Notion",
+      "type": "n8n-nodes-base.notion",
+      "position": [1900, 80],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Map fields').item.json.results[0].id }}"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "isActive (dev)|checkbox",
+              "checkboxValue": "={{ $('Set fields').item.json.active }}"
+            },
+            {
+              "key": "Workflow updated at|date",
+              "date": "={{ $('Set fields').item.json.updatedAt }}"
+            },
+            {
+              "key": "Error workflow setup|checkbox",
+              "checkboxValue": "={{ $('Set fields').item.json.errorWorkflow }}"
+            },
+            {
+              "key": "AI Summary|rich_text",
+              "textContent": "={{ $json.message.content }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "42a904ea-8324-4120-aabc-dd1a424df138",
+      "name": "Update in Notion",
+      "type": "n8n-nodes-base.notion",
+      "position": [1900, 260],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "<yourchannelID>",
+          "cachedResultName": "<yourchannelname>"
+        },
+        "text": "=Pushed new workflow to Notion: {{ $('Map fields').item.json.input['workflow-name'] }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "a8f4f8e3-aa92-4dce-a970-809b5df12919",
+      "name": "Notify internal-infra of push",
+      "type": "n8n-nodes-base.slack",
+      "position": [2100, 80],
+      "webhookId": "45139061-cdfe-4f2c-9767-9872d5453770",
+      "typeVersion": 2.3
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "<yourchannelID>",
+          "cachedResultName": "<yourchannelname>"
+        },
+        "text": "=Updated workflow in Notion: {{ $('Map fields').item.json.input['workflow-name'] }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "8fbb8607-9b5b-4341-a158-87639d3a98ae",
+      "name": "Notify internal-infra of update",
+      "type": "n8n-nodes-base.slack",
+      "position": [2100, 260],
+      "webhookId": "11b4a08c-1893-43ac-94ae-6950909a16d8",
+      "typeVersion": 2.3
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "<yourchannelID>",
+          "cachedResultName": "<yourchannelname>"
+        },
+        "text": "=WARNING: Error workflow has NOT been setup for: <{{ $json.input.url }}|{{ $json.input['workflow-name'] }}> (No backup will take place until err-workflow is configured)",
+        "otherOptions": {
+          "includeLinkToWorkflow": false,
+          "mrkdwn": true
+        }
+      },
+      "id": "e26bfff2-1049-4f0f-9463-ae6ef8cf2b14",
+      "name": "Notify on workflow setup error",
+      "type": "n8n-nodes-base.slack",
+      "position": [1000, 640],
+      "webhookId": "08adaa3e-2149-4189-b815-b36b9e72494e",
+      "typeVersion": 2.3
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Concisely tell me what this N8N plugin does in 1-2 lines, then describe how it does it in no more than a paragraph, but only if that detail was already covered by the first 1-2 lines - we don't want to repeat ourselves.\n<n8nplugin>\n{{ $json.input['workflow-definition'] }}\n</n8nplugin>"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "be296dc4-f63d-43a5-9090-724fe13a7021",
+      "name": "Summarize what the Workflow does",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [1300, 100],
+      "typeVersion": 1.8
+    },
+    {
+      "parameters": {
+        "content": "## Extract key fields",
+        "height": 300,
+        "width": 480,
+        "color": 4
+      },
+      "id": "9dcaa40b-7480-4d89-9297-129aabdc546d",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [700, 0],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Generate documentation in Notion\n",
+        "height": 440,
+        "width": 1080,
+        "color": 5
+      },
+      "id": "404d175f-7929-41d9-a523-6f907d2abb49",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1220, 0],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "<yourownernamehere>"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "list",
+          "value": "<yourreponamehere>",
+          "cachedResultUrl": "<yourrepoURLhere>",
+          "cachedResultName": "<yourreponamehere>"
+        },
+        "filePath": "=N8N_Workflows/{{ $('Set fields').item.json['workflow-export-filename'].replaceAll(/[\\/:*?\"<>|,\\t\\n#%&']/g, \"_\") }}",
+        "fileContent": "={{ $('Set fields').item.json['workflow-definition'] }}",
+        "commitMessage": "=updated by N8N #{{ $execution.id }}"
+      },
+      "id": "565507d0-120d-4c71-a1d3-e66bc38793d0",
+      "name": "Upload changes to repo",
+      "type": "n8n-nodes-base.github",
+      "position": [1320, 600],
+      "typeVersion": 1,
+      "webhookId": "6c138255-d478-4b73-b928-40f951e98fdd",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "file",
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "<yourownernamehere>"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "list",
+          "value": "<yourreponamehere>",
+          "cachedResultUrl": "<yourrepoURLhere>",
+          "cachedResultName": "<yourreponamehere>"
+        },
+        "filePath": "=N8N_Workflows/{{ $('Set fields').item.json['workflow-export-filename'].replaceAll(/[\\/:*?\"<>|,\\t\\n#%&']/g, \"_\") }}",
+        "fileContent": "={{ $('Set fields').item.json['workflow-definition'] }}",
+        "commitMessage": "created by N8N"
+      },
+      "id": "b5bcf4c7-2c50-4840-b5e7-7fa12818cd73",
+      "name": "Create new file in repo",
+      "type": "n8n-nodes-base.github",
+      "position": [1660, 600],
+      "typeVersion": 1,
+      "webhookId": "5a24a893-4033-42b0-9978-c4621b0d5930",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "<yourchannelID>",
+          "cachedResultName": "<yourchannelname>"
+        },
+        "text": "=WARNING: Failed to upload new N8N workflow <{{ $json.input.url }}|{{ $json.input['workflow-name'] }}> to repo",
+        "otherOptions": {
+          "includeLinkToWorkflow": true,
+          "mrkdwn": true
+        }
+      },
+      "id": "7d16a452-9c9f-401b-b993-4254afda8e2d",
+      "name": "Notify on create file in repo fail",
+      "type": "n8n-nodes-base.slack",
+      "position": [2100, 600],
+      "webhookId": "08adaa3e-2149-4189-b815-b36b9e72494e",
+      "typeVersion": 2.3
+    },
+    {
+      "parameters": {
+        "content": "## Check workflow setup OK ",
+        "height": 360,
+        "width": 480,
+        "color": 3
+      },
+      "id": "1e6a850c-3be4-41b8-91c4-1c2d1a612a91",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [700, 460],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Upload / backup workflow to GitHub repo",
+        "height": 360,
+        "width": 1080,
+        "color": 5
+      },
+      "id": "e72ae588-35b7-48de-8665-a3be879f4723",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1220, 460],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Check weekly for changes on active internal-infra workflows",
+        "height": 300,
+        "width": 660
+      },
+      "id": "7ba7ccf8-5ee0-4bde-aafc-042ae624eead",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [0, 0],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 1,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "88337d36-8cf6-4cd5-bec1-5123cf612934",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              },
+              "leftValue": "={{ $('Map fields').item.json.results }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8bd6ee85-bfef-4dba-a767-c67fb7338d93",
+      "name": "Is this a new workflow (to Notion) ?",
+      "type": "n8n-nodes-base.if",
+      "position": [1660, 100],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [1],
+              "triggerAtHour": 1
+            }
+          ]
+        }
+      },
+      "id": "7ac2752b-9406-4b7f-83fb-476ef7f931a8",
+      "name": "Every Monday at 1am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [60, 100],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "5f0685ee-2ffa-4cf8-8d65-32addb4bb703",
+              "operator": {
+                "type": "dateTime",
+                "operation": "afterOrEquals"
+              },
+              "leftValue": "={{ $json.updatedAt }}",
+              "rightValue": "={{ new Date(new Date().setDate(new Date().getDate()-7)).toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "815ff832-3573-4f65-866a-04c5088600fc",
+      "name": "Check if updated in last 7 days",
+      "type": "n8n-nodes-base.if",
+      "position": [500, 100],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "filters": {
+          "activeWorkflows": true,
+          "tags": "internal-infra"
+        },
+        "requestOptions": {}
+      },
+      "id": "940a30c2-96a6-42f1-be51-0b0cf30d80bc",
+      "name": "Get active workflows with internal-infra tag",
+      "type": "n8n-nodes-base.n8n",
+      "position": [280, 100],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "id": "c53617b5-a217-4111-a229-82d93fb0bec6",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.input.errorWorkflow }}",
+              "rightValue": ""
+            },
+            {
+              "id": "3ea0c94e-e192-4e94-867f-788feda52d61",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.input['workflow-name'] }}",
+              "rightValue": "_infra: Get a Slack alert when a workflow went wrong"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b3559787-e8ec-4780-908d-e29940ad0969",
+      "name": "Check that error workflow has been configured",
+      "type": "n8n-nodes-base.if",
+      "position": [760, 520],
+      "typeVersion": 2.2
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Map fields": {
+      "main": [
+        [
+          {
+            "node": "Check that error workflow has been configured",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Summarize what the Workflow does",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set fields": {
+      "main": [
+        [
+          {
+            "node": "Get notion page with workflow id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Notion": {
+      "main": [
+        [
+          {
+            "node": "Notify internal-infra of push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update in Notion": {
+      "main": [
+        [
+          {
+            "node": "Notify internal-infra of update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Monday at 1am": {
+      "main": [
+        [
+          {
+            "node": "Get active workflows with internal-infra tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload changes to repo": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Create new file in repo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create new file in repo": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Notify on create file in repo fail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if updated in last 7 days": {
+      "main": [
+        [
+          {
+            "node": "Set fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get notion page with workflow id": {
+      "main": [
+        [
+          {
+            "node": "Map fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize what the Workflow does": {
+      "main": [
+        [
+          {
+            "node": "Is this a new workflow (to Notion) ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is this a new workflow (to Notion) ?": {
+      "main": [
+        [
+          {
+            "node": "Add to Notion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update in Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get active workflows with internal-infra tag": {
+      "main": [
+        [
+          {
+            "node": "Check if updated in last 7 days",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check that error workflow has been configured": {
+      "main": [
+        [
+          {
+            "node": "Upload changes to repo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify on workflow setup error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "8c6df3d9c78e998324a3cf0914556b82948ee6c29f96c9e0a377e8c1060125d7"
+  },
+  "tags": []
+}
