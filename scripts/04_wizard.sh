@@ -48,6 +48,7 @@ services=(
     "searxng" "SearXNG (Private Metasearch Engine)" "OFF"
     "crawl4ai" "Crawl4ai (Web Crawler for AI)" "OFF"
     "letta" "Letta (Agent Server & SDK)" "OFF"
+    "ollama" "Ollama (Local LLM Runner - select hardware in next step)" "OFF"
 )
 
 # Use whiptail to display the checklist
@@ -83,10 +84,47 @@ fi
 
 # Process selected services
 selected_profiles=()
+ollama_selected=0
+ollama_profile=""
+
 if [ -n "$CHOICES" ]; then
     # Whiptail returns a string like "tag1" "tag2" "tag3"
     # We need to remove quotes and convert to an array
-    eval "selected_profiles=($CHOICES)"
+    temp_choices=()
+    eval "temp_choices=($CHOICES)"
+
+    for choice in "${temp_choices[@]}"; do
+        if [ "$choice" == "ollama" ]; then
+            ollama_selected=1
+        else
+            selected_profiles+=("$choice")
+        fi
+    done
+fi
+
+# If Ollama was selected, prompt for the hardware profile
+if [ $ollama_selected -eq 1 ]; then
+    ollama_hardware_options=(
+        "cpu" "CPU (Recommended for most users)" "ON"
+        "gpu-nvidia" "NVIDIA GPU (Requires NVIDIA drivers & CUDA)" "OFF"
+        "gpu-amd" "AMD GPU (Requires ROCm drivers)" "OFF"
+    )
+    CHOSEN_OLLAMA_PROFILE=$(whiptail --title "Ollama Hardware Profile" --radiolist \
+      "Choose the hardware profile for Ollama. This will be added to your Docker Compose profiles." 15 78 3 \
+      "${ollama_hardware_options[@]}" \
+      3>&1 1>&2 2>&3)
+
+    ollama_exitstatus=$?
+    if [ $ollama_exitstatus -eq 0 ] && [ -n "$CHOSEN_OLLAMA_PROFILE" ]; then
+        selected_profiles+=("$CHOSEN_OLLAMA_PROFILE")
+        ollama_profile="$CHOSEN_OLLAMA_PROFILE" # Store for user message
+        echo "INFO: Ollama hardware profile selected: $CHOSEN_OLLAMA_PROFILE"
+    else
+        echo "INFO: Ollama hardware profile selection cancelled or no choice made. Ollama will not be configured with a specific hardware profile."
+        # ollama_selected remains 1, but no specific profile is added.
+        # This means "ollama" won't be in COMPOSE_PROFILES unless a hardware profile is chosen.
+        ollama_selected=0 # Mark as not fully selected if profile choice is cancelled
+    fi
 fi
 
 echo "--------------------------------------------------------------------"
@@ -98,7 +136,16 @@ else
     # Join the array into a comma-separated string
     COMPOSE_PROFILES_VALUE=$(IFS=,; echo "${selected_profiles[*]}")
     for profile in "${selected_profiles[@]}"; do
-        echo "  - $profile"
+        # Check if the curr
+        if [ "$profile" == "cpu" ] || [ "$profile" == "gpu-nvidia" ] || [ "$profile" == "gpu-amd" ]; then
+            if [ "$profile" == "$ollama_profile" ]; then # Make sure this is the ollama profile we just selected
+                 echo "  - Ollama ($profile profile)"
+            else # It could be another service that happens to be named "cpu" if we add one later
+                 echo "  - $profile"
+            fi
+        else
+            echo "  - $profile"
+        fi
     done
 fi
 echo "--------------------------------------------------------------------"
