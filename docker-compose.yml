@@ -12,6 +12,7 @@ volumes:
   langfuse_minio_data:
   grafana:
   prometheus_data:
+  letta_data:
 
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
@@ -402,3 +403,19 @@ services:
         limits:
           cpus: "1.0"
           memory: 4G # Increased based on documentation recommendation
+
+  letta:
+    image: letta/letta:latest
+    container_name: letta
+    profiles: ["letta"]
+    restart: unless-stopped
+    volumes:
+      - letta_data:/var/lib/postgresql/data
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+      SECURE: ${LETTA_SECURE:-true}
+      LETTA_SERVER_PASSWORD: ${LETTA_SERVER_PASSWORD:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -35,6 +35,11 @@
     reverse_proxy grafana:3000
 }
 
+# Letta
+{$LETTA_HOSTNAME} {
+    reverse_proxy letta:8283
+}
+
 # Prometheus
 {$PROMETHEUS_HOSTNAME} {
     basic_auth { 

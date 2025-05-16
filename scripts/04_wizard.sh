@@ -40,13 +40,14 @@ export DEBIAN_FRONTEND=dialog
 services=(
     "n8n" "n8n, n8n-worker, n8n-import (Workflow Automation)" "ON"
     "flowise" "Flowise (AI Agent Builder)" "ON"
-    "supabase" "Supabase (Backend as a Service)" "ON"
-    "qdrant" "Qdrant (Vector Database)" "ON"
     "monitoring" "Monitoring Suite (Prometheus, Grafana, cAdvisor, Node-Exporter)" "ON"
-    "langfuse" "Langfuse Suite (AI Observability - includes Clickhouse, Minio)" "ON"
-    "open-webui" "Open WebUI (ChatGPT-like Interface)" "ON"
-    "searxng" "SearXNG (Private Metasearch Engine)" "ON"
-    "crawl4ai" "Crawl4ai (Web Crawler for AI)" "ON"
+    "qdrant" "Qdrant (Vector Database)" "OFF"
+    "supabase" "Supabase (Backend as a Service)" "OFF"
+    "langfuse" "Langfuse Suite (AI Observability - includes Clickhouse, Minio)" "OFF"
+    "open-webui" "Open WebUI (ChatGPT-like Interface)" "OFF"
+    "searxng" "SearXNG (Private Metasearch Engine)" "OFF"
+    "crawl4ai" "Crawl4ai (Web Crawler for AI)" "OFF"
+    "letta" "Letta (Agent Server & SDK)" "OFF"
 )
 
 # Use whiptail to display the checklist

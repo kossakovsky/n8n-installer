@@ -41,6 +41,7 @@ declare -A VARS_TO_GENERATE=(
     ["LOGFLARE_API_KEY"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
     ["PROMETHEUS_PASSWORD"]="password:32" # Added Prometheus password
     ["SEARXNG_PASSWORD"]="password:32" # Added SearXNG admin password
+    ["LETTA_SERVER_PASSWORD"]="password:32" # Added Letta server password
     ["LANGFUSE_INIT_USER_PASSWORD"]="password:32"
     ["LANGFUSE_INIT_PROJECT_PUBLIC_KEY"]="langfuse_pk:32"
     ["LANGFUSE_INIT_PROJECT_SECRET_KEY"]="langfuse_sk:32"

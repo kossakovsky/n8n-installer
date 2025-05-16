@@ -40,6 +40,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Crawl4ai**](https://github.com/Alfresco/crawl4ai) - A flexible web crawler designed for AI, enabling you to extract data from websites for your projects.
 
+✅ [**Letta**](https://docs.letta.com/) - An open-source agent server and SDK that can be connected to various LLM API backends (OpenAI, Anthropic, Ollama, etc.), enabling you to build and manage AI agents.
+
 ✅ [**Prometheus**](https://prometheus.io/) - An open-source monitoring and alerting toolkit to keep an eye on system health.
 
 ✅ [**Grafana**](https://grafana.com/) - An open-source platform for visualizing monitoring data, helping you understand system performance at a glance.
@@ -109,6 +111,7 @@ The services will be available at the following addresses (replace `yourdomain.c
 - **Flowise:** `flowise.yourdomain.com`
 - **Supabase (Dashboard):** `supabase.yourdomain.com`
 - **Langfuse:** `langfuse.yourdomain.com`
+- **Letta:** `letta.yourdomain.com`
 - **Grafana:** `grafana.yourdomain.com`
 - **SearXNG:** `searxng.yourdomain.com`
 - **Prometheus:** `prometheus.yourdomain.com`

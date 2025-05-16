@@ -159,6 +159,14 @@ if is_profile_active "n8n" || is_profile_active "langfuse"; then
   echo "(Note: Primarily for internal service communication, not exposed externally by default)"
 fi
 
+if is_profile_active "letta"; then
+  echo
+  echo "================================= Letta ================================"
+  echo
+  echo "Host: ${LETTA_HOSTNAME:-<hostname_not_set>}"
+  echo "Authorization: Bearer ${LETTA_SERVER_PASSWORD}"
+fi
+
 echo
 echo "======================================================================="
 echo
