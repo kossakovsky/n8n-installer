@@ -33,31 +33,12 @@ log_info "Stopping all services for project 'localai'..."
 PROJECT_CONTAINERS=$(docker ps -a -q --filter "label=com.docker.compose.project=localai")
 if [ -n "$PROJECT_CONTAINERS" ]; then
     docker stop $PROJECT_CONTAINERS || log_warning "Some containers for project 'localai' failed to stop."
+    # User has opted to remove 'docker rm $PROJECT_CONTAINERS' in a previous step or it was not included.
 else
     log_info "No containers found for project 'localai' to stop/remove."
 fi
 
-# Pull latest versions of all potentially needed containers
-log_info "Pulling latest versions of all potentially needed containers..."
-COMPOSE_FILES_FOR_PULL=("-f" "$PROJECT_ROOT/docker-compose.yml")
-SUPABASE_DOCKER_DIR="$PROJECT_ROOT/supabase/docker"
-SUPABASE_COMPOSE_FILE_PATH="$SUPABASE_DOCKER_DIR/docker-compose.yml"
-
-# Check if Supabase directory and its docker-compose.yml exist
-if [ -d "$SUPABASE_DOCKER_DIR" ] && [ -f "$SUPABASE_COMPOSE_FILE_PATH" ]; then
-    COMPOSE_FILES_FOR_PULL+=("-f" "$SUPABASE_COMPOSE_FILE_PATH")
-    log_info "Supabase docker-compose.yml found, will be included in pull."
-else
-    log_info "Supabase docker-compose.yml not found or directory does not exist, skipping for pull."
-fi
-
-# Use the project name "localai" for consistency
-$COMPOSE_CMD -p "localai" "${COMPOSE_FILES_FOR_PULL[@]}" pull --ignore-buildable || {
-  log_error "Failed to pull Docker images. Check network connection and Docker Hub status."
-  exit 1
-}
-
-# --- Run Service Selection Wizard ---
+# --- Run Service Selection Wizard FIRST to get updated profiles --- 
 log_info "Running Service Selection Wizard to update service choices..."
 bash "$SCRIPT_DIR/04_wizard.sh" || {
     log_error "Service Selection Wizard failed. Update process cannot continue."
@@ -65,6 +46,27 @@ bash "$SCRIPT_DIR/04_wizard.sh" || {
 }
 log_success "Service selection updated."
 # --- End of Service Selection Wizard ---
+
+# Pull latest versions of selected containers based on updated .env
+log_info "Pulling latest versions of selected containers..."
+COMPOSE_FILES_FOR_PULL=("-f" "$PROJECT_ROOT/docker-compose.yml")
+SUPABASE_DOCKER_DIR="$PROJECT_ROOT/supabase/docker"
+SUPABASE_COMPOSE_FILE_PATH="$SUPABASE_DOCKER_DIR/docker-compose.yml"
+
+# Check if Supabase directory and its docker-compose.yml exist
+if [ -d "$SUPABASE_DOCKER_DIR" ] && [ -f "$SUPABASE_COMPOSE_FILE_PATH" ]; then
+    COMPOSE_FILES_FOR_PULL+=("-f" "$SUPABASE_COMPOSE_FILE_PATH")
+    log_info "Supabase docker-compose.yml found, will be included for pull if Supabase is selected."
+else
+    log_info "Supabase docker-compose.yml not found or directory does not exist, skipping for pull consideration."
+fi
+
+# Use the project name "localai" for consistency.
+# This command WILL respect COMPOSE_PROFILES from the .env file (updated by the wizard above).
+$COMPOSE_CMD -p "localai" "${COMPOSE_FILES_FOR_PULL[@]}" pull --ignore-buildable || {
+  log_error "Failed to pull Docker images for selected services. Check network connection and Docker Hub status."
+  exit 1
+}
 
 # Ask user about n8n import and modify .env file
 if [ -f "$ENV_FILE" ]; then
