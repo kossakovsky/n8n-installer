@@ -40,24 +40,45 @@ $COMPOSE_CMD pull || { log_error "Failed to pull Docker images. Check network co
 
 # Ask user about n8n import and modify .env file
 if [ -f "$ENV_FILE" ]; then
-    echo ""
-    read -p "Import n8n workflow? (y/n). Enter 'n' if you did it already: " import_choice
-    case "$import_choice" in
-        [yY] | [yY][eE][sS] )
-            # Use a temporary file for sed portability
-            sed 's/^RUN_N8N_IMPORT=.*/RUN_N8N_IMPORT=true/' "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE" || {
-                log_error "Failed to set RUN_N8N_IMPORT in $ENV_FILE. Check permissions."
-                rm -f "${ENV_FILE}.tmp" # Clean up temp file on failure
-            }
-            ;;
-        * )
-            # Use a temporary file for sed portability
-            sed 's/^RUN_N8N_IMPORT=.*/RUN_N8N_IMPORT=false/' "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE" || {
-                log_error "Failed to set RUN_N8N_IMPORT in $ENV_FILE. Check permissions."
-                rm -f "${ENV_FILE}.tmp" # Clean up temp file on failure
-            }
-            ;;
-    esac
+    N8N_WORKFLOWS_IMPORTED_EVER=$(grep "^N8N_WORKFLOWS_IMPORTED_EVER=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '"' || echo "false")
+
+    if [[ "$N8N_WORKFLOWS_IMPORTED_EVER" == "true" ]]; then
+        log_info "n8n workflows have been imported previously. Skipping import prompt."
+        # Use a temporary file for sed portability
+        sed 's/^RUN_N8N_IMPORT=.*/RUN_N8N_IMPORT=false/' "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE" || {
+            log_error "Failed to set RUN_N8N_IMPORT=false in $ENV_FILE. Check permissions."
+            rm -f "${ENV_FILE}.tmp"
+        }
+    else
+        echo ""
+        read -p "Import n8n workflow? (y/n) : " import_choice
+        case "$import_choice" in
+            [yY] | [yY][eE][sS] )
+                # Use a temporary file for sed portability
+                sed 's/^RUN_N8N_IMPORT=.*/RUN_N8N_IMPORT=true/' "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE" || {
+                    log_error "Failed to set RUN_N8N_IMPORT=true in $ENV_FILE. Check permissions."
+                    rm -f "${ENV_FILE}.tmp"
+                }
+                # Update N8N_WORKFLOWS_IMPORTED_EVER to true
+                if grep -q "^N8N_WORKFLOWS_IMPORTED_EVER=" "$ENV_FILE"; then
+                    sed 's/^N8N_WORKFLOWS_IMPORTED_EVER=.*/N8N_WORKFLOWS_IMPORTED_EVER=true/' "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE" || {
+                        log_error "Failed to set N8N_WORKFLOWS_IMPORTED_EVER=true in $ENV_FILE. Check permissions."
+                        rm -f "${ENV_FILE}.tmp"
+                    }
+                else
+                    echo "N8N_WORKFLOWS_IMPORTED_EVER=true" >> "$ENV_FILE"
+                fi
+                ;;
+            * )
+                # Use a temporary file for sed portability
+                sed 's/^RUN_N8N_IMPORT=.*/RUN_N8N_IMPORT=false/' "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE" || {
+                    log_error "Failed to set RUN_N8N_IMPORT=false in $ENV_FILE. Check permissions."
+                    rm -f "${ENV_FILE}.tmp"
+                }
+                # N8N_WORKFLOWS_IMPORTED_EVER remains false (or its current state if already in file)
+                ;;
+        esac
+    fi
 
     # Ask user about n8n worker count
     if grep -q "^N8N_WORKER_COUNT=" "$ENV_FILE"; then

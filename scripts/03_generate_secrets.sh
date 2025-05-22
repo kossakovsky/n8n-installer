@@ -187,6 +187,20 @@ else
     fi
 fi
 
+# Determine N8N_WORKFLOWS_IMPORTED_EVER based on RUN_N8N_IMPORT and existing values
+N8N_WORKFLOWS_IMPORTED_EVER_VALUE="false" # Default to false
+if [[ -n "${existing_env_vars[N8N_WORKFLOWS_IMPORTED_EVER]}" ]]; then
+    N8N_WORKFLOWS_IMPORTED_EVER_VALUE="${existing_env_vars[N8N_WORKFLOWS_IMPORTED_EVER]}"
+    log_info "Using existing N8N_WORKFLOWS_IMPORTED_EVER value from .env: $N8N_WORKFLOWS_IMPORTED_EVER_VALUE"
+else
+    # If N8N_WORKFLOWS_IMPORTED_EVER is not in .env, set it based on RUN_N8N_IMPORT choice
+    if [[ "$RUN_N8N_IMPORT" == "true" ]]; then
+        N8N_WORKFLOWS_IMPORTED_EVER_VALUE="true"
+    fi
+    # No else needed, it's already defaulted to false
+    log_info "Setting N8N_WORKFLOWS_IMPORTED_EVER based on current import choice (or default): $N8N_WORKFLOWS_IMPORTED_EVER_VALUE"
+fi
+
 # Prompt for number of n8n workers
 echo "" # Add a newline for better formatting
 log_info "Configuring n8n worker count..."
@@ -307,6 +321,7 @@ generated_values["PROMETHEUS_USERNAME"]="$USER_EMAIL"
 generated_values["SEARXNG_USERNAME"]="$USER_EMAIL"
 generated_values["LANGFUSE_INIT_USER_EMAIL"]="$USER_EMAIL"
 generated_values["N8N_WORKER_COUNT"]="$N8N_WORKER_COUNT"
+generated_values["N8N_WORKFLOWS_IMPORTED_EVER"]="$N8N_WORKFLOWS_IMPORTED_EVER_VALUE"
 if [[ -n "$OPENAI_API_KEY" ]]; then
     generated_values["OPENAI_API_KEY"]="$OPENAI_API_KEY"
 fi
@@ -327,6 +342,7 @@ found_vars["SEARXNG_USERNAME"]=0
 found_vars["OPENAI_API_KEY"]=0
 found_vars["LANGFUSE_INIT_USER_EMAIL"]=0
 found_vars["N8N_WORKER_COUNT"]=0
+found_vars["N8N_WORKFLOWS_IMPORTED_EVER"]=0
 
 # Read template, substitute domain, generate initial values
 while IFS= read -r line || [[ -n "$line" ]]; do
@@ -372,7 +388,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             # This 'else' block is for lines from template not covered by existing values or VARS_TO_GENERATE.
             # Check if it is one of the user input vars - these are handled by found_vars later if not in template.
             is_user_input_var=0 # Reset for each line
-            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT")
+            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "N8N_WORKFLOWS_IMPORTED_EVER")
             for uivar in "${user_input_vars[@]}"; do
                 if [[ "$varName" == "$uivar" ]]; then
                     is_user_input_var=1
@@ -462,7 +478,7 @@ else
 fi
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT"; do
+for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "N8N_WORKFLOWS_IMPORTED_EVER"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
         # Before appending, check if it's already in TMP_ENV_FILE to avoid duplicates
         if ! grep -q -E "^${var}=" "$TMP_ENV_FILE"; then
