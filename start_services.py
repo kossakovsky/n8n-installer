@@ -67,10 +67,27 @@ def stop_existing_containers():
         "-p", "localai",
         "-f", "docker-compose.yml"
     ]
-    if is_supabase_enabled():
+
+    # Determine if the Supabase compose file needs to be included in the down command.
+    # This check uses the current (potentially new) COMPOSE_PROFILES from os.environ.
+    supabase_compose_file_relevant_for_down = is_supabase_enabled()
+    if supabase_compose_file_relevant_for_down:
         cmd.extend(["-f", "supabase/docker/docker-compose.yml"])
+    
     cmd.append("down")
-    run_command(cmd)
+
+    # For the 'down' command to affect all services from the specified compose files
+    # regardless of the *current* COMPOSE_PROFILES, we temporarily clear COMPOSE_PROFILES
+    # from the environment for this specific command.
+    original_compose_profiles = os.environ.pop("COMPOSE_PROFILES", None)
+    try:
+        run_command(cmd)
+    finally:
+        if original_compose_profiles is not None:
+            os.environ["COMPOSE_PROFILES"] = original_compose_profiles
+        # If COMPOSE_PROFILES was not in os.environ initially (None), it remains unset,
+        # which is fine, as load_dotenv() at the start of main() would be the source of truth.
+        # However, since load_dotenv() *was* called, original_compose_profiles should reflect that.
 
 def start_supabase():
     """Start the Supabase services (using its compose file)."""
