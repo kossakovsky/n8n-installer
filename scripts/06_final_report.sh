@@ -76,17 +76,11 @@ if is_profile_active "supabase"; then
   echo "================================= Supabase ============================"
   echo
   echo "External Host (via Caddy): ${SUPABASE_HOSTNAME:-<hostname_not_set>}"
-  echo "Internal API Gateway: http://kong:8000"
   echo "Studio User: ${DASHBOARD_USERNAME:-<not_set_in_env>}"
   echo "Studio Password: ${DASHBOARD_PASSWORD:-<not_set_in_env>}"
   echo
-  echo "================================= PostgreSQL (Supabase) ============================"
-  echo
-  echo "Host: ${POSTGRES_HOST:-db}" # Note: Supabase uses 'db' as the hostname for its internal Postgres by default
-  echo "Port: ${POSTGRES_PORT:-5432}"
-  echo "Database: ${POSTGRES_DB:-postgres}"
-  echo "User: ${POSTGRES_USER:-postgres}"
-  echo "Password: ${POSTGRES_PASSWORD:-<not_set_in_env>}"
+  echo "Internal API Gateway: http://kong:8000"
+  echo "Service Role Secret: ${SERVICE_ROLE_KEY:-<not_set_in_env>}"
 fi
 
 if is_profile_active "langfuse"; then
