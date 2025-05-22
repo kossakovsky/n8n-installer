@@ -33,23 +33,63 @@ check_whiptail
 ORIGINAL_DEBIAN_FRONTEND="$DEBIAN_FRONTEND"
 export DEBIAN_FRONTEND=dialog
 
-# Define available services and their descriptions for the checklist
-# Format: "tag" "description" "ON/OFF"
-# Caddy, Postgres, and Redis are core services and will always be enabled implicitly
-# if dependent services are chosen, or by default as they won't have profiles.
-services=(
-    "n8n" "n8n, n8n-worker, n8n-import (Workflow Automation)" "ON"
-    "flowise" "Flowise (AI Agent Builder)" "ON"
-    "monitoring" "Monitoring Suite (Prometheus, Grafana, cAdvisor, Node-Exporter)" "ON"
-    "qdrant" "Qdrant (Vector Database)" "OFF"
-    "supabase" "Supabase (Backend as a Service)" "OFF"
-    "langfuse" "Langfuse Suite (AI Observability - includes Clickhouse, Minio)" "OFF"
-    "open-webui" "Open WebUI (ChatGPT-like Interface)" "OFF"
-    "searxng" "SearXNG (Private Metasearch Engine)" "OFF"
-    "crawl4ai" "Crawl4ai (Web Crawler for AI)" "OFF"
-    "letta" "Letta (Agent Server & SDK)" "OFF"
-    "ollama" "Ollama (Local LLM Runner - select hardware in next step)" "OFF"
+# --- Read current COMPOSE_PROFILES from .env ---
+CURRENT_PROFILES_VALUE=""
+if [ -f "$ENV_FILE" ]; then
+    LINE_CONTENT=$(grep "^COMPOSE_PROFILES=" "$ENV_FILE" || echo "")
+    if [ -n "$LINE_CONTENT" ]; then
+        # Get value after '=', remove potential surrounding quotes
+        CURRENT_PROFILES_VALUE=$(echo "$LINE_CONTENT" | cut -d'=' -f2- | sed 's/^"//' | sed 's/"$//')
+    fi
+fi
+# Prepare comma-separated current profiles for easy matching, adding leading/trailing commas
+current_profiles_for_matching=",$CURRENT_PROFILES_VALUE,"
+
+# --- Define available services and their descriptions ---
+# Base service definitions (tag, description)
+base_services_data=(
+    "n8n" "n8n, n8n-worker, n8n-import (Workflow Automation)"
+    "flowise" "Flowise (AI Agent Builder)"
+    "monitoring" "Monitoring Suite (Prometheus, Grafana, cAdvisor, Node-Exporter)"
+    "qdrant" "Qdrant (Vector Database)"
+    "supabase" "Supabase (Backend as a Service)"
+    "langfuse" "Langfuse Suite (AI Observability - includes Clickhouse, Minio)"
+    "open-webui" "Open WebUI (ChatGPT-like Interface)"
+    "searxng" "SearXNG (Private Metasearch Engine)"
+    "crawl4ai" "Crawl4ai (Web Crawler for AI)"
+    "letta" "Letta (Agent Server & SDK)"
+    "ollama" "Ollama (Local LLM Runner - select hardware in next step)"
 )
+
+services=() # This will be the final array for whiptail
+
+# Populate the services array for whiptail based on current profiles or defaults
+idx=0
+while [ $idx -lt ${#base_services_data[@]} ]; do
+    tag="${base_services_data[idx]}"
+    description="${base_services_data[idx+1]}"
+    status="OFF" # Default to OFF
+
+    if [ -n "$CURRENT_PROFILES_VALUE" ] && [ "$CURRENT_PROFILES_VALUE" != '""' ]; then # Check if .env has profiles
+        if [[ "$tag" == "ollama" ]]; then
+            if [[ "$current_profiles_for_matching" == *",cpu,"* || \
+                  "$current_profiles_for_matching" == *",gpu-nvidia,"* || \
+                  "$current_profiles_for_matching" == *",gpu-amd,"* ]]; then
+                status="ON"
+            fi
+        elif [[ "$current_profiles_for_matching" == *",$tag,"* ]]; then
+            status="ON"
+        fi
+    else
+        # .env has no COMPOSE_PROFILES or it's empty/just quotes, use hardcoded defaults
+        case "$tag" in
+            "n8n"|"flowise"|"monitoring") status="ON" ;;
+            *) status="OFF" ;;
+        esac
+    fi
+    services+=("$tag" "$description" "$status")
+    idx=$((idx + 2))
+done
 
 # Use whiptail to display the checklist
 CHOICES=$(whiptail --title "Service Selection Wizard" --checklist \
@@ -104,12 +144,35 @@ fi
 
 # If Ollama was selected, prompt for the hardware profile
 if [ $ollama_selected -eq 1 ]; then
+    # Determine default selected Ollama hardware profile from .env
+    default_ollama_hardware="cpu" # Fallback default
+    ollama_hw_on_cpu="OFF"
+    ollama_hw_on_gpu_nvidia="OFF"
+    ollama_hw_on_gpu_amd="OFF"
+
+    # Check current_profiles_for_matching which includes commas, e.g., ",cpu,"
+    if [[ "$current_profiles_for_matching" == *",cpu,"* ]]; then
+        ollama_hw_on_cpu="ON"
+        default_ollama_hardware="cpu"
+    elif [[ "$current_profiles_for_matching" == *",gpu-nvidia,"* ]]; then
+        ollama_hw_on_gpu_nvidia="ON"
+        default_ollama_hardware="gpu-nvidia"
+    elif [[ "$current_profiles_for_matching" == *",gpu-amd,"* ]]; then
+        ollama_hw_on_gpu_amd="ON"
+        default_ollama_hardware="gpu-amd"
+    else
+        # If ollama was selected in the main list, but no specific hardware profile was previously set,
+        # default to CPU ON for the radiolist.
+        ollama_hw_on_cpu="ON"
+        default_ollama_hardware="cpu"
+    fi
+
     ollama_hardware_options=(
-        "cpu" "CPU (Recommended for most users)" "ON"
-        "gpu-nvidia" "NVIDIA GPU (Requires NVIDIA drivers & CUDA)" "OFF"
-        "gpu-amd" "AMD GPU (Requires ROCm drivers)" "OFF"
+        "cpu" "CPU (Recommended for most users)" "$ollama_hw_on_cpu"
+        "gpu-nvidia" "NVIDIA GPU (Requires NVIDIA drivers & CUDA)" "$ollama_hw_on_gpu_nvidia"
+        "gpu-amd" "AMD GPU (Requires ROCm drivers)" "$ollama_hw_on_gpu_amd"
     )
-    CHOSEN_OLLAMA_PROFILE=$(whiptail --title "Ollama Hardware Profile" --radiolist \
+    CHOSEN_OLLAMA_PROFILE=$(whiptail --title "Ollama Hardware Profile" --default-item "$default_ollama_hardware" --radiolist \
       "Choose the hardware profile for Ollama. This will be added to your Docker Compose profiles." 15 78 3 \
       "${ollama_hardware_options[@]}" \
       3>&1 1>&2 2>&3)
@@ -136,11 +199,11 @@ else
     # Join the array into a comma-separated string
     COMPOSE_PROFILES_VALUE=$(IFS=,; echo "${selected_profiles[*]}")
     for profile in "${selected_profiles[@]}"; do
-        # Check if the curr
-        if [ "$profile" == "cpu" ] || [ "$profile" == "gpu-nvidia" ] || [ "$profile" == "gpu-amd" ]; then
-            if [ "$profile" == "$ollama_profile" ]; then # Make sure this is the ollama profile we just selected
+        # Check if the current profile is an Ollama hardware profile that was chosen
+        if [[ "$profile" == "cpu" || "$profile" == "gpu-nvidia" || "$profile" == "gpu-amd" ]]; then
+            if [ "$profile" == "$ollama_profile" ]; then # ollama_profile stores the CHOSEN_OLLAMA_PROFILE from this wizard run
                  echo "  - Ollama ($profile profile)"
-            else # It could be another service that happens to be named "cpu" if we add one later
+            else # This handles a (highly unlikely) non-Ollama service named "cpu", "gpu-nvidia", or "gpu-amd"
                  echo "  - $profile"
             fi
         else
@@ -151,7 +214,7 @@ fi
 echo "--------------------------------------------------------------------"
 
 # Update or add COMPOSE_PROFILES in .env file
-# Ensure .env file exists (it should have been created by 03_generate_secrets.sh)
+# Ensure .env file exists (it should have been created by 03_generate_secrets.sh or exist from previous run)
 if [ ! -f "$ENV_FILE" ]; then
     echo "WARNING: '.env' file not found at $ENV_FILE. Creating it."
     touch "$ENV_FILE"

@@ -38,6 +38,15 @@ $COMPOSE_CMD down || {
 log_info "Pulling latest versions of all containers..."
 $COMPOSE_CMD pull || { log_error "Failed to pull Docker images. Check network connection and Docker Hub status."; exit 1; }
 
+# --- Run Service Selection Wizard ---
+log_info "Running Service Selection Wizard to update service choices..."
+bash "$SCRIPT_DIR/04_wizard.sh" || {
+    log_error "Service Selection Wizard failed. Update process cannot continue."
+    exit 1
+}
+log_success "Service selection updated."
+# --- End of Service Selection Wizard ---
+
 # Ask user about n8n import and modify .env file
 if [ -f "$ENV_FILE" ]; then
     N8N_WORKFLOWS_IMPORTED_EVER=$(grep "^N8N_WORKFLOWS_IMPORTED_EVER=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '"' || echo "false")
