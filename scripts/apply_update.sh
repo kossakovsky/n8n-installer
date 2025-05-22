@@ -33,7 +33,6 @@ log_info "Stopping all services for project 'localai'..."
 PROJECT_CONTAINERS=$(docker ps -a -q --filter "label=com.docker.compose.project=localai")
 if [ -n "$PROJECT_CONTAINERS" ]; then
     docker stop $PROJECT_CONTAINERS || log_warning "Some containers for project 'localai' failed to stop."
-    docker rm $PROJECT_CONTAINERS || log_warning "Some containers for project 'localai' failed to be removed."
 else
     log_info "No containers found for project 'localai' to stop/remove."
 fi
