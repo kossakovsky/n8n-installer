@@ -187,19 +187,8 @@ else
     fi
 fi
 
-# Determine N8N_WORKFLOWS_IMPORTED_EVER based on RUN_N8N_IMPORT and existing values
-N8N_WORKFLOWS_IMPORTED_EVER_VALUE="false" # Default to false
-if [[ -n "${existing_env_vars[N8N_WORKFLOWS_IMPORTED_EVER]}" ]]; then
-    N8N_WORKFLOWS_IMPORTED_EVER_VALUE="${existing_env_vars[N8N_WORKFLOWS_IMPORTED_EVER]}"
-    log_info "Using existing N8N_WORKFLOWS_IMPORTED_EVER value from .env: $N8N_WORKFLOWS_IMPORTED_EVER_VALUE"
-else
-    # If N8N_WORKFLOWS_IMPORTED_EVER is not in .env, set it based on RUN_N8N_IMPORT choice
-    if [[ "$RUN_N8N_IMPORT" == "true" ]]; then
-        N8N_WORKFLOWS_IMPORTED_EVER_VALUE="true"
-    fi
-    # No else needed, it's already defaulted to false
-    log_info "Setting N8N_WORKFLOWS_IMPORTED_EVER based on current import choice (or default): $N8N_WORKFLOWS_IMPORTED_EVER_VALUE"
-fi
+# Set N8N_WORKFLOWS_IMPORTED_EVER_VALUE based on RUN_N8N_IMPORT
+N8N_WORKFLOWS_IMPORTED_EVER_VALUE="$RUN_N8N_IMPORT"
 
 # Prompt for number of n8n workers
 echo "" # Add a newline for better formatting

@@ -28,15 +28,35 @@ fi
 
 cd "$PROJECT_ROOT"
 
-# Stop all services
-log_info "Stopping all services..."
-$COMPOSE_CMD down || { 
-  log_warning "Failed to stop containers with 'docker compose down'. Continuing with update anyway..."; 
-}
+# Stop all services for project 'localai'
+log_info "Stopping all services for project 'localai'..."
+PROJECT_CONTAINERS=$(docker ps -a -q --filter "label=com.docker.compose.project=localai")
+if [ -n "$PROJECT_CONTAINERS" ]; then
+    docker stop $PROJECT_CONTAINERS || log_warning "Some containers for project 'localai' failed to stop."
+    docker rm $PROJECT_CONTAINERS || log_warning "Some containers for project 'localai' failed to be removed."
+else
+    log_info "No containers found for project 'localai' to stop/remove."
+fi
 
-# Pull latest versions of all containers
-log_info "Pulling latest versions of all containers..."
-$COMPOSE_CMD pull || { log_error "Failed to pull Docker images. Check network connection and Docker Hub status."; exit 1; }
+# Pull latest versions of all potentially needed containers
+log_info "Pulling latest versions of all potentially needed containers..."
+COMPOSE_FILES_FOR_PULL=("-f" "$PROJECT_ROOT/docker-compose.yml")
+SUPABASE_DOCKER_DIR="$PROJECT_ROOT/supabase/docker"
+SUPABASE_COMPOSE_FILE_PATH="$SUPABASE_DOCKER_DIR/docker-compose.yml"
+
+# Check if Supabase directory and its docker-compose.yml exist
+if [ -d "$SUPABASE_DOCKER_DIR" ] && [ -f "$SUPABASE_COMPOSE_FILE_PATH" ]; then
+    COMPOSE_FILES_FOR_PULL+=("-f" "$SUPABASE_COMPOSE_FILE_PATH")
+    log_info "Supabase docker-compose.yml found, will be included in pull."
+else
+    log_info "Supabase docker-compose.yml not found or directory does not exist, skipping for pull."
+fi
+
+# Use the project name "localai" for consistency
+$COMPOSE_CMD -p "localai" "${COMPOSE_FILES_FOR_PULL[@]}" pull --ignore-buildable || {
+  log_error "Failed to pull Docker images. Check network connection and Docker Hub status."
+  exit 1
+}
 
 # --- Run Service Selection Wizard ---
 log_info "Running Service Selection Wizard to update service choices..."

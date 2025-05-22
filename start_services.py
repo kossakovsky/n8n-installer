@@ -14,18 +14,18 @@ import time
 import argparse
 import platform
 import sys
-from dotenv import dotenv_values, load_dotenv
+from dotenv import dotenv_values
 
 def is_supabase_enabled():
-    """Check if 'supabase' is in COMPOSE_PROFILES in the environment."""
-    # Relies on load_dotenv() being called in main()
-    compose_profiles = os.environ.get("COMPOSE_PROFILES", "")
+    """Check if 'supabase' is in COMPOSE_PROFILES in .env file."""
+    env_values = dotenv_values(".env")
+    compose_profiles = env_values.get("COMPOSE_PROFILES", "")
     return "supabase" in compose_profiles.split(',')
 
-def run_command(cmd, cwd=None, env=None):
+def run_command(cmd, cwd=None):
     """Run a shell command and print it."""
     print("Running:", " ".join(cmd))
-    subprocess.run(cmd, cwd=cwd, check=True, env=env)
+    subprocess.run(cmd, cwd=cwd, check=True)
 
 def clone_supabase_repo():
     """Clone the Supabase repository using sparse checkout if not already present."""
@@ -60,92 +60,17 @@ def prepare_supabase_env():
     shutil.copyfile(env_example_path, env_path)
 
 def stop_existing_containers():
-    """Stop and remove all existing containers for our unified project ('localai')."""
-    print("Stopping and removing all existing containers for the unified project 'localai'...")
-    
-    compose_files_args = ["-f", "docker-compose.yml"]
-    
-    # Only include Supabase compose file if Supabase is enabled
-    if is_supabase_enabled():
-        supabase_docker_dir = os.path.join("supabase", "docker")
-        supabase_compose_file = os.path.join(supabase_docker_dir, "docker-compose.yml")
-        if os.path.exists(supabase_compose_file):
-            print(f"Supabase is enabled and compose file found at {supabase_compose_file}, adding to commands.")
-            compose_files_args.extend(["-f", supabase_compose_file])
-        else:
-            # This case should ideally not happen if Supabase is enabled and cloned properly
-            print(f"Supabase is enabled but its compose file was not found at {supabase_compose_file}.")
-    else:
-        # If Supabase is not enabled, we don't include its compose file.
-        # Lingering Supabase containers will be handled by force_stop_lingering_containers()
-        print("Supabase is not enabled, its compose file will not be used for stop/rm Docker Compose commands.")
-        # We also check if the Supabase compose file path exists to provide more context,
-        # as it might exist from a previous run where Supabase was enabled.
-        supabase_compose_file_if_exists = os.path.join("supabase", "docker", "docker-compose.yml")
-        if os.path.exists(supabase_compose_file_if_exists):
-            print(f"Note: Supabase compose file exists at {supabase_compose_file_if_exists} but is not being used as Supabase is disabled.")
-
-    base_cmd_prefix = ["docker", "compose", "-p", "localai"] + compose_files_args
-
-    # Prepare an environment for stop/rm that has COMPOSE_PROFILES explicitly removed
-    # to ensure these commands affect all services in the specified compose files.
-    env_for_stop_rm = os.environ.copy()
-    env_for_stop_rm.pop("COMPOSE_PROFILES", None) # Remove COMPOSE_PROFILES if it exists
-
-    # Explicitly stop all services defined in the compose files
-    stop_cmd = base_cmd_prefix + ["stop"]
-    print("Attempting to stop all services...")
-    run_command(stop_cmd, env=env_for_stop_rm)
-
-    # Explicitly remove all stopped containers
-    rm_cmd = base_cmd_prefix + ["rm", "-f"]
-    print("Attempting to remove all stopped services...")
-    run_command(rm_cmd, env=env_for_stop_rm)
-
-    # Force stop containers that might be running outside of compose management
-    force_stop_lingering_containers()
-
-def force_stop_lingering_containers():
-    """Force stop and remove specific containers that might be lingering."""
-    print("Force stopping and removing any lingering service containers...")
-    
-    # Define service container patterns that we want to ensure are stopped
-    # These are containers that might be running but not managed by the current compose setup
-    container_patterns = [
-        "qdrant", "langfuse", "grafana", "crawl4ai", "letta", "clickhouse", 
-        "node-exporter", "minio", "cadvisor", "open-webui", "ollama", 
-        "prometheus", "searxng", "supabase-", "localai-langfuse-", 
-        "localai-clickhouse-", "localai-minio-", "realtime-dev.supabase-"
+    """Stop and remove existing containers for our unified project ('localai')."""
+    print("Stopping and removing existing containers for the unified project 'localai'...")
+    cmd = [
+        "docker", "compose",
+        "-p", "localai",
+        "-f", "docker-compose.yml"
     ]
-    
-    try:
-        # Get list of all running containers
-        result = subprocess.run(
-            ["docker", "ps", "--format", "{{.Names}}"],
-            capture_output=True, text=True, check=True
-        )
-        running_containers = result.stdout.strip().split('\n')
-        
-        containers_to_stop = []
-        for container in running_containers:
-            if container and any(pattern in container for pattern in container_patterns):
-                containers_to_stop.append(container)
-        
-        if containers_to_stop:
-            print(f"Found lingering containers: {', '.join(containers_to_stop)}")
-            # Stop containers
-            subprocess.run(["docker", "stop"] + containers_to_stop, check=True)
-            print("Stopped lingering containers.")
-            # Remove containers
-            subprocess.run(["docker", "rm", "-f"] + containers_to_stop, check=True)
-            print("Removed lingering containers.")
-        else:
-            print("No lingering containers found.")
-            
-    except subprocess.CalledProcessError as e:
-        print(f"Error during force stop: {e}")
-    except Exception as e:
-        print(f"Unexpected error during force stop: {e}")
+    if is_supabase_enabled():
+        cmd.extend(["-f", "supabase/docker/docker-compose.yml"])
+    cmd.append("down")
+    run_command(cmd)
 
 def start_supabase():
     """Start the Supabase services (using its compose file)."""
@@ -153,18 +78,16 @@ def start_supabase():
         print("Supabase is not enabled, skipping start.")
         return
     print("Starting Supabase services...")
-    # Pass os.environ.copy() to ensure it uses the correct COMPOSE_PROFILES
     run_command([
         "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d"
-    ], env=os.environ.copy())
+    ])
 
 def start_local_ai():
     """Start the local AI services (using its compose file)."""
     print("Starting local AI services...")
     cmd = ["docker", "compose", "-p", "localai"]
     cmd.extend(["-f", "docker-compose.yml", "up", "-d"])
-    # Pass os.environ.copy() to ensure it uses the correct COMPOSE_PROFILES
-    run_command(cmd, env=os.environ.copy())
+    run_command(cmd)
 
 def generate_searxng_secret_key():
     """Generate a secret key for SearXNG based on the current platform."""
@@ -307,8 +230,6 @@ def check_and_fix_docker_compose_for_searxng():
         print(f"Error checking/modifying docker-compose.yml for SearXNG: {e}")
 
 def main():
-    load_dotenv(".env") # Load/Reload .env into os.environ
-
     if is_supabase_enabled():
         clone_supabase_repo()
         prepare_supabase_env()
