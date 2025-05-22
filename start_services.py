@@ -75,15 +75,20 @@ def stop_existing_containers():
 
     base_cmd_prefix = ["docker", "compose", "-p", "localai"] + compose_files_args
 
+    # Prepare an environment for stop/rm that has COMPOSE_PROFILES explicitly removed
+    # to ensure these commands affect all services in the specified compose files.
+    env_for_stop_rm = os.environ.copy()
+    env_for_stop_rm.pop("COMPOSE_PROFILES", None) # Remove COMPOSE_PROFILES if it exists
+
     # Explicitly stop all services defined in the compose files
     stop_cmd = base_cmd_prefix + ["stop"]
     print("Attempting to stop all services...")
-    run_command(stop_cmd, env=os.environ.copy()) # Pass env for consistency, though stop ignores COMPOSE_PROFILES
+    run_command(stop_cmd, env=env_for_stop_rm)
 
     # Explicitly remove all stopped containers
     rm_cmd = base_cmd_prefix + ["rm", "-f"]
     print("Attempting to remove all stopped services...")
-    run_command(rm_cmd, env=os.environ.copy()) # Pass env for consistency
+    run_command(rm_cmd, env=env_for_stop_rm)
 
 def start_supabase():
     """Start the Supabase services (using its compose file)."""
