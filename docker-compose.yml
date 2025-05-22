@@ -143,6 +143,9 @@ services:
     restart: unless-stopped
     volumes:
       - qdrant_storage:/qdrant/storage
+    expose:
+      - "6333" # gRPC port
+      - "6334" # HTTP REST API port
 
   caddy:
     container_name: caddy
