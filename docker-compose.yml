@@ -346,16 +346,7 @@ services:
       - SEARXNG_BASE_URL=https://${SEARXNG_HOSTNAME:-localhost}/
       - UWSGI_WORKERS=${SEARXNG_UWSGI_WORKERS:-4}
       - UWSGI_THREADS=${SEARXNG_UWSGI_THREADS:-4}
-    entrypoint: |
-      sh -c "
-        echo 'Fixing SearXNG directory permissions...'
-        chown -R searxng:searxng /etc/searxng 2>/dev/null || true
-        chmod -R 755 /etc/searxng 2>/dev/null || true
-        echo 'Starting SearXNG...'
-        exec /usr/local/searxng/dockerfiles/docker-entrypoint.sh
-      "
-    cap_drop:
-      - ALL
+    # cap_drop: - ALL  # Temporarily commented out for first run - see https://github.com/searxng/searxng-docker#note
     cap_add:
       - CHOWN
       - SETGID
