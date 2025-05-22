@@ -60,29 +60,30 @@ def prepare_supabase_env():
     shutil.copyfile(env_example_path, env_path)
 
 def stop_existing_containers():
-    """Stop and remove existing containers for our unified project ('localai')."""
-    print("Stopping and removing existing containers for the unified project 'localai'...")
-    cmd = [
-        "docker", "compose",
-        "-p", "localai",
-        "-f", "docker-compose.yml"
-    ]
-
-    # Always include the Supabase compose file in the command if its directory exists,
-    # as Supabase services might have been running from a previous configuration.
+    """Stop and remove all existing containers for our unified project ('localai')."""
+    print("Stopping and removing all existing containers for the unified project 'localai'...")
+    
+    compose_files_args = ["-f", "docker-compose.yml"]
+    
     supabase_docker_dir = os.path.join("supabase", "docker")
     supabase_compose_file = os.path.join(supabase_docker_dir, "docker-compose.yml")
     if os.path.exists(supabase_compose_file):
-        print(f"Supabase compose file found at {supabase_compose_file}, adding to down command.")
-        cmd.extend(["-f", supabase_compose_file])
+        print(f"Supabase compose file found at {supabase_compose_file}, adding to commands.")
+        compose_files_args.extend(["-f", supabase_compose_file])
     else:
-        print(f"Supabase compose file not found at {supabase_compose_file}, not adding to down command.")
+        print(f"Supabase compose file not found at {supabase_compose_file}.")
 
-    cmd.extend(["down", "--remove-orphans"])
+    base_cmd_prefix = ["docker", "compose", "-p", "localai"] + compose_files_args
 
-    # load_dotenv() in main() has already set os.environ correctly.
-    # Pass this environment explicitly to the subprocess.
-    run_command(cmd, env=os.environ.copy())
+    # Explicitly stop all services defined in the compose files
+    stop_cmd = base_cmd_prefix + ["stop"]
+    print("Attempting to stop all services...")
+    run_command(stop_cmd, env=os.environ.copy()) # Pass env for consistency, though stop ignores COMPOSE_PROFILES
+
+    # Explicitly remove all stopped containers
+    rm_cmd = base_cmd_prefix + ["rm", "-f"]
+    print("Attempting to remove all stopped services...")
+    run_command(rm_cmd, env=os.environ.copy()) # Pass env for consistency
 
 def start_supabase():
     """Start the Supabase services (using its compose file)."""
