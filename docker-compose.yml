@@ -144,8 +144,7 @@ services:
     volumes:
       - qdrant_storage:/qdrant/storage
     expose:
-      - "6333" # gRPC port
-      - "6334" # HTTP REST API port
+      - "6333"
 
   caddy:
     container_name: caddy

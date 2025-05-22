@@ -120,8 +120,7 @@ if is_profile_active "qdrant"; then
   echo
   echo "================================= Qdrant =============================="
   echo
-  echo "Internal gRPC Access (e.g., from backend): qdrant:6333"
-  echo "Internal REST API Access (e.g., from backend): http://qdrant:6334"
+  echo "Internal REST API Access (e.g., from backend): http://qdrant:6333"
   echo "(Note: Not exposed externally via Caddy by default)"
 fi
 
