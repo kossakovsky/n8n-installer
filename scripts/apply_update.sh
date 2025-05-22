@@ -132,4 +132,12 @@ bash "$RUN_SERVICES_SCRIPT" || { log_error "Failed to start services. Check logs
 
 log_success "Update application completed successfully!"
 
+# --- Display Final Report with Credentials ---
+log_info "Displaying service credentials and report..."
+bash "$SCRIPT_DIR/06_final_report.sh" || {
+    log_warning "Failed to display the final report. This does not affect the update."
+    # We don't exit 1 here as the update itself was successful.
+}
+# --- End of Final Report ---
+
 exit 0 
