@@ -22,10 +22,10 @@ def is_supabase_enabled():
     compose_profiles = os.environ.get("COMPOSE_PROFILES", "")
     return "supabase" in compose_profiles.split(',')
 
-def run_command(cmd, cwd=None):
+def run_command(cmd, cwd=None, env=None):
     """Run a shell command and print it."""
     print("Running:", " ".join(cmd))
-    subprocess.run(cmd, cwd=cwd, check=True)
+    subprocess.run(cmd, cwd=cwd, check=True, env=env)
 
 def clone_supabase_repo():
     """Clone the Supabase repository using sparse checkout if not already present."""
@@ -80,11 +80,9 @@ def stop_existing_containers():
 
     cmd.extend(["down", "--remove-orphans"])
 
-    # No need to manipulate os.environ["COMPOSE_PROFILES"] here anymore.
-    # load_dotenv() in main() has already set it based on the .env file.
-    # The 'down --remove-orphans' command will use these current COMPOSE_PROFILES
-    # to determine which containers are orphans.
-    run_command(cmd)
+    # load_dotenv() in main() has already set os.environ correctly.
+    # Pass this environment explicitly to the subprocess.
+    run_command(cmd, env=os.environ.copy())
 
 def start_supabase():
     """Start the Supabase services (using its compose file)."""
@@ -92,16 +90,18 @@ def start_supabase():
         print("Supabase is not enabled, skipping start.")
         return
     print("Starting Supabase services...")
+    # Pass os.environ.copy() to ensure it uses the correct COMPOSE_PROFILES
     run_command([
         "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d"
-    ])
+    ], env=os.environ.copy())
 
 def start_local_ai():
     """Start the local AI services (using its compose file)."""
     print("Starting local AI services...")
     cmd = ["docker", "compose", "-p", "localai"]
     cmd.extend(["-f", "docker-compose.yml", "up", "-d"])
-    run_command(cmd)
+    # Pass os.environ.copy() to ensure it uses the correct COMPOSE_PROFILES
+    run_command(cmd, env=os.environ.copy())
 
 def generate_searxng_secret_key():
     """Generate a secret key for SearXNG based on the current platform."""
