@@ -39,16 +39,6 @@ is_profile_active() {
     fi
 }
 
-# --- Installation Summary ---
-log_info "Installation Summary. The following steps were performed by the scripts:"
-log_success "- System updated and basic utilities installed"
-log_success "- Firewall (UFW) configured and enabled"
-log_success "- Fail2Ban activated for brute-force protection"
-log_success "- Automatic security updates enabled"
-log_success "- Docker and Docker Compose installed"
-log_success "- '.env' generated with secure passwords and secrets"
-log_success "- Services launched via Docker Compose"
-
 # --- Service Access Credentials ---
 
 # Display credentials, checking if variables exist
