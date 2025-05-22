@@ -68,26 +68,23 @@ def stop_existing_containers():
         "-f", "docker-compose.yml"
     ]
 
-    # Determine if the Supabase compose file needs to be included in the down command.
-    # This check uses the current (potentially new) COMPOSE_PROFILES from os.environ.
-    supabase_compose_file_relevant_for_down = is_supabase_enabled()
-    if supabase_compose_file_relevant_for_down:
-        cmd.extend(["-f", "supabase/docker/docker-compose.yml"])
-    
-    cmd.append("down")
+    # Always include the Supabase compose file in the command if its directory exists,
+    # as Supabase services might have been running from a previous configuration.
+    supabase_docker_dir = os.path.join("supabase", "docker")
+    supabase_compose_file = os.path.join(supabase_docker_dir, "docker-compose.yml")
+    if os.path.exists(supabase_compose_file):
+        print(f"Supabase compose file found at {supabase_compose_file}, adding to down command.")
+        cmd.extend(["-f", supabase_compose_file])
+    else:
+        print(f"Supabase compose file not found at {supabase_compose_file}, not adding to down command.")
 
-    # For the 'down' command to affect all services from the specified compose files
-    # regardless of the *current* COMPOSE_PROFILES, we temporarily clear COMPOSE_PROFILES
-    # from the environment for this specific command.
-    original_compose_profiles = os.environ.pop("COMPOSE_PROFILES", None)
-    try:
-        run_command(cmd)
-    finally:
-        if original_compose_profiles is not None:
-            os.environ["COMPOSE_PROFILES"] = original_compose_profiles
-        # If COMPOSE_PROFILES was not in os.environ initially (None), it remains unset,
-        # which is fine, as load_dotenv() at the start of main() would be the source of truth.
-        # However, since load_dotenv() *was* called, original_compose_profiles should reflect that.
+    cmd.extend(["down", "--remove-orphans"])
+
+    # No need to manipulate os.environ["COMPOSE_PROFILES"] here anymore.
+    # load_dotenv() in main() has already set it based on the .env file.
+    # The 'down --remove-orphans' command will use these current COMPOSE_PROFILES
+    # to determine which containers are orphans.
+    run_command(cmd)
 
 def start_supabase():
     """Start the Supabase services (using its compose file)."""
