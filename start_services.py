@@ -14,12 +14,12 @@ import time
 import argparse
 import platform
 import sys
-from dotenv import dotenv_values
+from dotenv import dotenv_values, load_dotenv
 
 def is_supabase_enabled():
-    """Check if 'supabase' is in COMPOSE_PROFILES in .env file."""
-    env_values = dotenv_values(".env")
-    compose_profiles = env_values.get("COMPOSE_PROFILES", "")
+    """Check if 'supabase' is in COMPOSE_PROFILES in the environment."""
+    # Relies on load_dotenv() being called in main()
+    compose_profiles = os.environ.get("COMPOSE_PROFILES", "")
     return "supabase" in compose_profiles.split(',')
 
 def run_command(cmd, cwd=None):
@@ -230,6 +230,8 @@ def check_and_fix_docker_compose_for_searxng():
         print(f"Error checking/modifying docker-compose.yml for SearXNG: {e}")
 
 def main():
+    load_dotenv(".env") # Load/Reload .env into os.environ
+
     if is_supabase_enabled():
         clone_supabase_repo()
         prepare_supabase_env()
