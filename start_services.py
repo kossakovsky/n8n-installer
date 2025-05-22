@@ -65,13 +65,25 @@ def stop_existing_containers():
     
     compose_files_args = ["-f", "docker-compose.yml"]
     
-    supabase_docker_dir = os.path.join("supabase", "docker")
-    supabase_compose_file = os.path.join(supabase_docker_dir, "docker-compose.yml")
-    if os.path.exists(supabase_compose_file):
-        print(f"Supabase compose file found at {supabase_compose_file}, adding to commands.")
-        compose_files_args.extend(["-f", supabase_compose_file])
+    # Only include Supabase compose file if Supabase is enabled
+    if is_supabase_enabled():
+        supabase_docker_dir = os.path.join("supabase", "docker")
+        supabase_compose_file = os.path.join(supabase_docker_dir, "docker-compose.yml")
+        if os.path.exists(supabase_compose_file):
+            print(f"Supabase is enabled and compose file found at {supabase_compose_file}, adding to commands.")
+            compose_files_args.extend(["-f", supabase_compose_file])
+        else:
+            # This case should ideally not happen if Supabase is enabled and cloned properly
+            print(f"Supabase is enabled but its compose file was not found at {supabase_compose_file}.")
     else:
-        print(f"Supabase compose file not found at {supabase_compose_file}.")
+        # If Supabase is not enabled, we don't include its compose file.
+        # Lingering Supabase containers will be handled by force_stop_lingering_containers()
+        print("Supabase is not enabled, its compose file will not be used for stop/rm Docker Compose commands.")
+        # We also check if the Supabase compose file path exists to provide more context,
+        # as it might exist from a previous run where Supabase was enabled.
+        supabase_compose_file_if_exists = os.path.join("supabase", "docker", "docker-compose.yml")
+        if os.path.exists(supabase_compose_file_if_exists):
+            print(f"Note: Supabase compose file exists at {supabase_compose_file_if_exists} but is not being used as Supabase is disabled.")
 
     base_cmd_prefix = ["docker", "compose", "-p", "localai"] + compose_files_args
 
