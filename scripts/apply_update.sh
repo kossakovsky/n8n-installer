@@ -7,7 +7,6 @@ source "$(dirname "$0")/utils.sh"
 
 # Set the compose command explicitly to use docker compose subcommand
 COMPOSE_CMD="docker compose"
-log_info "Using $COMPOSE_CMD as compose command for update application"
 
 # Navigate to the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -56,9 +55,6 @@ SUPABASE_COMPOSE_FILE_PATH="$SUPABASE_DOCKER_DIR/docker-compose.yml"
 # Check if Supabase directory and its docker-compose.yml exist
 if [ -d "$SUPABASE_DOCKER_DIR" ] && [ -f "$SUPABASE_COMPOSE_FILE_PATH" ]; then
     COMPOSE_FILES_FOR_PULL+=("-f" "$SUPABASE_COMPOSE_FILE_PATH")
-    log_info "Supabase docker-compose.yml found, will be included for pull if Supabase is selected."
-else
-    log_info "Supabase docker-compose.yml not found or directory does not exist, skipping for pull consideration."
 fi
 
 # Use the project name "localai" for consistency.

@@ -7,6 +7,10 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ENV_FILE="$PROJECT_ROOT/.env"
+
+# Source the utilities file
+source "$(dirname "$0")/utils.sh"
+
 # UTILS_SCRIPT="$SCRIPT_DIR/utils.sh" # Uncomment if utils.sh contains relevant functions
 
 # if [ -f "$UTILS_SCRIPT" ]; then
@@ -16,12 +20,10 @@ ENV_FILE="$PROJECT_ROOT/.env"
 # Function to check if whiptail is installed
 check_whiptail() {
     if ! command -v whiptail &> /dev/null; then
-        echo "--------------------------------------------------------------------"
-        echo "ERROR: 'whiptail' is not installed."
-        echo "This tool is required for the interactive service selection."
-        echo "On Debian/Ubuntu, you can install it using: sudo apt-get install whiptail"
-        echo "Please install whiptail and try again."
-        echo "--------------------------------------------------------------------"
+        log_error "'whiptail' is not installed."
+        log_info "This tool is required for the interactive service selection."
+        log_info "On Debian/Ubuntu, you can install it using: sudo apt-get install whiptail"
+        log_info "Please install whiptail and try again."
         exit 1
     fi
 }
@@ -107,10 +109,8 @@ fi
 # Exit if user pressed Cancel or Esc
 exitstatus=$?
 if [ $exitstatus -ne 0 ]; then
-    echo "--------------------------------------------------------------------"
-    echo "INFO: Service selection cancelled by user. Exiting wizard."
-    echo "No changes made to service profiles. Default services will be used."
-    echo "--------------------------------------------------------------------"
+    log_info "Service selection cancelled by user. Exiting wizard."
+    log_info "No changes made to service profiles. Default services will be used."
     # Set COMPOSE_PROFILES to empty to ensure only core services run
     if [ ! -f "$ENV_FILE" ]; then
         touch "$ENV_FILE"
@@ -181,21 +181,20 @@ if [ $ollama_selected -eq 1 ]; then
     if [ $ollama_exitstatus -eq 0 ] && [ -n "$CHOSEN_OLLAMA_PROFILE" ]; then
         selected_profiles+=("$CHOSEN_OLLAMA_PROFILE")
         ollama_profile="$CHOSEN_OLLAMA_PROFILE" # Store for user message
-        echo "INFO: Ollama hardware profile selected: $CHOSEN_OLLAMA_PROFILE"
+        log_info "Ollama hardware profile selected: $CHOSEN_OLLAMA_PROFILE"
     else
-        echo "INFO: Ollama hardware profile selection cancelled or no choice made. Ollama will not be configured with a specific hardware profile."
+        log_info "Ollama hardware profile selection cancelled or no choice made. Ollama will not be configured with a specific hardware profile."
         # ollama_selected remains 1, but no specific profile is added.
         # This means "ollama" won't be in COMPOSE_PROFILES unless a hardware profile is chosen.
         ollama_selected=0 # Mark as not fully selected if profile choice is cancelled
     fi
 fi
 
-echo "--------------------------------------------------------------------"
 if [ ${#selected_profiles[@]} -eq 0 ]; then
-    echo "INFO: No optional services selected."
+    log_info "No optional services selected."
     COMPOSE_PROFILES_VALUE=""
 else
-    echo "INFO: You have selected the following service profiles to be deployed:"
+    log_info "You have selected the following service profiles to be deployed:"
     # Join the array into a comma-separated string
     COMPOSE_PROFILES_VALUE=$(IFS=,; echo "${selected_profiles[*]}")
     for profile in "${selected_profiles[@]}"; do
@@ -211,12 +210,11 @@ else
         fi
     done
 fi
-echo "--------------------------------------------------------------------"
 
 # Update or add COMPOSE_PROFILES in .env file
 # Ensure .env file exists (it should have been created by 03_generate_secrets.sh or exist from previous run)
 if [ ! -f "$ENV_FILE" ]; then
-    echo "WARNING: '.env' file not found at $ENV_FILE. Creating it."
+    log_warning "'.env' file not found at $ENV_FILE. Creating it."
     touch "$ENV_FILE"
 fi
 
@@ -228,13 +226,12 @@ fi
 
 # Add the new COMPOSE_PROFILES line
 echo "COMPOSE_PROFILES=${COMPOSE_PROFILES_VALUE}" >> "$ENV_FILE"
-echo "INFO: COMPOSE_PROFILES has been set in '$ENV_FILE'."
+log_info "COMPOSE_PROFILES has been set in '$ENV_FILE'."
 if [ -z "$COMPOSE_PROFILES_VALUE" ]; then
-    echo "Only core services (Caddy, Postgres, Redis) will be started."
+    log_info "Only core services (Caddy, Postgres, Redis) will be started."
 else
-    echo "The following Docker Compose profiles will be active: ${COMPOSE_PROFILES_VALUE}"
+    log_info "The following Docker Compose profiles will be active: ${COMPOSE_PROFILES_VALUE}"
 fi
-echo "--------------------------------------------------------------------"
 
 # Make the script executable (though install.sh calls it with bash)
 chmod +x "$SCRIPT_DIR/04_wizard.sh"

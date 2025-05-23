@@ -78,7 +78,6 @@ else
 fi
 
 # Install Caddy
-log_info "Installing Caddy..."
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --yes --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
 apt install -y caddy
@@ -115,6 +114,7 @@ while true; do
 done
 
 # Prompt for user email
+echo ""
 echo "Please enter your email address. This email will be used for:"
 echo "   - Login to Flowise"
 echo "   - Login to Supabase"
@@ -153,6 +153,7 @@ else
 fi
 
 # Prompt for OpenAI API key (optional)
+echo ""
 echo "OpenAI API Key (optional). This key will be used for:"
 echo "   - Supabase: AI services to help with writing SQL queries, statements, and policies"
 echo "   - Crawl4AI: Default LLM configuration for web crawling capabilities"
@@ -173,6 +174,7 @@ else
 fi
 
 # Ask if user wants to import ready-made workflow for n8n
+echo ""
 echo "Do you want to import 300 ready-made workflows for n8n? This process may take about 30 minutes to complete."
 if [[ -n "${existing_env_vars[RUN_N8N_IMPORT]}" ]]; then
     RUN_N8N_IMPORT="${existing_env_vars[RUN_N8N_IMPORT]}"
@@ -210,7 +212,6 @@ if [[ -n "${existing_env_vars[N8N_WORKER_COUNT]}" ]]; then
                  read -p "Update n8n workers to $N8N_WORKER_COUNT_TEMP? (y/N): " confirm_change
                  if [[ "$confirm_change" =~ ^[Yy]$ ]]; then
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_TEMP"
-                    log_info "N8N_WORKER_COUNT set to $N8N_WORKER_COUNT."
                  else
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
                     log_info "Change declined. Keeping N8N_WORKER_COUNT at $N8N_WORKER_COUNT."
@@ -453,14 +454,12 @@ fi
 
 # Generate the actual JWT tokens using the JWT_SECRET_TO_USE, if not already set
 if [[ -z "${generated_values[ANON_KEY]}" ]]; then
-    log_info "Generating ANON_KEY..."
     generated_values["ANON_KEY"]=$(create_jwt "anon" "$JWT_SECRET_TO_USE")
 else
     log_info "Using existing ANON_KEY."
 fi
 
 if [[ -z "${generated_values[SERVICE_ROLE_KEY]}" ]]; then
-    log_info "Generating SERVICE_ROLE_KEY..."
     generated_values["SERVICE_ROLE_KEY"]=$(create_jwt "service_role" "$JWT_SECRET_TO_USE")
 else
     log_info "Using existing SERVICE_ROLE_KEY."
@@ -548,7 +547,6 @@ for key in "${!generated_values[@]}"; do
 done
 
 # Hash passwords using caddy with bcrypt
-log_info "Hashing passwords with caddy using bcrypt..."
 PROMETHEUS_PLAIN_PASS="${generated_values["PROMETHEUS_PASSWORD"]}"
 SEARXNG_PLAIN_PASS="${generated_values["SEARXNG_PASSWORD"]}"
 
@@ -589,7 +587,6 @@ else
 fi
 
 # Uninstall caddy
-log_info "Uninstalling caddy..."
 apt remove -y caddy
 
 exit 0 

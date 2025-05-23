@@ -43,7 +43,6 @@ else
 fi
 
 # Execute the rest of the update process using the (potentially updated) apply_update.sh
-log_info "Handing over to apply_update.sh..."
 bash "$APPLY_UPDATE_SCRIPT"
 
 # The final success message will now come from apply_update.sh
