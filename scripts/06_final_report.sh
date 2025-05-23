@@ -43,8 +43,6 @@ is_profile_active() {
 
 # Display credentials, checking if variables exist
 echo
-echo "======================================================================="
-echo
 log_info "Service Access Credentials. Save this information securely!"
 # Display credentials, checking if variables exist
 

@@ -238,7 +238,6 @@ else
                 read -p "Run $N8N_WORKER_COUNT_VALIDATED n8n worker(s)? (y/N): " confirm_workers
                 if [[ "$confirm_workers" =~ ^[Yy]$ ]]; then
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_VALIDATED"
-                    log_info "N8N_WORKER_COUNT set to $N8N_WORKER_COUNT."
                     break
                 else
                     log_info "Please try entering the number of workers again."

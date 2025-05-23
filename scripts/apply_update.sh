@@ -69,7 +69,6 @@ if [ -f "$ENV_FILE" ]; then
     N8N_WORKFLOWS_IMPORTED_EVER=$(grep "^N8N_WORKFLOWS_IMPORTED_EVER=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '"' || echo "false")
 
     if [[ "$N8N_WORKFLOWS_IMPORTED_EVER" == "true" ]]; then
-        log_info "n8n workflows have been imported previously. Skipping import prompt."
         # Use a temporary file for sed portability
         sed 's/^RUN_N8N_IMPORT=.*/RUN_N8N_IMPORT=false/' "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE" || {
             log_error "Failed to set RUN_N8N_IMPORT=false in $ENV_FILE. Check permissions."
@@ -116,7 +115,6 @@ if [ -f "$ENV_FILE" ]; then
             # Validate input: must be a positive integer
             if [[ "$new_worker_count_raw" =~ ^[1-9][0-9]*$ ]]; then
                 NEW_WORKER_COUNT="$new_worker_count_raw"
-                log_info "Updating n8n worker count to $NEW_WORKER_COUNT in $ENV_FILE..."
                 # Use a temporary file for sed portability (-i needs backup suffix on macOS without -e)
                 sed "s/^N8N_WORKER_COUNT=.*/N8N_WORKER_COUNT=\"$NEW_WORKER_COUNT\"/" "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE" || {
                     log_error "Failed to update N8N_WORKER_COUNT in $ENV_FILE. Check permissions."
@@ -150,7 +148,6 @@ bash "$RUN_SERVICES_SCRIPT" || { log_error "Failed to start services. Check logs
 log_success "Update application completed successfully!"
 
 # --- Display Final Report with Credentials ---
-log_info "Displaying service credentials and report..."
 bash "$SCRIPT_DIR/06_final_report.sh" || {
     log_warning "Failed to display the final report. This does not affect the update."
     # We don't exit 1 here as the update itself was successful.
