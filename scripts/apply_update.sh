@@ -27,6 +27,15 @@ fi
 
 cd "$PROJECT_ROOT"
 
+# --- Call 03_generate_secrets.sh in update mode --- 
+log_info "Ensuring .env file is up-to-date with all variables..."
+bash "$SCRIPT_DIR/03_generate_secrets.sh" --update || {
+    log_error "Failed to update .env configuration via 03_generate_secrets.sh. Update process cannot continue."
+    exit 1
+}
+log_success ".env file checked and updated."
+# --- End of .env update ---
+
 # Stop all services for project 'localai'
 log_info "Stopping all services for project 'localai'..."
 PROJECT_CONTAINERS=$(docker ps -a -q --filter "label=com.docker.compose.project=localai")
