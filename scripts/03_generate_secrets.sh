@@ -45,6 +45,8 @@ declare -A VARS_TO_GENERATE=(
     ["LANGFUSE_INIT_USER_PASSWORD"]="password:32"
     ["LANGFUSE_INIT_PROJECT_PUBLIC_KEY"]="langfuse_pk:32"
     ["LANGFUSE_INIT_PROJECT_SECRET_KEY"]="langfuse_sk:32"
+    ["WEAVIATE_PASSWORD"]="password:32" # Password for Caddy basic auth
+    ["WEAVIATE_API_KEY"]="secret:48" # API Key for Weaviate service (36 bytes -> 48 chars base64)
 )
 
 # Check if .env file already exists
@@ -311,6 +313,7 @@ generated_values["SEARXNG_USERNAME"]="$USER_EMAIL"
 generated_values["LANGFUSE_INIT_USER_EMAIL"]="$USER_EMAIL"
 generated_values["N8N_WORKER_COUNT"]="$N8N_WORKER_COUNT"
 generated_values["N8N_WORKFLOWS_IMPORTED_EVER"]="$N8N_WORKFLOWS_IMPORTED_EVER_VALUE"
+generated_values["WEAVIATE_USERNAME"]="$USER_EMAIL" # Set Weaviate username for Caddy
 if [[ -n "$OPENAI_API_KEY" ]]; then
     generated_values["OPENAI_API_KEY"]="$OPENAI_API_KEY"
 fi
@@ -332,6 +335,7 @@ found_vars["OPENAI_API_KEY"]=0
 found_vars["LANGFUSE_INIT_USER_EMAIL"]=0
 found_vars["N8N_WORKER_COUNT"]=0
 found_vars["N8N_WORKFLOWS_IMPORTED_EVER"]=0
+found_vars["WEAVIATE_USERNAME"]=0
 
 # Read template, substitute domain, generate initial values
 while IFS= read -r line || [[ -n "$line" ]]; do
@@ -377,7 +381,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             # This 'else' block is for lines from template not covered by existing values or VARS_TO_GENERATE.
             # Check if it is one of the user input vars - these are handled by found_vars later if not in template.
             is_user_input_var=0 # Reset for each line
-            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "N8N_WORKFLOWS_IMPORTED_EVER")
+            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "N8N_WORKFLOWS_IMPORTED_EVER" "WEAVIATE_USERNAME")
             for uivar in "${user_input_vars[@]}"; do
                 if [[ "$varName" == "$uivar" ]]; then
                     is_user_input_var=1
@@ -465,7 +469,7 @@ else
 fi
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "N8N_WORKFLOWS_IMPORTED_EVER"; do
+for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "N8N_WORKFLOWS_IMPORTED_EVER" "WEAVIATE_USERNAME"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
         # Before appending, check if it's already in TMP_ENV_FILE to avoid duplicates
         if ! grep -q -E "^${var}=" "$TMP_ENV_FILE"; then
@@ -548,6 +552,7 @@ done
 # Hash passwords using caddy with bcrypt
 PROMETHEUS_PLAIN_PASS="${generated_values["PROMETHEUS_PASSWORD"]}"
 SEARXNG_PLAIN_PASS="${generated_values["SEARXNG_PASSWORD"]}"
+WEAVIATE_PLAIN_PASS="${generated_values["WEAVIATE_PASSWORD"]}"
 
 if [[ -n "${generated_values[PROMETHEUS_PASSWORD_HASH]}" ]]; then
     log_info "PROMETHEUS_PASSWORD_HASH already exists. Skipping re-hashing."
@@ -575,6 +580,20 @@ elif [[ -n "$SEARXNG_PLAIN_PASS" ]]; then
     fi
 else
     log_warning "SearXNG password was not generated or found, skipping hash."
+fi
+
+if [[ -n "${generated_values[WEAVIATE_PASSWORD_HASH]}" ]]; then
+    log_info "WEAVIATE_PASSWORD_HASH already exists. Skipping re-hashing."
+elif [[ -n "$WEAVIATE_PLAIN_PASS" ]]; then
+    WEAVIATE_HASH=$(caddy hash-password --algorithm bcrypt --plaintext "$WEAVIATE_PLAIN_PASS" 2>/dev/null)
+    if [[ $? -eq 0 && -n "$WEAVIATE_HASH" ]]; then
+        echo "WEAVIATE_PASSWORD_HASH='$WEAVIATE_HASH'" >> "$OUTPUT_FILE"
+        generated_values["WEAVIATE_PASSWORD_HASH"]="$WEAVIATE_HASH"
+    else
+        log_warning "Failed to hash Weaviate password using caddy."
+    fi
+else
+    log_warning "Weaviate password was not generated or found, skipping hash."
 fi
 
 if [ $? -eq 0 ]; then

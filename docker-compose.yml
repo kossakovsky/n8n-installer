@@ -14,6 +14,7 @@ volumes:
   grafana:
   prometheus_data:
   letta_data:
+  weaviate_data:
 
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
@@ -487,3 +488,36 @@ services:
       LETTA_SERVER_PASSWORD: ${LETTA_SERVER_PASSWORD:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:latest
+    container_name: weaviate
+    profiles: ["weaviate"]
+    restart: unless-stopped
+    ports:
+      - "8088:8080" # Internal port 8080, mapping to 8088 to avoid conflict if other services use 8080 on host
+      - "50059:50051" # Internal gRPC port 50051, mapping to 50059
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "false"
+      AUTHENTICATION_APIKEY_ENABLED: "true"
+      AUTHENTICATION_APIKEY_ALLOWED_KEYS: ${WEAVIATE_API_KEY}
+      AUTHENTICATION_APIKEY_USERS: ${WEAVIATE_USERNAME} # Or a generic user like 'admin'
+      AUTHORIZATION_ADMINLIST_ENABLED: "true" # Explicitly enable Admin List
+      AUTHORIZATION_ADMINLIST_USERS: ${WEAVIATE_USERNAME} # Grant admin rights to the API key user
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      ENABLE_API_BASED_MODULES: "true" # To allow integrations like OpenAI, Cohere etc.
+      CLUSTER_HOSTNAME: "node1" # Recommended for single node to avoid issues if hostname changes
+      DEFAULT_VECTORIZER_MODULE: "none" # Explicitly set to none, can be changed by user later
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider http://localhost:8080/v1/.well-known/ready || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

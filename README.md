@@ -42,6 +42,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Letta**](https://docs.letta.com/) - An open-source agent server and SDK that can be connected to various LLM API backends (OpenAI, Anthropic, Ollama, etc.), enabling you to build and manage AI agents.
 
+✅ [**Weaviate**](https://weaviate.io/) - An open-source AI-native vector database with a focus on scalability and ease of use. It can be used for RAG, hybrid search, and more.
+
 ✅ [**Ollama**](https://ollama.com/) - Run Llama 3, Mistral, Gemma, and other large language models locally.
 
 ✅ [**Prometheus**](https://prometheus.io/) - An open-source monitoring and alerting toolkit to keep an eye on system health.
@@ -114,11 +116,12 @@ The services will be available at the following addresses (replace `yourdomain.c
 - **Supabase (Dashboard):** `supabase.yourdomain.com`
 - **Langfuse:** `langfuse.yourdomain.com`
 - **Letta:** `letta.yourdomain.com`
+- **Weaviate:** `weaviate.yourdomain.com`
 - **Grafana:** `grafana.yourdomain.com`
 - **SearXNG:** `searxng.yourdomain.com`
 - **Prometheus:** `prometheus.yourdomain.com`
 
-With your n8n instance, you'll have access to over 400 integrations and powerful AI tools to build automated workflows. You can connect n8n to Qdrant or Supabase to store and retrieve information for your AI tasks. If you wish to use large language models (LLMs), you can easily configure them within n8n, assuming you have access to an LLM service.
+With your n8n instance, you'll have access to over 400 integrations and powerful AI tools to build automated workflows. You can connect n8n to Qdrant, Supabase, or Weaviate to store and retrieve information for your AI tasks. If you wish to use large language models (LLMs), you can easily configure them within n8n, assuming you have access to an LLM service.
 
 ## Upgrading
 

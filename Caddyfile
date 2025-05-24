@@ -40,6 +40,14 @@
     reverse_proxy letta:8283
 }
 
+# Weaviate
+{$WEAVIATE_HOSTNAME} {
+    basic_auth {
+        {$WEAVIATE_USERNAME} {$WEAVIATE_PASSWORD_HASH}
+    }
+    reverse_proxy weaviate:8080
+}
+
 # Prometheus
 {$PROMETHEUS_HOSTNAME} {
     basic_auth { 
