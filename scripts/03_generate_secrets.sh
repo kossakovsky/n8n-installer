@@ -50,12 +50,14 @@ declare -A VARS_TO_GENERATE=(
     ["NEO4J_AUTH_PASSWORD"]="password:32" # Added Neo4j password
 )
 
-# Check if .env file already exists
+# Initialize existing_env_vars and attempt to read .env if it exists
+log_info "Initializing environment configuration..."
+declare -A existing_env_vars
+
 if [ -f "$OUTPUT_FILE" ]; then
-    log_info "$OUTPUT_FILE already exists. Reading existing values and will only fill missing ones."
-    declare -A existing_env_vars # Declare here if only used after this block
+    log_info "Found existing $OUTPUT_FILE. Reading its values to use as defaults and preserve current settings."
     while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ -n "$line" && ! "$line" =~ ^\\s*# && "$line" == *"="* ]]; then
+        if [[ -n "$line" && ! "$line" =~ ^\s*# && "$line" == *"="* ]]; then
             varName=$(echo "$line" | cut -d'=' -f1 | xargs)
             varValue=$(echo "$line" | cut -d'=' -f2-)
             # Repeatedly unquote "value" or 'value' to get the bare value
@@ -75,9 +77,6 @@ if [ -f "$OUTPUT_FILE" ]; then
             existing_env_vars["$varName"]="$varValue"
         fi
     done < "$OUTPUT_FILE"
-else
-    log_info "No existing $OUTPUT_FILE found. Will generate a new one."
-    declare -A existing_env_vars # Ensure it's declared even if file doesn't exist
 fi
 
 # Install Caddy
