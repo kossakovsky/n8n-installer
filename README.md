@@ -44,7 +44,7 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Weaviate**](https://weaviate.io/) - An open-source AI-native vector database with a focus on scalability and ease of use. It can be used for RAG, hybrid search, and more.
 
-✅ [**Neo4j**](https://neo4j.com/) - A graph database management system that allows you to model, store, and query data as a network of nodes and relationships. It's particularly well-suited for complex, interconnected data often found in AI applications, such as knowledge graphs.
+✅ [**Neo4j**](https://neo4j.com/) - A graph database management system that allows you to model, store, and query data as a network of nodes and relationships.
 
 ✅ [**Ollama**](https://ollama.com/) - Run Llama 3, Mistral, Gemma, and other large language models locally.
 
@@ -125,6 +125,15 @@ The services will be available at the following addresses (replace `yourdomain.c
 - **Prometheus:** `prometheus.yourdomain.com`
 
 With your n8n instance, you'll have access to over 400 integrations and powerful AI tools to build automated workflows. You can connect n8n to Qdrant, Supabase, or Weaviate to store and retrieve information for your AI tasks. If you wish to use large language models (LLMs), you can easily configure them within n8n, assuming you have access to an LLM service.
+
+### Using Pre-installed Libraries in n8n's Custom JavaScript
+
+This setup pre-installs useful Node.js libraries for use in n8n's Code nodes:
+
+- **`cheerio`**: For parsing and manipulating HTML/XML (e.g., web scraping).
+- **`axios`**: A promise-based HTTP client for making requests to external APIs.
+- **`moment`**: For parsing, validating, manipulating, and displaying dates/times.
+- **`lodash`**: A utility library for common programming tasks (arrays, objects, strings, etc.).
 
 ## Upgrading
 
