@@ -164,7 +164,15 @@ if is_profile_active "weaviate"; then
   echo "User: ${WEAVIATE_USERNAME:-<not_set_in_env>}"
   echo "Password: ${WEAVIATE_PASSWORD:-<not_set_in_env>}"
   echo "Weaviate API Key: ${WEAVIATE_API_KEY:-<not_set_in_env>}"
-  echo "(Internal Weaviate Port: 8080, gRPC: 50051)"
+fi
+
+if is_profile_active "neo4j"; then
+  echo
+  echo "================================= Neo4j ==============================="
+  echo
+  echo "Host: ${NEO4J_HOSTNAME:-<hostname_not_set>}"
+  echo "User: ${NEO4J_AUTH_USERNAME:-<not_set_in_env>}"
+  echo "Password: ${NEO4J_AUTH_PASSWORD:-<not_set_in_env>}"
 fi
 
 # Standalone PostgreSQL (used by n8n, Langfuse, etc.)

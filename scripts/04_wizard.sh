@@ -56,6 +56,7 @@ base_services_data=(
     "qdrant" "Qdrant (Vector Database)"
     "supabase" "Supabase (Backend as a Service)"
     "weaviate" "Weaviate (Vector Database with API Key Auth)"
+    "neo4j" "Neo4j (Graph Database)"
     "monitoring" "Monitoring Suite (Prometheus, Grafana, cAdvisor, Node-Exporter)"
     "open-webui" "Open WebUI (ChatGPT-like Interface)"
     "searxng" "SearXNG (Private Metasearch Engine)"

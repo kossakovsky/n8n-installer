@@ -159,6 +159,19 @@ services:
       - ./neo4j/plugins:/plugins
     environment:
       - NEO4J_AUTH=${NEO4J_AUTH_USERNAME}/${NEO4J_AUTH_PASSWORD}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ulimits:
+      nofile:
+        soft: 40000
+        hard: 40000
 
   caddy:
     container_name: caddy
@@ -178,6 +191,7 @@ services:
       - SUPABASE_HOSTNAME=${SUPABASE_HOSTNAME}
       - SEARXNG_HOSTNAME=${SEARXNG_HOSTNAME}
       - LANGFUSE_HOSTNAME=${LANGFUSE_HOSTNAME}
+      - WEAVIATE_HOSTNAME=${WEAVIATE_HOSTNAME}
       - NEO4J_HOSTNAME=${NEO4J_HOSTNAME}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-internal}
       - PROMETHEUS_HOSTNAME=${PROMETHEUS_HOSTNAME}
@@ -508,9 +522,6 @@ services:
     container_name: weaviate
     profiles: ["weaviate"]
     restart: unless-stopped
-    ports:
-      - "8088:8080" # Internal port 8080, mapping to 8088 to avoid conflict if other services use 8080 on host
-      - "50059:50051" # Internal gRPC port 50051, mapping to 50059
     volumes:
       - weaviate_data:/var/lib/weaviate
     environment:
@@ -518,13 +529,13 @@ services:
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "false"
       AUTHENTICATION_APIKEY_ENABLED: "true"
       AUTHENTICATION_APIKEY_ALLOWED_KEYS: ${WEAVIATE_API_KEY}
-      AUTHENTICATION_APIKEY_USERS: ${WEAVIATE_USERNAME} # Or a generic user like 'admin'
-      AUTHORIZATION_ADMINLIST_ENABLED: "true" # Explicitly enable Admin List
-      AUTHORIZATION_ADMINLIST_USERS: ${WEAVIATE_USERNAME} # Grant admin rights to the API key user
+      AUTHENTICATION_APIKEY_USERS: ${WEAVIATE_USERNAME}
+      AUTHORIZATION_ENABLE_RBAC: "true"
+      AUTHORIZATION_RBAC_ROOT_USERS: ${WEAVIATE_USERNAME}
       PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
-      ENABLE_API_BASED_MODULES: "true" # To allow integrations like OpenAI, Cohere etc.
-      CLUSTER_HOSTNAME: "node1" # Recommended for single node to avoid issues if hostname changes
-      DEFAULT_VECTORIZER_MODULE: "none" # Explicitly set to none, can be changed by user later
+      ENABLE_API_BASED_MODULES: "true"
+      CLUSTER_HOSTNAME: "node1"
+      DEFAULT_VECTORIZER_MODULE: "none"
     healthcheck:
       test:
         [
