@@ -147,6 +147,19 @@ services:
     expose:
       - "6333"
 
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j
+    profiles: ["neo4j"]
+    restart: unless-stopped
+    volumes:
+      - ./neo4j/logs:/logs
+      - ./neo4j/config:/config
+      - ./neo4j/data:/data
+      - ./neo4j/plugins:/plugins
+    environment:
+      - NEO4J_AUTH=${NEO4J_AUTH_USERNAME}/${NEO4J_AUTH_PASSWORD}
+
   caddy:
     container_name: caddy
     image: docker.io/library/caddy:2-alpine
@@ -165,6 +178,7 @@ services:
       - SUPABASE_HOSTNAME=${SUPABASE_HOSTNAME}
       - SEARXNG_HOSTNAME=${SEARXNG_HOSTNAME}
       - LANGFUSE_HOSTNAME=${LANGFUSE_HOSTNAME}
+      - NEO4J_HOSTNAME=${NEO4J_HOSTNAME}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-internal}
       - PROMETHEUS_HOSTNAME=${PROMETHEUS_HOSTNAME}
       - GRAFANA_HOSTNAME=${GRAFANA_HOSTNAME}

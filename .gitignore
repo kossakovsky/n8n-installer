@@ -2,8 +2,10 @@
 .env
 .env.bak
 .env.test
-volumes/
+neo4j/
+searxng/settings.yml
+searxng/uwsgi*
+shared-backup/
 shared/
 supabase/
-searxng/uwsgi.ini
-searxng/settings.yml
+volumes/

@@ -56,6 +56,11 @@
     reverse_proxy prometheus:9090
 }
 
+# Neo4j
+{$NEO4J_HOSTNAME} {
+    reverse_proxy neo4j:7474
+}
+
 # SearXNG
 {$SEARXNG_HOSTNAME} {
     basic_auth { 

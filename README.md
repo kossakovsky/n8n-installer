@@ -44,6 +44,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Weaviate**](https://weaviate.io/) - An open-source AI-native vector database with a focus on scalability and ease of use. It can be used for RAG, hybrid search, and more.
 
+✅ [**Neo4j**](https://neo4j.com/) - A graph database management system that allows you to model, store, and query data as a network of nodes and relationships. It's particularly well-suited for complex, interconnected data often found in AI applications, such as knowledge graphs.
+
 ✅ [**Ollama**](https://ollama.com/) - Run Llama 3, Mistral, Gemma, and other large language models locally.
 
 ✅ [**Prometheus**](https://prometheus.io/) - An open-source monitoring and alerting toolkit to keep an eye on system health.
@@ -117,6 +119,7 @@ The services will be available at the following addresses (replace `yourdomain.c
 - **Langfuse:** `langfuse.yourdomain.com`
 - **Letta:** `letta.yourdomain.com`
 - **Weaviate:** `weaviate.yourdomain.com`
+- **Neo4j:** `neo4j.yourdomain.com`
 - **Grafana:** `grafana.yourdomain.com`
 - **SearXNG:** `searxng.yourdomain.com`
 - **Prometheus:** `prometheus.yourdomain.com`
