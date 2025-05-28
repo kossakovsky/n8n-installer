@@ -33,7 +33,7 @@ bash "$SCRIPT_DIR/03_generate_secrets.sh" --update || {
     log_error "Failed to update .env configuration via 03_generate_secrets.sh. Update process cannot continue."
     exit 1
 }
-log_success ".env file checked and updated by 03_generate_secrets.sh."
+log_success ".env file updated successfully."
 # --- End of .env update by 03_generate_secrets.sh ---
 
 # --- Run Service Selection Wizard FIRST to get updated profiles --- 
@@ -42,7 +42,7 @@ bash "$SCRIPT_DIR/04_wizard.sh" || {
     log_error "Service Selection Wizard failed. Update process cannot continue."
     exit 1
 }
-log_success "Service selection updated by 04_wizard.sh."
+log_success "Service selection updated."
 # --- End of Service Selection Wizard ---
 
 # Pull latest versions of selected containers based on updated .env

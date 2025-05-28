@@ -44,8 +44,6 @@ if [ -f "$ENV_FILE" ]; then
         CURRENT_PROFILES_VALUE=$(echo "$LINE_CONTENT" | cut -d'=' -f2- | sed 's/^"//' | sed 's/"$//')
     fi
 fi
-log_info "Wizard: Read COMPOSE_PROFILES from $ENV_FILE as: '$CURRENT_PROFILES_VALUE' (used for matching as: '$current_profiles_for_matching')"
-
 # Prepare comma-separated current profiles for easy matching, adding leading/trailing commas
 current_profiles_for_matching=",$CURRENT_PROFILES_VALUE,"
 
