@@ -53,6 +53,7 @@ declare -A VARS_TO_GENERATE=(
 # Initialize existing_env_vars and attempt to read .env if it exists
 log_info "Initializing environment configuration..."
 declare -A existing_env_vars
+declare -A generated_values
 
 if [ -f "$OUTPUT_FILE" ]; then
     log_info "Found existing $OUTPUT_FILE. Reading its values to use as defaults and preserve current settings."
@@ -324,9 +325,6 @@ if [ ! -f "$TEMPLATE_FILE" ]; then
     log_error "Template file not found at $TEMPLATE_FILE" >&2
     exit 1
 fi
-
-# Associative array to store generated values
-declare -A generated_values
 
 # Pre-populate generated_values with non-empty values from existing_env_vars
 for key_from_existing in "${!existing_env_vars[@]}"; do
