@@ -319,6 +319,46 @@ gen_base64() {
     openssl rand -base64 "$bytes" | head -c "$length" # Truncate just in case
 }
 
+# Function to update or add a variable to the .env file
+# Usage: _update_or_add_env_var "VAR_NAME" "var_value"
+_update_or_add_env_var() {
+    local var_name="$1"
+    local var_value="$2"
+    local tmp_env_file
+
+    tmp_env_file=$(mktemp)
+    # Ensure temp file is cleaned up if this function exits unexpectedly (though trap in main script should also cover)
+    # trap 'rm -f "$tmp_env_file"' EXIT
+
+    if [[ -f "$OUTPUT_FILE" ]]; then
+        grep -v -E "^${var_name}=" "$OUTPUT_FILE" > "$tmp_env_file" || true # Allow grep to not find anything
+    else
+        touch "$tmp_env_file" # Create empty temp if output file doesn't exist yet
+    fi
+
+    if [[ -n "$var_value" ]]; then
+        echo "${var_name}='$var_value'" >> "$tmp_env_file"
+    fi
+    mv "$tmp_env_file" "$OUTPUT_FILE"
+    # trap - EXIT # Remove specific trap for this temp file if desired, or let main script's trap handle it.
+}
+
+# Function to generate a hash using Caddy
+# Usage: local HASH=$(_generate_and_get_hash "$plain_password")
+_generate_and_get_hash() {
+    local plain_password="$1"
+    local new_hash=""
+    if [[ -n "$plain_password" ]]; then
+        new_hash=$(caddy hash-password --algorithm bcrypt --plaintext "$plain_password" 2>/dev/null)
+        if [[ $? -ne 0 || -z "$new_hash" ]]; then
+            # Optionally, log a warning here if logging was re-enabled
+            # echo "Warning: Failed to hash password for use with $1 (placeholder)" >&2
+            new_hash="" # Ensure it's empty on failure
+        fi
+    fi
+    echo "$new_hash"
+}
+
 # --- Main Logic ---
 
 if [ ! -f "$TEMPLATE_FILE" ]; then
@@ -585,50 +625,49 @@ PROMETHEUS_PLAIN_PASS="${generated_values["PROMETHEUS_PASSWORD"]}"
 SEARXNG_PLAIN_PASS="${generated_values["SEARXNG_PASSWORD"]}"
 WEAVIATE_PLAIN_PASS="${generated_values["WEAVIATE_PASSWORD"]}"
 
-if [[ -n "${generated_values[PROMETHEUS_PASSWORD_HASH]}" ]]; then
-    log_info "PROMETHEUS_PASSWORD_HASH already exists. Skipping re-hashing."
-elif [[ -n "$PROMETHEUS_PLAIN_PASS" ]]; then
-    PROMETHEUS_HASH=$(caddy hash-password --algorithm bcrypt --plaintext "$PROMETHEUS_PLAIN_PASS" 2>/dev/null)
-    if [[ $? -eq 0 && -n "$PROMETHEUS_HASH" ]]; then
-        echo "PROMETHEUS_PASSWORD_HASH='$PROMETHEUS_HASH'" >> "$OUTPUT_FILE"
-        generated_values["PROMETHEUS_PASSWORD_HASH"]="$PROMETHEUS_HASH" # Store for consistency, though primarily written to file
-    else
-        log_warning "Failed to hash Prometheus password using caddy."
-    fi
-else
-    log_warning "Prometheus password was not generated or found, skipping hash."
-fi
+# --- PROMETHEUS ---
+# Try to get existing hash from memory (populated from .env if it was there)
+FINAL_PROMETHEUS_HASH="${generated_values[PROMETHEUS_PASSWORD_HASH]}"
 
-if [[ -n "${generated_values[SEARXNG_PASSWORD_HASH]}" ]]; then
-    log_info "SEARXNG_PASSWORD_HASH already exists. Skipping re-hashing."
-elif [[ -n "$SEARXNG_PLAIN_PASS" ]]; then
-    SEARXNG_HASH=$(caddy hash-password --algorithm bcrypt --plaintext "$SEARXNG_PLAIN_PASS" 2>/dev/null)
-    if [[ $? -eq 0 && -n "$SEARXNG_HASH" ]]; then
-        echo "SEARXNG_PASSWORD_HASH='$SEARXNG_HASH'" >> "$OUTPUT_FILE"
-        generated_values["SEARXNG_PASSWORD_HASH"]="$SEARXNG_HASH"
-    else
-        log_warning "Failed to hash SearXNG password using caddy."
+# If no hash in memory, but we have a plain password, generate a new hash
+if [[ -z "$FINAL_PROMETHEUS_HASH" && -n "$PROMETHEUS_PLAIN_PASS" ]]; then
+    NEW_HASH=$(_generate_and_get_hash "$PROMETHEUS_PLAIN_PASS")
+    if [[ -n "$NEW_HASH" ]]; then
+        FINAL_PROMETHEUS_HASH="$NEW_HASH"
+        generated_values["PROMETHEUS_PASSWORD_HASH"]="$NEW_HASH" # Update memory for consistency
     fi
-else
-    log_warning "SearXNG password was not generated or found, skipping hash."
 fi
+# Update the .env file with the final determined hash (could be empty if no plain pass or hash failed)
+_update_or_add_env_var "PROMETHEUS_PASSWORD_HASH" "$FINAL_PROMETHEUS_HASH"
 
-if [[ -n "${generated_values[WEAVIATE_PASSWORD_HASH]}" ]]; then
-    log_info "WEAVIATE_PASSWORD_HASH already exists. Skipping re-hashing."
-elif [[ -n "$WEAVIATE_PLAIN_PASS" ]]; then
-    WEAVIATE_HASH=$(caddy hash-password --algorithm bcrypt --plaintext "$WEAVIATE_PLAIN_PASS" 2>/dev/null)
-    if [[ $? -eq 0 && -n "$WEAVIATE_HASH" ]]; then
-        echo "WEAVIATE_PASSWORD_HASH='$WEAVIATE_HASH'" >> "$OUTPUT_FILE"
-        generated_values["WEAVIATE_PASSWORD_HASH"]="$WEAVIATE_HASH"
-    else
-        log_warning "Failed to hash Weaviate password using caddy."
+# --- SEARXNG ---
+FINAL_SEARXNG_HASH="${generated_values[SEARXNG_PASSWORD_HASH]}"
+
+if [[ -z "$FINAL_SEARXNG_HASH" && -n "$SEARXNG_PLAIN_PASS" ]]; then
+    NEW_HASH=$(_generate_and_get_hash "$SEARXNG_PLAIN_PASS")
+    if [[ -n "$NEW_HASH" ]]; then
+        FINAL_SEARXNG_HASH="$NEW_HASH"
+        generated_values["SEARXNG_PASSWORD_HASH"]="$NEW_HASH"
     fi
-else
-    log_warning "Weaviate password was not generated or found, skipping hash."
 fi
+_update_or_add_env_var "SEARXNG_PASSWORD_HASH" "$FINAL_SEARXNG_HASH"
 
-if [ $? -eq 0 ]; then
-    log_success ".env file generated successfully in the project root ($OUTPUT_FILE)."
+# --- WEAVIATE ---
+FINAL_WEAVIATE_HASH="${generated_values[WEAVIATE_PASSWORD_HASH]}"
+
+if [[ -z "$FINAL_WEAVIATE_HASH" && -n "$WEAVIATE_PLAIN_PASS" ]]; then
+    NEW_HASH=$(_generate_and_get_hash "$WEAVIATE_PLAIN_PASS")
+    if [[ -n "$NEW_HASH" ]]; then
+        FINAL_WEAVIATE_HASH="$NEW_HASH"
+        generated_values["WEAVIATE_PASSWORD_HASH"]="$NEW_HASH"
+    fi
+fi
+_update_or_add_env_var "WEAVIATE_PASSWORD_HASH" "$FINAL_WEAVIATE_HASH"
+
+
+if [ $? -eq 0 ]; then # This $? reflects the status of the last mv command from the last _update_or_add_env_var call.
+    # For now, assuming if we reached here and mv was fine, primary operations were okay.
+    echo ".env file generated successfully in the project root ($OUTPUT_FILE)."
 else
     log_error "Failed to generate .env file." >&2
     rm -f "$OUTPUT_FILE" # Clean up potentially broken output file
