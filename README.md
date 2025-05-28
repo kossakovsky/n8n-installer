@@ -229,6 +229,10 @@ When you build automations in n8n that need to read or write files on your serve
 - [Local File Trigger](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.localfiletrigger/) (To start workflows when files change)
 - [Execute Command](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.executecommand/) (To run command-line tools)
 
+## 🙌 Contributors
+
+Want to see who has contributed to this project? Check out the [**GitHub Contributors Page**](https://github.com/kossakovsky/n8n-installer/graphs/contributors)!
+
 ## 📜 License
 
 This project (originally created by the n8n team, with further development by contributors - see "Important Links") is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
