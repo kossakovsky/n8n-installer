@@ -91,47 +91,47 @@ if ! command -v caddy &> /dev/null; then
 fi
 
 # Prompt for the domain name
-CURRENT_DOMAIN=""
-# Try to infer current domain from N8N_HOSTNAME or SUPABASE_HOSTNAME for the prompt
-if [[ -n "${existing_env_vars[N8N_HOSTNAME]}" ]]; then
-    CURRENT_DOMAIN=$(echo "${existing_env_vars[N8N_HOSTNAME]}" | sed -E 's/^[a-zA-Z0-9-]+\.(.+)/\1/')
-elif [[ -n "${existing_env_vars[SUPABASE_HOSTNAME]}" ]]; then
-    CURRENT_DOMAIN=$(echo "${existing_env_vars[SUPABASE_HOSTNAME]}" | sed -E 's/^[a-zA-Z0-9-]+\.(.+)/\1/')
+DOMAIN="" # Initialize DOMAIN variable
+
+# Try to get domain from existing .env file first
+# Check if USER_DOMAIN_NAME is set in existing_env_vars and is not empty
+if [[ -v existing_env_vars[USER_DOMAIN_NAME] && -n "${existing_env_vars[USER_DOMAIN_NAME]}" ]]; then
+    DOMAIN="${existing_env_vars[USER_DOMAIN_NAME]}"
+    # Ensure this value is carried over to generated_values for writing and template processing
+    # If it came from existing_env_vars, it might already be there, but this ensures it.
+    generated_values["USER_DOMAIN_NAME"]="$DOMAIN"
+else
+    while true; do
+        echo ""
+        prompt_text="Enter the primary domain name for your services (e.g., example.com): " # Simplified prompt
+        read -p "$prompt_text" DOMAIN_INPUT
+
+        DOMAIN_TO_USE="$DOMAIN_INPUT" # Direct assignment, no default fallback
+
+        # Validate domain input
+        if [[ -z "$DOMAIN_TO_USE" ]]; then
+            log_error "Domain name cannot be empty. This field is mandatory." >&2 # Clarified error
+            continue # Ask again
+        fi
+
+        # Basic check for likely invalid domain characters (very permissive)
+        if [[ "$DOMAIN_TO_USE" =~ [^a-zA-Z0-9.-] ]]; then
+            log_warning "Warning: Domain name contains potentially invalid characters: '$DOMAIN_TO_USE'" >&2
+        fi
+
+        echo ""
+        read -p "Are you sure '$DOMAIN_TO_USE' is correct? (y/N): " confirm_domain
+        if [[ "$confirm_domain" =~ ^[Yy]$ ]]; then
+            DOMAIN="$DOMAIN_TO_USE" # Set the final DOMAIN variable
+            generated_values["USER_DOMAIN_NAME"]="$DOMAIN" # Using USER_DOMAIN_NAME
+            log_info "Domain set to '$DOMAIN'. It will be saved in .env."
+            break # Confirmed, exit loop
+        else
+            log_info "Please try entering the domain name again."
+            # No default domain suggestion to retry with.
+        fi
+    done
 fi
-
-while true; do
-    echo ""
-    prompt_text="Enter the primary domain name for your services (e.g., example.com)"
-    if [[ -n "$CURRENT_DOMAIN" ]]; then
-        prompt_text+=" [current: $CURRENT_DOMAIN]: "
-    else
-        prompt_text+=": "
-    fi
-    read -p "$prompt_text" DOMAIN_INPUT
-
-    DOMAIN_TO_USE="${DOMAIN_INPUT:-$CURRENT_DOMAIN}"
-
-    # Validate domain input
-    if [[ -z "$DOMAIN_TO_USE" ]]; then
-        log_error "Domain name cannot be empty." >&2
-        continue # Ask again
-    fi
-
-    # Basic check for likely invalid domain characters (very permissive)
-    if [[ "$DOMAIN_TO_USE" =~ [^a-zA-Z0-9.-] ]]; then
-        log_warning "Warning: Domain name contains potentially invalid characters: '$DOMAIN_TO_USE'" >&2
-    fi
-
-    echo ""
-    read -p "Are you sure '$DOMAIN_TO_USE' is correct? (y/N): " confirm_domain
-    if [[ "$confirm_domain" =~ ^[Yy]$ ]]; then
-        DOMAIN="$DOMAIN_TO_USE" # Set the final DOMAIN variable
-        break # Confirmed, exit loop
-    else
-        log_info "Please try entering the domain name again."
-        # CURRENT_DOMAIN remains for the next prompt iteration if user wants to retry with current default
-    fi
-done
 
 # Prompt for user email
 echo ""
