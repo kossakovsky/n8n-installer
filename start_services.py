@@ -219,8 +219,9 @@ def check_and_fix_docker_compose_for_searxng():
             print("Note: After the first run completes successfully, you should re-add 'cap_drop: - ALL' to docker-compose.yml for security reasons.")
         elif not is_first_run and "# cap_drop: - ALL  # Temporarily commented out for first run" in content:
             print("SearXNG has been initialized. Re-enabling 'cap_drop: - ALL' directive for security...")
-            # Uncomment the cap_drop line
-            modified_content = content.replace("# cap_drop: - ALL  # Temporarily commented out for first run", "cap_drop: - ALL")
+            # Uncomment the cap_drop line and ensure correct multi-line YAML format
+            correct_cap_drop_block = "cap_drop:\n      - ALL" # Note the newline and indentation for the list item
+            modified_content = content.replace("# cap_drop: - ALL  # Temporarily commented out for first run", correct_cap_drop_block)
             
             # Write the modified content back
             with open(docker_compose_path, 'w') as file:
