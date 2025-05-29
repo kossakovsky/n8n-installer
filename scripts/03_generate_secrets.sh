@@ -181,7 +181,7 @@ echo "   You can skip this by leaving it empty."
 
 if [[ -v existing_env_vars[OPENAI_API_KEY] ]]; then # -v checks if variable is set (even if empty)
     OPENAI_API_KEY="${existing_env_vars[OPENAI_API_KEY]}"
-    if [[ -n "$OPENAI_API_KEY" ]]; then
+    if [[ -n "$OPENAI_API_KEY" ]]; then : # Fix: Add null command for empty 'then' block
     else
       log_info "Found empty OpenAI API Key in .env. You can provide one now or leave empty."
       echo ""
