@@ -212,8 +212,8 @@ final_run_n8n_import_decision="false"
 final_run_n8n_import_complete_status="$run_n8n_import_complete_from_env" # Preserve existing 'true' state by default
 
 if [[ "$run_n8n_import_complete_from_env" == "true" ]]; then
-    final_run_n8n_import_decision="false"
-    # final_run_n8n_import_complete_status remains "true"
+    final_run_n8n_import_decision="false" # Don't ask, don't import
+    # final_run_n8n_import_complete_status remains "true" (already set by initialization)
 else
     # RUN_N8N_IMPORT_COMPLETE is false or not set, so we ask the user.
     echo "Do you want to import 300 ready-made workflows for n8n? This process may take about 30 minutes to complete."
@@ -222,11 +222,11 @@ else
 
     if [[ "$import_workflow_choice" =~ ^[Yy]$ ]]; then
         final_run_n8n_import_decision="true"
-        final_run_n8n_import_complete_status="true" # Mark as complete for this and future runs
     else
         final_run_n8n_import_decision="false"
-        # final_run_n8n_import_complete_status remains "false" because user declined and it wasn't true before.
     fi
+    # Always mark as complete for future runs after asking once.
+    final_run_n8n_import_complete_status="true"
 fi
 
 # Prompt for number of n8n workers
