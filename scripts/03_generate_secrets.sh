@@ -45,7 +45,6 @@ declare -A VARS_TO_GENERATE=(
     ["LANGFUSE_INIT_USER_PASSWORD"]="password:32"
     ["LANGFUSE_INIT_PROJECT_PUBLIC_KEY"]="langfuse_pk:32"
     ["LANGFUSE_INIT_PROJECT_SECRET_KEY"]="langfuse_sk:32"
-    ["WEAVIATE_PASSWORD"]="password:32" # Password for Caddy basic auth
     ["WEAVIATE_API_KEY"]="secret:48" # API Key for Weaviate service (36 bytes -> 48 chars base64)
     ["NEO4J_AUTH_PASSWORD"]="password:32" # Added Neo4j password
     ["NEO4J_AUTH_USERNAME"]="fixed:neo4j" # Added Neo4j username
@@ -625,7 +624,6 @@ done
 # Hash passwords using caddy with bcrypt
 PROMETHEUS_PLAIN_PASS="${generated_values["PROMETHEUS_PASSWORD"]}"
 SEARXNG_PLAIN_PASS="${generated_values["SEARXNG_PASSWORD"]}"
-WEAVIATE_PLAIN_PASS="${generated_values["WEAVIATE_PASSWORD"]}"
 
 # --- PROMETHEUS ---
 # Try to get existing hash from memory (populated from .env if it was there)
@@ -653,18 +651,6 @@ if [[ -z "$FINAL_SEARXNG_HASH" && -n "$SEARXNG_PLAIN_PASS" ]]; then
     fi
 fi
 _update_or_add_env_var "SEARXNG_PASSWORD_HASH" "$FINAL_SEARXNG_HASH"
-
-# --- WEAVIATE ---
-FINAL_WEAVIATE_HASH="${generated_values[WEAVIATE_PASSWORD_HASH]}"
-
-if [[ -z "$FINAL_WEAVIATE_HASH" && -n "$WEAVIATE_PLAIN_PASS" ]]; then
-    NEW_HASH=$(_generate_and_get_hash "$WEAVIATE_PLAIN_PASS")
-    if [[ -n "$NEW_HASH" ]]; then
-        FINAL_WEAVIATE_HASH="$NEW_HASH"
-        generated_values["WEAVIATE_PASSWORD_HASH"]="$NEW_HASH"
-    fi
-fi
-_update_or_add_env_var "WEAVIATE_PASSWORD_HASH" "$FINAL_WEAVIATE_HASH"
 
 
 if [ $? -eq 0 ]; then # This $? reflects the status of the last mv command from the last _update_or_add_env_var call.
