@@ -146,7 +146,6 @@ echo "   - SSL certificate generation with Let's Encrypt"
 
 if [[ -n "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
     USER_EMAIL="${existing_env_vars[LETSENCRYPT_EMAIL]}"
-    log_info "Using existing email from .env: $USER_EMAIL"
 else
     while true; do
         echo ""
@@ -183,7 +182,6 @@ echo "   You can skip this by leaving it empty."
 if [[ -v existing_env_vars[OPENAI_API_KEY] ]]; then # -v checks if variable is set (even if empty)
     OPENAI_API_KEY="${existing_env_vars[OPENAI_API_KEY]}"
     if [[ -n "$OPENAI_API_KEY" ]]; then
-      log_info "Using existing OpenAI API Key from .env."
     else
       log_info "Found empty OpenAI API Key in .env. You can provide one now or leave empty."
       echo ""
@@ -232,12 +230,10 @@ echo "" # Add a newline for better formatting
 log_info "Configuring n8n worker count..."
 if [[ -n "${existing_env_vars[N8N_WORKER_COUNT]}" ]]; then
     N8N_WORKER_COUNT_CURRENT="${existing_env_vars[N8N_WORKER_COUNT]}"
-    log_info "Found existing N8N_WORKER_COUNT in .env: $N8N_WORKER_COUNT_CURRENT"
     echo ""
     read -p "Do you want to change the number of n8n workers? Current: $N8N_WORKER_COUNT_CURRENT. (Enter new number, or press Enter to keep current): " N8N_WORKER_COUNT_INPUT_RAW
     if [[ -z "$N8N_WORKER_COUNT_INPUT_RAW" ]]; then
         N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
-        log_info "Keeping N8N_WORKER_COUNT at $N8N_WORKER_COUNT."
     else
         # Validate the new input
         if [[ "$N8N_WORKER_COUNT_INPUT_RAW" =~ ^0*[1-9][0-9]*$ ]]; then
@@ -489,7 +485,6 @@ while IFS= read -r line || [[ -n "$line" ]]; do
 done < "$TEMPLATE_FILE"
 
 # Generate placeholder Supabase keys (always generate these)
-log_info "Generating Supabase JWT keys..."
 
 # Function to create a JWT token
 create_jwt() {
@@ -530,14 +525,10 @@ fi
 # Generate the actual JWT tokens using the JWT_SECRET_TO_USE, if not already set
 if [[ -z "${generated_values[ANON_KEY]}" ]]; then
     generated_values["ANON_KEY"]=$(create_jwt "anon" "$JWT_SECRET_TO_USE")
-else
-    log_info "Using existing ANON_KEY."
 fi
 
 if [[ -z "${generated_values[SERVICE_ROLE_KEY]}" ]]; then
     generated_values["SERVICE_ROLE_KEY"]=$(create_jwt "service_role" "$JWT_SECRET_TO_USE")
-else
-    log_info "Using existing SERVICE_ROLE_KEY."
 fi
 
 # Add any custom variables that weren't found in the template

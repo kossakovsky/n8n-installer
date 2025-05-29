@@ -228,7 +228,6 @@ fi
 
 # Add the new COMPOSE_PROFILES line
 echo "COMPOSE_PROFILES=${COMPOSE_PROFILES_VALUE}" >> "$ENV_FILE"
-log_info "COMPOSE_PROFILES has been set in '$ENV_FILE'."
 if [ -z "$COMPOSE_PROFILES_VALUE" ]; then
     log_info "Only core services (Caddy, Postgres, Redis) will be started."
 else
