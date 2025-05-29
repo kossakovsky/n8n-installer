@@ -58,7 +58,12 @@
 
 # Neo4j
 {$NEO4J_HOSTNAME} {
-    reverse_proxy neo4j:7474
+    reverse_proxy / neo4j:7474
+}
+
+# Neo4j Bolt Protocol (wss)
+https://{$NEO4J_HOSTNAME}:7687 {
+    reverse_proxy neo4j:7687
 }
 
 # SearXNG
