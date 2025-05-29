@@ -48,6 +48,7 @@ declare -A VARS_TO_GENERATE=(
     ["WEAVIATE_PASSWORD"]="password:32" # Password for Caddy basic auth
     ["WEAVIATE_API_KEY"]="secret:48" # API Key for Weaviate service (36 bytes -> 48 chars base64)
     ["NEO4J_AUTH_PASSWORD"]="password:32" # Added Neo4j password
+    ["NEO4J_AUTH_USERNAME"]="fixed:neo4j" # Added Neo4j username
 )
 
 # Initialize existing_env_vars and attempt to read .env if it exists
@@ -406,7 +407,7 @@ found_vars["OPENAI_API_KEY"]=0
 found_vars["LANGFUSE_INIT_USER_EMAIL"]=0
 found_vars["N8N_WORKER_COUNT"]=0
 found_vars["WEAVIATE_USERNAME"]=0
-found_vars["vEO4J_AUTH_USERNAME"]=0
+found_vars["NEO4J_AUTH_USERNAME"]=0
 
 # Read template, substitute domain, generate initial values
 while IFS= read -r line || [[ -n "$line" ]]; do
@@ -433,6 +434,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                 hex) newValue=$(gen_hex "$length") ;;
                 langfuse_pk) newValue="pk-lf-$(gen_hex "$length")" ;;
                 langfuse_sk) newValue="sk-lf-$(gen_hex "$length")" ;;
+                fixed) newValue="$length" ;; # Handle fixed type
                 *) log_warning "Unknown generation type '$type' for $varName" ;;
             esac
 
@@ -452,7 +454,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             # This 'else' block is for lines from template not covered by existing values or VARS_TO_GENERATE.
             # Check if it is one of the user input vars - these are handled by found_vars later if not in template.
             is_user_input_var=0 # Reset for each line
-            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "RUN_N8N_IMPORT_COMPLETE" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME")
+            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "RUN_N8N_IMPORT_COMPLETE" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME")
             for uivar in "${user_input_vars[@]}"; do
                 if [[ "$varName" == "$uivar" ]]; then
                     is_user_input_var=1
@@ -540,7 +542,7 @@ else
 fi
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "RUN_N8N_IMPORT_COMPLETE" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME"; do
+for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "RUN_N8N_IMPORT_COMPLETE" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
         # Before appending, check if it's already in TMP_ENV_FILE to avoid duplicates
         if ! grep -q -E "^${var}=" "$TMP_ENV_FILE"; then
