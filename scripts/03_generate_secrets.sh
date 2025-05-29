@@ -135,14 +135,16 @@ else
 fi
 
 # Prompt for user email
-echo ""
-echo "Please enter your email address. This email will be used for:"
-echo "   - Login to Flowise"
-echo "   - Login to Supabase"
-echo "   - Login to SearXNG"
-echo "   - Login to Grafana"
-echo "   - Login to Prometheus"
-echo "   - SSL certificate generation with Let's Encrypt"
+if [[ -z "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
+    echo ""
+    echo "Please enter your email address. This email will be used for:"
+    echo "   - Login to Flowise"
+    echo "   - Login to Supabase"
+    echo "   - Login to SearXNG"
+    echo "   - Login to Grafana"
+    echo "   - Login to Prometheus"
+    echo "   - SSL certificate generation with Let\'s Encrypt"
+fi
 
 if [[ -n "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
     USER_EMAIL="${existing_env_vars[LETSENCRYPT_EMAIL]}"
@@ -173,11 +175,13 @@ else
 fi
 
 # Prompt for OpenAI API key (optional)
-echo ""
-echo "OpenAI API Key (optional). This key will be used for:"
-echo "   - Supabase: AI services to help with writing SQL queries, statements, and policies"
-echo "   - Crawl4AI: Default LLM configuration for web crawling capabilities"
-echo "   You can skip this by leaving it empty."
+if [[ ! -v existing_env_vars[OPENAI_API_KEY] || -z "${existing_env_vars[OPENAI_API_KEY]}" ]]; then
+    echo ""
+    echo "OpenAI API Key (optional). This key will be used for:"
+    echo "   - Supabase: AI services to help with writing SQL queries, statements, and policies"
+    echo "   - Crawl4AI: Default LLM configuration for web crawling capabilities"
+    echo "   You can skip this by leaving it empty."
+fi
 
 if [[ -v existing_env_vars[OPENAI_API_KEY] ]]; then # -v checks if variable is set (even if empty)
     OPENAI_API_KEY="${existing_env_vars[OPENAI_API_KEY]}"
