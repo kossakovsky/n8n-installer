@@ -6,7 +6,10 @@
       "id": "fb019680-2bd5-4785-af37-3795660a1b1e",
       "name": "On clicking 'execute'",
       "type": "n8n-nodes-base.manualTrigger",
-      "position": [0, 0],
+      "position": [
+        0,
+        0
+      ],
       "typeVersion": 1
     },
     {
@@ -17,7 +20,10 @@
       "id": "4863b185-6a42-4e79-87e6-83c510a58161",
       "name": "n8n",
       "type": "n8n-nodes-base.n8n",
-      "position": [360, 120],
+      "position": [
+        360,
+        120
+      ],
       "retryOnFail": true,
       "typeVersion": 1,
       "alwaysOutputData": true
@@ -29,7 +35,10 @@
       "id": "4f8ae52a-09bc-4f6b-9dab-b05305a10b9d",
       "name": "Loop Over Items",
       "type": "n8n-nodes-base.splitInBatches",
-      "position": [560, 120],
+      "position": [
+        560,
+        120
+      ],
       "typeVersion": 3
     },
     {
@@ -53,7 +62,10 @@
       "id": "81b63982-8451-4256-ac4d-d95bbbcb44c7",
       "name": "create new folder",
       "type": "n8n-nodes-base.googleDrive",
-      "position": [180, 120],
+      "position": [
+        180,
+        120
+      ],
       "typeVersion": 3
     },
     {
@@ -67,7 +79,10 @@
       "id": "933d999f-7a4f-4d6b-9260-30b486ff9ba7",
       "name": "Convert to File",
       "type": "n8n-nodes-base.convertToFile",
-      "position": [780, 220],
+      "position": [
+        780,
+        220
+      ],
       "typeVersion": 1.1
     },
     {
@@ -88,7 +103,10 @@
       "id": "9b644f1e-b1af-42ee-a8b5-42b80aefce72",
       "name": "Google Drive",
       "type": "n8n-nodes-base.googleDrive",
-      "position": [960, 220],
+      "position": [
+        960,
+        220
+      ],
       "typeVersion": 3
     },
     {
@@ -105,7 +123,10 @@
       "id": "98aad7c8-56ae-4ee2-85ea-e245ff71045b",
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
-      "position": [0, 260],
+      "position": [
+        0,
+        260
+      ],
       "typeVersion": 1.2
     },
     {
@@ -138,7 +159,10 @@
       "id": "3efaab24-7f3d-4160-b87d-1c55de156961",
       "name": "Filter",
       "type": "n8n-nodes-base.filter",
-      "position": [960, 20],
+      "position": [
+        960,
+        20
+      ],
       "typeVersion": 2.2
     },
     {
@@ -157,7 +181,10 @@
       "id": "0ee768c6-4cbb-489c-b481-6d0d4b1116a5",
       "name": "delete folder",
       "type": "n8n-nodes-base.googleDrive",
-      "position": [1140, 20],
+      "position": [
+        1140,
+        20
+      ],
       "typeVersion": 3
     },
     {
@@ -177,7 +204,10 @@
       "id": "9a91001f-af55-4d0d-8632-da27bd8e5d4a",
       "name": "Get folders",
       "type": "n8n-nodes-base.googleDrive",
-      "position": [780, 20],
+      "position": [
+        780,
+        20
+      ],
       "typeVersion": 3
     }
   ],
@@ -297,5 +327,6 @@
   "meta": {
     "instanceId": "8c6df3d9c78e998324a3cf0914556b82948ee6c29f96c9e0a377e8c1060125d7"
   },
-  "tags": []
+  "tags": [],
+  "id": "D2FkygKZoS8sTTyu"
 }

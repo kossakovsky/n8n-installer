@@ -1258,5 +1258,6 @@
     }
   },
   "name": "Breakdown Documents into Study Notes using Templating MistralAI and Qdrant",
-  "active": false
+  "active": false,
+  "id": "aCkLpNJwkAnOq9SO"
 }

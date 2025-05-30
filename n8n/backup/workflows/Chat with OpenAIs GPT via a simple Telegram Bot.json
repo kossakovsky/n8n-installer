@@ -120,5 +120,6 @@
     }
   },
   "name": "Chat with OpenAIs GPT via a simple Telegram Bot",
-  "active": false
+  "active": false,
+  "id": "FIw3H8kEdeHSzxgH"
 }

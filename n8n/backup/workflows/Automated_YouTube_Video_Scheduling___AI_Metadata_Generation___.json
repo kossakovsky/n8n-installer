@@ -13,7 +13,10 @@
       "id": "21a07760-93e4-42f8-973c-66b7ee6b3149",
       "name": "Fetch Latest Videos",
       "type": "n8n-nodes-base.youTube",
-      "position": [580, 480],
+      "position": [
+        580,
+        480
+      ],
       "typeVersion": 1
     },
     {
@@ -23,7 +26,10 @@
       "id": "e52c3140-a968-466d-b1db-5ade8d72ae05",
       "name": "Loop Over Items",
       "type": "n8n-nodes-base.splitInBatches",
-      "position": [800, 480],
+      "position": [
+        800,
+        480
+      ],
       "typeVersion": 3
     },
     {
@@ -50,7 +56,10 @@
       "id": "e9c8d5d6-5b89-44b0-9b49-0112fbf76fd4",
       "name": "YT Title",
       "type": "@n8n/n8n-nodes-langchain.openAi",
-      "position": [2860, 560],
+      "position": [
+        2860,
+        560
+      ],
       "typeVersion": 1.7,
       "disabled": true
     },
@@ -78,7 +87,10 @@
       "id": "b6a5bfc6-e10d-4e09-867f-bcf68d8d4290",
       "name": "Create Description",
       "type": "@n8n/n8n-nodes-langchain.openAi",
-      "position": [2560, 520],
+      "position": [
+        2560,
+        520
+      ],
       "typeVersion": 1.7
     },
     {
@@ -86,7 +98,10 @@
       "id": "d27a9154-14dd-44df-8472-479b66a0e8ad",
       "name": "When clicking ‘Test workflow’",
       "type": "n8n-nodes-base.manualTrigger",
-      "position": [-1620, 740],
+      "position": [
+        -1620,
+        740
+      ],
       "typeVersion": 1
     },
     {
@@ -98,7 +113,10 @@
       "id": "545363b0-4a13-4ebf-9dc8-2043ea8137d5",
       "name": "Sticky Note1",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [3300, 420],
+      "position": [
+        3300,
+        420
+      ],
       "typeVersion": 1
     },
     {
@@ -110,7 +128,10 @@
       "id": "d495ab11-a4fe-478e-a29d-3c5623bc1754",
       "name": "Sticky Note2",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [2560, 300],
+      "position": [
+        2560,
+        300
+      ],
       "typeVersion": 1
     },
     {
@@ -123,7 +144,10 @@
       "id": "3d69bd56-8b82-4119-a6b0-5f2db19d475f",
       "name": "Sticky Note3",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [100, -120],
+      "position": [
+        100,
+        -120
+      ],
       "typeVersion": 1
     },
     {
@@ -134,7 +158,10 @@
       "id": "e350d85d-fbf1-4003-90f7-0a878491aa4b",
       "name": "2.5FlashPrev",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "position": [2860, 440],
+      "position": [
+        2860,
+        440
+      ],
       "typeVersion": 1
     },
     {
@@ -148,7 +175,10 @@
       "id": "60fd0b52-6fcc-4b9a-871d-261678310183",
       "name": "YT Tags",
       "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [2860, 320],
+      "position": [
+        2860,
+        320
+      ],
       "typeVersion": 1.9
     },
     {
@@ -161,7 +191,10 @@
       "id": "fbe2db99-0a16-4c17-927b-4c32c503ecd9",
       "name": "Sticky Note4",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [-1700, 300],
+      "position": [
+        -1700,
+        300
+      ],
       "typeVersion": 1
     },
     {
@@ -171,7 +204,10 @@
       "id": "dc59be65-c058-4e85-a5e2-d1306203d34b",
       "name": "3s",
       "type": "n8n-nodes-base.wait",
-      "position": [3560, 580],
+      "position": [
+        3560,
+        580
+      ],
       "webhookId": "1e75fe1f-e553-4530-a8bc-5e64208a1184",
       "typeVersion": 1.1
     },
@@ -185,7 +221,10 @@
       "id": "3e143e81-6eb8-42ba-aebf-25c70e72a412",
       "name": "gettitle",
       "type": "n8n-nodes-base.youTube",
-      "position": [-140, 640],
+      "position": [
+        -140,
+        640
+      ],
       "typeVersion": 1
     },
     {
@@ -197,7 +236,10 @@
       "id": "f22a81b4-3153-47aa-a2dd-935cb8ecd9e8",
       "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [-400, 300],
+      "position": [
+        -400,
+        300
+      ],
       "typeVersion": 1
     },
     {
@@ -210,7 +252,10 @@
       "id": "74bc83f2-935c-4ca3-984c-d310cf5c4830",
       "name": "Sticky Note5",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [40, 360],
+      "position": [
+        40,
+        360
+      ],
       "typeVersion": 1
     },
     {
@@ -223,7 +268,10 @@
       "id": "54b3e2ce-ba32-42c8-8d6e-e6e9affb1e2b",
       "name": "Sticky Note6",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [1960, 300],
+      "position": [
+        1960,
+        300
+      ],
       "typeVersion": 1
     },
     {
@@ -236,7 +284,10 @@
       "id": "5473b036-df9c-4251-ba80-376dda5c18e5",
       "name": "Sticky Note7",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [560, 300],
+      "position": [
+        560,
+        300
+      ],
       "typeVersion": 1
     },
     {
@@ -255,7 +306,10 @@
       "id": "fb92b960-5104-407d-b257-e83a41babc05",
       "name": "Set Publish Date",
       "type": "n8n-nodes-base.youTube",
-      "position": [40, 720],
+      "position": [
+        40,
+        720
+      ],
       "typeVersion": 1
     },
     {
@@ -272,7 +326,10 @@
       "id": "7bb121ff-4f88-4aea-94dd-e4baf804805a",
       "name": "Every Day",
       "type": "n8n-nodes-base.scheduleTrigger",
-      "position": [-1620, 500],
+      "position": [
+        -1620,
+        500
+      ],
       "typeVersion": 1.2,
       "disabled": true
     },
@@ -288,7 +345,10 @@
       "id": "299bc700-7abd-4025-952c-75f3e0bc8db1",
       "name": "Get Videos to reschedule",
       "type": "n8n-nodes-base.youTube",
-      "position": [-1240, 480],
+      "position": [
+        -1240,
+        480
+      ],
       "typeVersion": 1
     },
     {
@@ -298,7 +358,10 @@
       "id": "d2af421b-de79-4602-b08b-66951b443512",
       "name": "Get video Ids seperated",
       "type": "n8n-nodes-base.code",
-      "position": [-1020, 480],
+      "position": [
+        -1020,
+        480
+      ],
       "typeVersion": 2
     },
     {
@@ -308,7 +371,10 @@
       "id": "a5bb8453-03c6-4dcc-ba09-1d97d42f624d",
       "name": "Loop over Video IDs",
       "type": "n8n-nodes-base.splitInBatches",
-      "position": [-800, 480],
+      "position": [
+        -800,
+        480
+      ],
       "typeVersion": 3
     },
     {
@@ -321,7 +387,10 @@
       "id": "911d793c-2bb3-431e-9015-a088165b6428",
       "name": "Get Video Data",
       "type": "n8n-nodes-base.youTube",
-      "position": [-580, 500],
+      "position": [
+        -580,
+        500
+      ],
       "typeVersion": 1
     },
     {
@@ -331,7 +400,10 @@
       "id": "5bd93a98-75a7-4346-84c1-ada1d9631234",
       "name": "Return Private Videos",
       "type": "n8n-nodes-base.code",
-      "position": [-580, 320],
+      "position": [
+        -580,
+        320
+      ],
       "typeVersion": 2,
       "alwaysOutputData": true
     },
@@ -342,7 +414,10 @@
       "id": "d6457b03-02bd-475d-9b26-1ec58db1f5a4",
       "name": "4s",
       "type": "n8n-nodes-base.wait",
-      "position": [380, 680],
+      "position": [
+        380,
+        680
+      ],
       "webhookId": "7d5c70f8-a592-4634-8c5a-0fbd0cebf6a4",
       "typeVersion": 1.1
     },
@@ -353,7 +428,10 @@
       "id": "0570af93-cbae-474c-9352-c4f4ead938f9",
       "name": "Loop over All Videos not Published",
       "type": "n8n-nodes-base.splitInBatches",
-      "position": [-380, 500],
+      "position": [
+        -380,
+        500
+      ],
       "typeVersion": 3
     },
     {
@@ -374,7 +452,10 @@
       "id": "ee3f3ac7-c520-4d6a-85a5-d857b0c69f20",
       "name": "get video id",
       "type": "n8n-nodes-base.set",
-      "position": [1020, 520],
+      "position": [
+        1020,
+        520
+      ],
       "typeVersion": 3.4
     },
     {
@@ -386,7 +467,10 @@
       "id": "d348bb40-d621-4027-9284-f67652dd93e9",
       "name": "Remove Duplicates from previous Runs",
       "type": "n8n-nodes-base.removeDuplicates",
-      "position": [1240, 520],
+      "position": [
+        1240,
+        520
+      ],
       "typeVersion": 2,
       "alwaysOutputData": false
     },
@@ -418,7 +502,10 @@
       "id": "d8409bcf-5cf4-4be2-8268-991b48f6cd3b",
       "name": "new video?",
       "type": "n8n-nodes-base.if",
-      "position": [1460, 520],
+      "position": [
+        1460,
+        520
+      ],
       "typeVersion": 2.2
     },
     {
@@ -431,7 +518,10 @@
       "id": "b34d88a3-b61a-424c-b583-b3c05ce2a40e",
       "name": "getLatestVideoID",
       "type": "n8n-nodes-base.youTube",
-      "position": [1640, 600],
+      "position": [
+        1640,
+        600
+      ],
       "typeVersion": 1,
       "alwaysOutputData": true
     },
@@ -456,7 +546,10 @@
       "id": "5ace0960-3b6c-4150-9912-028ba35bce35",
       "name": "Get Transcript",
       "type": "n8n-nodes-base.httpRequest",
-      "position": [1960, 560],
+      "position": [
+        1960,
+        560
+      ],
       "typeVersion": 4.2,
       "alwaysOutputData": false
     },
@@ -467,7 +560,10 @@
       "id": "9211b2a3-4344-4a87-8a14-bec6dd0b74cc",
       "name": "Adjust Transcript Format",
       "type": "n8n-nodes-base.code",
-      "position": [2240, 560],
+      "position": [
+        2240,
+        560
+      ],
       "typeVersion": 2
     },
     {
@@ -486,7 +582,10 @@
       "id": "ab8f8611-410a-4abd-ad2b-7067aecdd7d1",
       "name": "Update Video's Metadata",
       "type": "n8n-nodes-base.youTube",
-      "position": [3300, 580],
+      "position": [
+        3300,
+        580
+      ],
       "typeVersion": 1
     }
   ],
@@ -785,5 +884,6 @@
   "meta": {
     "instanceId": "8c6df3d9c78e998324a3cf0914556b82948ee6c29f96c9e0a377e8c1060125d7"
   },
-  "tags": []
+  "tags": [],
+  "id": "y3IKUM1R6nWQfYCr"
 }

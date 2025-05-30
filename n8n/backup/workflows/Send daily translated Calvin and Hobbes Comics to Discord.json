@@ -246,5 +246,6 @@
     }
   },
   "name": "Send daily translated Calvin and Hobbes Comics to Discord",
-  "active": false
+  "active": false,
+  "id": "js9Ote4YtcvdgkQJ"
 }

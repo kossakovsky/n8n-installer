@@ -1107,5 +1107,6 @@
     }
   },
   "name": "Proxmox AI Agent with n8n and Generative AI Integration",
-  "active": false
+  "active": false,
+  "id": "PwoXQMVQdJTqAqRo"
 }

@@ -233,5 +233,6 @@
     }
   },
   "name": "AI Agent with Ollama for current weather and wiki",
-  "active": false
+  "active": false,
+  "id": "NzEvbbSe6HjN0iKz"
 }

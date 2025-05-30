@@ -275,5 +275,6 @@
     }
   },
   "name": "AI chat with any data source (using the n8n workflow tool)",
-  "active": false
+  "active": false,
+  "id": "SQOVmqpfBXmrseT0"
 }

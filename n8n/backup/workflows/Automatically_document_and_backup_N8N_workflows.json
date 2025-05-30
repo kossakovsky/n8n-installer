@@ -66,7 +66,10 @@
       "id": "365c1bbf-3a66-4d5b-b6c9-89ff5a520176",
       "name": "Set fields",
       "type": "n8n-nodes-base.set",
-      "position": [740, 100],
+      "position": [
+        740,
+        100
+      ],
       "typeVersion": 3.3
     },
     {
@@ -92,7 +95,10 @@
       "id": "c0e8315d-faca-4141-a435-a2092dc0a985",
       "name": "Get notion page with workflow id",
       "type": "n8n-nodes-base.httpRequest",
-      "position": [900, 100],
+      "position": [
+        900,
+        100
+      ],
       "typeVersion": 4.1
     },
     {
@@ -113,7 +119,10 @@
       "id": "60dee927-70e5-40fb-8887-3fec2648607d",
       "name": "Map fields",
       "type": "n8n-nodes-base.set",
-      "position": [1060, 100],
+      "position": [
+        1060,
+        100
+      ],
       "typeVersion": 3.3
     },
     {
@@ -172,7 +181,10 @@
       "id": "85dfc279-dba8-4b1a-b68e-001a70d4d2ee",
       "name": "Add to Notion",
       "type": "n8n-nodes-base.notion",
-      "position": [1900, 80],
+      "position": [
+        1900,
+        80
+      ],
       "typeVersion": 2.1
     },
     {
@@ -209,7 +221,10 @@
       "id": "42a904ea-8324-4120-aabc-dd1a424df138",
       "name": "Update in Notion",
       "type": "n8n-nodes-base.notion",
-      "position": [1900, 260],
+      "position": [
+        1900,
+        260
+      ],
       "typeVersion": 2.1
     },
     {
@@ -229,7 +244,10 @@
       "id": "a8f4f8e3-aa92-4dce-a970-809b5df12919",
       "name": "Notify internal-infra of push",
       "type": "n8n-nodes-base.slack",
-      "position": [2100, 80],
+      "position": [
+        2100,
+        80
+      ],
       "webhookId": "45139061-cdfe-4f2c-9767-9872d5453770",
       "typeVersion": 2.3
     },
@@ -250,7 +268,10 @@
       "id": "8fbb8607-9b5b-4341-a158-87639d3a98ae",
       "name": "Notify internal-infra of update",
       "type": "n8n-nodes-base.slack",
-      "position": [2100, 260],
+      "position": [
+        2100,
+        260
+      ],
       "webhookId": "11b4a08c-1893-43ac-94ae-6950909a16d8",
       "typeVersion": 2.3
     },
@@ -272,7 +293,10 @@
       "id": "e26bfff2-1049-4f0f-9463-ae6ef8cf2b14",
       "name": "Notify on workflow setup error",
       "type": "n8n-nodes-base.slack",
-      "position": [1000, 640],
+      "position": [
+        1000,
+        640
+      ],
       "webhookId": "08adaa3e-2149-4189-b815-b36b9e72494e",
       "typeVersion": 2.3
     },
@@ -296,7 +320,10 @@
       "id": "be296dc4-f63d-43a5-9090-724fe13a7021",
       "name": "Summarize what the Workflow does",
       "type": "@n8n/n8n-nodes-langchain.openAi",
-      "position": [1300, 100],
+      "position": [
+        1300,
+        100
+      ],
       "typeVersion": 1.8
     },
     {
@@ -309,7 +336,10 @@
       "id": "9dcaa40b-7480-4d89-9297-129aabdc546d",
       "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [700, 0],
+      "position": [
+        700,
+        0
+      ],
       "typeVersion": 1
     },
     {
@@ -322,7 +352,10 @@
       "id": "404d175f-7929-41d9-a523-6f907d2abb49",
       "name": "Sticky Note3",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [1220, 0],
+      "position": [
+        1220,
+        0
+      ],
       "typeVersion": 1
     },
     {
@@ -349,7 +382,10 @@
       "id": "565507d0-120d-4c71-a1d3-e66bc38793d0",
       "name": "Upload changes to repo",
       "type": "n8n-nodes-base.github",
-      "position": [1320, 600],
+      "position": [
+        1320,
+        600
+      ],
       "typeVersion": 1,
       "webhookId": "6c138255-d478-4b73-b928-40f951e98fdd",
       "onError": "continueErrorOutput"
@@ -377,7 +413,10 @@
       "id": "b5bcf4c7-2c50-4840-b5e7-7fa12818cd73",
       "name": "Create new file in repo",
       "type": "n8n-nodes-base.github",
-      "position": [1660, 600],
+      "position": [
+        1660,
+        600
+      ],
       "typeVersion": 1,
       "webhookId": "5a24a893-4033-42b0-9978-c4621b0d5930",
       "onError": "continueErrorOutput"
@@ -400,7 +439,10 @@
       "id": "7d16a452-9c9f-401b-b993-4254afda8e2d",
       "name": "Notify on create file in repo fail",
       "type": "n8n-nodes-base.slack",
-      "position": [2100, 600],
+      "position": [
+        2100,
+        600
+      ],
       "webhookId": "08adaa3e-2149-4189-b815-b36b9e72494e",
       "typeVersion": 2.3
     },
@@ -414,7 +456,10 @@
       "id": "1e6a850c-3be4-41b8-91c4-1c2d1a612a91",
       "name": "Sticky Note1",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [700, 460],
+      "position": [
+        700,
+        460
+      ],
       "typeVersion": 1
     },
     {
@@ -427,7 +472,10 @@
       "id": "e72ae588-35b7-48de-8665-a3be879f4723",
       "name": "Sticky Note2",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [1220, 460],
+      "position": [
+        1220,
+        460
+      ],
       "typeVersion": 1
     },
     {
@@ -439,7 +487,10 @@
       "id": "7ba7ccf8-5ee0-4bde-aafc-042ae624eead",
       "name": "Sticky Note4",
       "type": "n8n-nodes-base.stickyNote",
-      "position": [0, 0],
+      "position": [
+        0,
+        0
+      ],
       "typeVersion": 1
     },
     {
@@ -470,7 +521,10 @@
       "id": "8bd6ee85-bfef-4dba-a767-c67fb7338d93",
       "name": "Is this a new workflow (to Notion) ?",
       "type": "n8n-nodes-base.if",
-      "position": [1660, 100],
+      "position": [
+        1660,
+        100
+      ],
       "typeVersion": 2
     },
     {
@@ -479,7 +533,9 @@
           "interval": [
             {
               "field": "weeks",
-              "triggerAtDay": [1],
+              "triggerAtDay": [
+                1
+              ],
               "triggerAtHour": 1
             }
           ]
@@ -488,7 +544,10 @@
       "id": "7ac2752b-9406-4b7f-83fb-476ef7f931a8",
       "name": "Every Monday at 1am",
       "type": "n8n-nodes-base.scheduleTrigger",
-      "position": [60, 100],
+      "position": [
+        60,
+        100
+      ],
       "typeVersion": 1.1
     },
     {
@@ -518,7 +577,10 @@
       "id": "815ff832-3573-4f65-866a-04c5088600fc",
       "name": "Check if updated in last 7 days",
       "type": "n8n-nodes-base.if",
-      "position": [500, 100],
+      "position": [
+        500,
+        100
+      ],
       "typeVersion": 2.2
     },
     {
@@ -532,7 +594,10 @@
       "id": "940a30c2-96a6-42f1-be51-0b0cf30d80bc",
       "name": "Get active workflows with internal-infra tag",
       "type": "n8n-nodes-base.n8n",
-      "position": [280, 100],
+      "position": [
+        280,
+        100
+      ],
       "typeVersion": 1
     },
     {
@@ -572,7 +637,10 @@
       "id": "b3559787-e8ec-4780-908d-e29940ad0969",
       "name": "Check that error workflow has been configured",
       "type": "n8n-nodes-base.if",
-      "position": [760, 520],
+      "position": [
+        760,
+        520
+      ],
       "typeVersion": 2.2
     }
   ],
@@ -750,5 +818,6 @@
   "meta": {
     "instanceId": "8c6df3d9c78e998324a3cf0914556b82948ee6c29f96c9e0a377e8c1060125d7"
   },
-  "tags": []
+  "tags": [],
+  "id": "2IcxDPKeLFHQjrzo"
 }

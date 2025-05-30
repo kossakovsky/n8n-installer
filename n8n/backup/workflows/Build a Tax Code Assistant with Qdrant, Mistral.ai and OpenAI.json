@@ -1145,5 +1145,6 @@
     }
   },
   "name": "Build a Tax Code Assistant with Qdrant, Mistral.ai and OpenAI",
-  "active": false
+  "active": false,
+  "id": "mqRlwkubVqemMHpD"
 }

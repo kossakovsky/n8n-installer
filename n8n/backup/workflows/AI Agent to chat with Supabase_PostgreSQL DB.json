@@ -259,5 +259,6 @@
     }
   },
   "name": "AI Agent to chat with Supabase_PostgreSQL DB",
-  "active": false
+  "active": false,
+  "id": "g5zxiPSOqsNSVINL"
 }

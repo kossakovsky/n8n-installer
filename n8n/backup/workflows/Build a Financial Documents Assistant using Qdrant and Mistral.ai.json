@@ -938,5 +938,6 @@
     }
   },
   "name": "Build a Financial Documents Assistant using Qdrant and Mistral.ai",
-  "active": false
+  "active": false,
+  "id": "jJfGBYnrmzlevsls"
 }
