@@ -70,6 +70,8 @@ def start_local_ai(profile=None, environment=None):
     if profile and profile != "none":
         cmd.extend(["--profile", profile])
     cmd.extend(["-f", "docker-compose.yml"])
+    if environment and environment == "private":
+        cmd.extend(["-f", "docker-compose.override.private.yml"])
     if environment and environment == "public":
         cmd.extend(["-f", "docker-compose.override.public.yml"])
     cmd.extend(["up", "-d"])
