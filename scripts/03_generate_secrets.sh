@@ -196,37 +196,19 @@ else
     read -p "OpenAI API Key: " OPENAI_API_KEY
 fi
 
-# Logic for n8n workflow import (RUN_N8N_IMPORT and RUN_N8N_IMPORT_COMPLETE)
+# Logic for n8n workflow import (RUN_N8N_IMPORT)
 echo ""
-# Determine the current state of RUN_N8N_IMPORT_COMPLETE from .env
-# This variable tracks if the import has ever been successfully initiated.
-run_n8n_import_complete_from_env="false"
-if [[ "${existing_env_vars[RUN_N8N_IMPORT_COMPLETE]}" == "true" ]]; then
-    run_n8n_import_complete_from_env="true"
-fi
 
-# These will be the final values decided for this run and to be saved in .env
-# 'final_run_n8n_import_decision' is for the current session's import action
-# 'final_run_n8n_import_complete_status' is the persistent flag
 final_run_n8n_import_decision="false"
-final_run_n8n_import_complete_status="$run_n8n_import_complete_from_env" # Preserve existing 'true' state by default
 
-if [[ "$run_n8n_import_complete_from_env" == "true" ]]; then
-    final_run_n8n_import_decision="false" # Don't ask, don't import
-    # final_run_n8n_import_complete_status remains "true" (already set by initialization)
+echo "Do you want to import 300 ready-made workflows for n8n? This process may take about 30 minutes to complete."
+echo ""
+read -p "Import workflows? (y/n): " import_workflow_choice
+
+if [[ "$import_workflow_choice" =~ ^[Yy]$ ]]; then
+    final_run_n8n_import_decision="true"
 else
-    # RUN_N8N_IMPORT_COMPLETE is false or not set, so we ask the user.
-    echo "Do you want to import 300 ready-made workflows for n8n? This process may take about 30 minutes to complete."
-    echo ""
-    read -p "Import workflows? (y/n): " import_workflow_choice
-
-    if [[ "$import_workflow_choice" =~ ^[Yy]$ ]]; then
-        final_run_n8n_import_decision="true"
-    else
-        final_run_n8n_import_decision="false"
-    fi
-    # Always mark as complete for future runs after asking once.
-    final_run_n8n_import_complete_status="true"
+    final_run_n8n_import_decision="false"
 fi
 
 # Prompt for number of n8n workers
@@ -378,7 +360,6 @@ generated_values["FLOWISE_USERNAME"]="$USER_EMAIL"
 generated_values["DASHBOARD_USERNAME"]="$USER_EMAIL"
 generated_values["LETSENCRYPT_EMAIL"]="$USER_EMAIL"
 generated_values["RUN_N8N_IMPORT"]="$final_run_n8n_import_decision"
-generated_values["RUN_N8N_IMPORT_COMPLETE"]="$final_run_n8n_import_complete_status"
 generated_values["PROMETHEUS_USERNAME"]="$USER_EMAIL"
 generated_values["SEARXNG_USERNAME"]="$USER_EMAIL"
 generated_values["LANGFUSE_INIT_USER_EMAIL"]="$USER_EMAIL"
@@ -399,7 +380,6 @@ found_vars["FLOWISE_USERNAME"]=0
 found_vars["DASHBOARD_USERNAME"]=0
 found_vars["LETSENCRYPT_EMAIL"]=0
 found_vars["RUN_N8N_IMPORT"]=0
-found_vars["RUN_N8N_IMPORT_COMPLETE"]=0
 found_vars["PROMETHEUS_USERNAME"]=0
 found_vars["SEARXNG_USERNAME"]=0
 found_vars["OPENAI_API_KEY"]=0
@@ -453,7 +433,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             # This 'else' block is for lines from template not covered by existing values or VARS_TO_GENERATE.
             # Check if it is one of the user input vars - these are handled by found_vars later if not in template.
             is_user_input_var=0 # Reset for each line
-            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "RUN_N8N_IMPORT_COMPLETE" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME")
+            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME")
             for uivar in "${user_input_vars[@]}"; do
                 if [[ "$varName" == "$uivar" ]]; then
                     is_user_input_var=1
@@ -536,7 +516,7 @@ if [[ -z "${generated_values[SERVICE_ROLE_KEY]}" ]]; then
 fi
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "RUN_N8N_IMPORT_COMPLETE" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME"; do
+for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
         # Before appending, check if it's already in TMP_ENV_FILE to avoid duplicates
         if ! grep -q -E "^${var}=" "$TMP_ENV_FILE"; then
