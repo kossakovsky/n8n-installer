@@ -66,7 +66,7 @@ Before you begin, make sure you have the following software installed:
 
 Clone the repository and navigate to the project directory:
 ```bash
-git clone https://github.com/coleam00/local-ai-packaged.git
+git clone -b stable https://github.com/coleam00/local-ai-packaged.git
 cd local-ai-packaged
 ```
 
