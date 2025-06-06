@@ -39,8 +39,8 @@ declare -A VARS_TO_GENERATE=(
     ["VAULT_ENC_KEY"]="alphanum:32"
     ["LOGFLARE_LOGGER_BACKEND_API_KEY"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
     ["LOGFLARE_API_KEY"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
-    ["LOGFLARE_PRIVATE_ACCESS_TOKEN"]="fixed:" # For supabase-vector, can be empty
-    ["LOGFLARE_PUBLIC_ACCESS_TOKEN"]="fixed:" # For supabase-vector, can be empty
+    ["LOGFLARE_PRIVATE_ACCESS_TOKEN"]="fixed:not-in-use" # For supabase-vector, can't be empty
+    ["LOGFLARE_PUBLIC_ACCESS_TOKEN"]="fixed:not-in-use" # For supabase-vector, can't be empty
     ["PROMETHEUS_PASSWORD"]="password:32" # Added Prometheus password
     ["SEARXNG_PASSWORD"]="password:32" # Added SearXNG admin password
     ["LETTA_SERVER_PASSWORD"]="password:32" # Added Letta server password
@@ -350,9 +350,11 @@ if [ ! -f "$TEMPLATE_FILE" ]; then
     exit 1
 fi
 
-# Pre-populate generated_values with ALL values from existing_env_vars to preserve empty ones
+# Pre-populate generated_values with non-empty values from existing_env_vars
 for key_from_existing in "${!existing_env_vars[@]}"; do
-    generated_values["$key_from_existing"]="${existing_env_vars[$key_from_existing]}"
+    if [[ -n "${existing_env_vars[$key_from_existing]}" ]]; then
+        generated_values["$key_from_existing"]="${existing_env_vars[$key_from_existing]}"
+    fi
 done
 
 # Store user input values (potentially overwriting if user was re-prompted and gave new input)
@@ -398,8 +400,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         varName=$(echo "$processed_line" | cut -d'=' -f1 | xargs) # Trim whitespace
         currentValue=$(echo "$processed_line" | cut -d'=' -f2-)
 
-        # If we have a value (even empty) from existing .env or prior generation/user input, use it
-        if [[ -v generated_values["$varName"] ]]; then
+        # If already have a non-empty value from existing .env or prior generation/user input, use it
+        if [[ -n "${generated_values[$varName]}" ]]; then
             processed_line="${varName}=\"${generated_values[$varName]}\""
         # Check if this is one of our user-input derived variables that might not have a value yet
         # (e.g. OPENAI_API_KEY if user left it blank). These are handled by `found_vars` later if needed.
