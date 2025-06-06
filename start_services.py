@@ -43,6 +43,37 @@ def clone_supabase_repo():
         run_command(["git", "sparse-checkout", "set", "docker"])
         run_command(["git", "checkout", "master"])
         os.chdir("..")
+        
+        # --- BEGIN HOTFIX for vector config ---
+        vector_config_path = os.path.join("supabase", "docker", "volumes", "vector", "vector.yml")
+        if os.path.exists(vector_config_path):
+            print("Applying hotfix to vector.yml to disable logflare sinks...")
+            with open(vector_config_path, "r") as f:
+                lines = f.readlines()
+            
+            new_lines = []
+            in_logflare_sink = False
+            for line in lines:
+                # Detect start of a logflare sink
+                if line.strip().startswith("logflare_"):
+                    in_logflare_sink = True
+                
+                # If in a logflare sink, comment out the line
+                if in_logflare_sink:
+                    new_lines.append("#" + line)
+                else:
+                    new_lines.append(line)
+                
+                # Detect end of sink block (unindented line)
+                if not line.startswith("  ") and not line.strip().startswith("logflare_"):
+                    in_logflare_sink = False
+            
+            with open(vector_config_path, "w") as f:
+                f.writelines(new_lines)
+            print("Hotfix applied successfully.")
+        else:
+            print(f"Warning: Could not find {vector_config_path} to apply hotfix.")
+        # --- END HOTFIX for vector config ---
     else:
         print("Supabase repository already exists, updating...")
         os.chdir("supabase")
