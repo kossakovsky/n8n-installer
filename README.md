@@ -332,6 +332,8 @@ Here are solutions to common issues you might encounter:
 
 - **Supabase Service Unavailable** - Make sure you don't have an "@" character in your Postgres password! If the connection to the kong container is working (the container logs say it is receiving requests from n8n) but n8n says it cannot connect, this is generally the problem from what the community has shared. Other characters might not be allowed too, the @ symbol is just the one I know for sure!
 
+- **SearXNG Restarting**: If the SearXNG container keeps restarting, run the command "chmod 755 searxng" within the local-ai-packaged folder so SearXNG has the permissions it needs to create the uwsgi.ini file.
+
 ### GPU Support Issues
 
 - **Windows GPU Support**: If you're having trouble running Ollama with GPU support on Windows with Docker Desktop:
