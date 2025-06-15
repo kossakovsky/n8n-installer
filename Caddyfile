@@ -40,6 +40,8 @@
     reverse_proxy neo4j:7474
 }
 
+import /etc/caddy/caddy-addon*.conf
+
 # # SearXNG
 # {$SEARXNG_HOSTNAME} {
 #     encode zstd gzip
