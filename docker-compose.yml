@@ -144,6 +144,8 @@ services:
     restart: unless-stopped
     volumes:
       - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY}
     expose:
       - "6333"
 
@@ -193,7 +195,7 @@ services:
       - SEARXNG_HOSTNAME=${SEARXNG_HOSTNAME}
       - LANGFUSE_HOSTNAME=${LANGFUSE_HOSTNAME}
       - WEAVIATE_HOSTNAME=${WEAVIATE_HOSTNAME}
-      - WEAVIATE_USERNAME=${WEAVIATE_USERNAME}
+      - QDRANT_HOSTNAME=${QDRANT_HOSTNAME}
       - NEO4J_HOSTNAME=${NEO4J_HOSTNAME}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-internal}
       - PROMETHEUS_HOSTNAME=${PROMETHEUS_HOSTNAME}

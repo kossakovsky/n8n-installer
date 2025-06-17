@@ -48,6 +48,7 @@ declare -A VARS_TO_GENERATE=(
     ["LANGFUSE_INIT_PROJECT_PUBLIC_KEY"]="langfuse_pk:32"
     ["LANGFUSE_INIT_PROJECT_SECRET_KEY"]="langfuse_sk:32"
     ["WEAVIATE_API_KEY"]="secret:48" # API Key for Weaviate service (36 bytes -> 48 chars base64)
+    ["QDRANT_API_KEY"]="secret:48" # API Key for Qdrant service
     ["NEO4J_AUTH_PASSWORD"]="password:32" # Added Neo4j password
     ["NEO4J_AUTH_USERNAME"]="fixed:neo4j" # Added Neo4j username
 )

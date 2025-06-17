@@ -53,6 +53,11 @@
     reverse_proxy weaviate:8080
 }
 
+# Qdrant
+{$QDRANT_HOSTNAME} {
+    reverse_proxy qdrant:6333
+}
+
 # Neo4j
 {$NEO4J_HOSTNAME} {
     reverse_proxy neo4j:7474
