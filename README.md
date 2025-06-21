@@ -334,6 +334,8 @@ Here are solutions to common issues you might encounter:
 
 - **SearXNG Restarting**: If the SearXNG container keeps restarting, run the command "chmod 755 searxng" within the local-ai-packaged folder so SearXNG has the permissions it needs to create the uwsgi.ini file.
 
+- **Files not Found in Supabase Folder** - If you get any errors around files missing in the supabase/ folder like .env, docker/docker-compose.yml, etc. this most likely means you had a "bad" pull of the Supabase GitHub repository when you ran the start_services.py script. Delete the supabase/ folder within the Local AI Package folder entirely and try again.
+
 ### GPU Support Issues
 
 - **Windows GPU Support**: If you're having trouble running Ollama with GPU support on Windows with Docker Desktop:
