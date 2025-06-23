@@ -1,0 +1,875 @@
+{
+  "name": "🦈 Kids Story Building System v1.0.0",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## For custom builds or if you need help setting up this workflow reach out to me at ian@bundly.ai",
+        "height": 280,
+        "width": 900,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        180
+      ],
+      "id": "2888a3cf-3811-4795-a6be-5e55769f20b8",
+      "name": "Sticky Note18"
+    },
+    {
+      "parameters": {
+        "content": "## This automation was brought to you by [BundlyAI](https://bundly.ai).\n\nSave thousands of dollars by automating 50% of your business development.\n\n## Get 100 Free credits with code N8N",
+        "height": 360,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2440,
+        -820
+      ],
+      "id": "465c802f-6672-4e39-b508-5c2e0f62e015",
+      "name": "Sticky Note17"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"selected_cards\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"The story cards selected by the user to inspire the story.\",\n      \"minItems\": 1\n    },\n    \"story_plot\": {\n      \"type\": \"string\",\n      \"description\": \"The full story plot, weaving the selected cards into an exciting tale with an opening scene, main challenge, fun moments, clues, a surprise, a lesson, and a happy ending.\"\n    },\n    \"before_story\": {\n      \"type\": \"string\",\n      \"description\": \"A brief description of what was happening just before the story begins.\"\n    },\n    \"after_story\": {\n      \"type\": \"string\",\n      \"description\": \"A brief description of what happens after the story ends.\"\n    }\n  },\n  \"required\": [\"selected_cards\", \"story_plot\", \"before_story\", \"after_story\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        940,
+        -80
+      ],
+      "id": "ab795e53-25f3-44bb-8c69-d5c5bd5598f2",
+      "name": "timeline json"
+    },
+    {
+      "parameters": {
+        "content": "## Params\nI am getting really good results with GPT-4o but feel free to experiment with other models",
+        "height": 280,
+        "width": 260,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1480,
+        180
+      ],
+      "id": "853d4823-9237-4969-ac0a-1c6f9607a17e",
+      "name": "Sticky Note15"
+    },
+    {
+      "parameters": {
+        "content": "## End of Funnel",
+        "height": 280,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        180
+      ],
+      "id": "18a6ee7f-9f68-4bac-ac8a-ea34fdb92c14",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $('story_final').item.json.output.story_title.removeMarkdown() }}\n_________________\n{{ $('story_final').item.json.output.story.removeMarkdown() }}",
+        "name": "={{ $now.format('yyyy-MM-dd') }} {{ $('story_final').item.json.output.story_title.removeMarkdown() }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('$INPUTS$').item.json.google_drive_folder_id }}",
+          "mode": "id"
+        },
+        "options": {
+          "convertToGoogleDocument": true
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        720,
+        280
+      ],
+      "id": "fc304268-afee-457b-be74-f0e6330eb264",
+      "name": "create_story_file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "HqXZHjVZMt4YwuDM",
+          "name": "lo**99@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Story Draft:\n{{ $('story draft').first().json.output.toJsonString() }}\n\nEdit instructions:\n\n{{ $('edit notes').first().json.output.toJsonString() }}\n\nMost importantly, see how you can shorten it by condencing long sentences into short ones, making dialog punchier, using simpler shorter words and making the story experience maeaningful and entertaining withouth being way too long.\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Tell an Awesome Full Children’s Story!\n\nTurn this draft into a complete, exciting tale from beginning to end. Jump right in—no extra words—just craft a lively story packed with talking, big adventures, a tough problem, a sneaky surprise, and a happy ending that quietly teaches kids something cool. Pick a fresh, fun title that kids will love!\n\nHow to Do It:\n\nWrite the whole story, from the first moment to the last—no cutting it short!\nFill it with characters chatting, shouting their thoughts, cutting each other off, and showing big feelings.\nTake the heroes on a wild ride with a challenge to tackle, a twist to gasp at, and a finish that feels great.\nHide a simple lesson—like being kind, trying again, or trusting friends—so kids learn without noticing.\nMake it zippy and fun with lots of action and excitement!\nIf There’s More Than One Character:\n\nLet them talk tons—arguing, laughing, or whispering secrets!\nShow their own goofy or brave thoughts out loud.\nHave them interrupt or help each other in silly ways.\nReply:\n\nPut your story in JSON, like a treasure chest of fun. Write it in the same language as this prompt. Have a blast making it super lively!\n\nUser Input: {{ $('$INPUTS$').first().json.input }}\n\nCharacters:\n\n{{ $('characters').first().json.output.toJsonString() }}\n\nTimeline\n\n{{ $('story timeline').first().json.output.toJsonString() }}\n\nStory Rules\n{{ $('story rules').first().json.output.toJsonString() }}\n\nStory Baseline:\n{{ $('story baseline').first().json.output.toJsonString() }}\n\nReply in JSON\nReply in the language of the original user input"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        2300,
+        -20
+      ],
+      "id": "ccbc93c4-373a-4613-b77a-8b9a9f6f1b71",
+      "name": "story_final",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"editor_notes\": {\n\t\t\t\"type\": \"array\",\n\t\t\t\"items\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t}\n\t\t}\n\t}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2000,
+        -80
+      ],
+      "id": "8cb19a6c-29f8-43ba-b67f-3b7676d3774b",
+      "name": "edit notes json"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"story\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n        \"story_title\": {\n\t\t\t\"type\": \"string\"\n\t\t}\n\t},\n    \"required\": [\"story\", \"story_title\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1500,
+        -80
+      ],
+      "id": "e97a52aa-8033-41f0-9f16-f82a5df9e278",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"story\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n        \"story_title\": {\n\t\t\t\"type\": \"string\"\n\t\t}\n\t},\n    \"required\": [\"story\", \"story_title\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2520,
+        -60
+      ],
+      "id": "8e2d27d8-280e-4c5d-b0a4-aafb5be6d6ba",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        340
+      ],
+      "id": "b2ad67fc-3473-4364-86c6-7b4363383067",
+      "name": "gpt-4o1",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "lZeJOwybJiWyoj0X",
+          "name": "gpt-4o"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"language\": {\n      \"type\": \"string\",\n      \"description\": \"The language the story will be told in (e.g., English, Spanish).\"\n    },\n    \"story_type\": {\n      \"type\": \"string\",\n      \"description\": \"The type of story (e.g., magical adventure, true story, bedtime tale).\"\n    },\n    \"audience\": {\n      \"type\": \"string\",\n      \"description\": \"Who the story is for (e.g., little kids, bigger kids, grown-ups).\"\n    },\n    \"main_feeling\": {\n      \"type\": \"string\",\n      \"description\": \"The main feeling the story will give (e.g., happy, excited, cozy).\"\n    },\n    \"big_idea\": {\n      \"type\": \"string\",\n      \"description\": \"The important idea of the story (e.g., friendship, bravery, kindness).\"\n    },\n    \"telling_style\": {\n      \"type\": \"string\",\n      \"description\": \"How the story will be told (e.g., silly, rhyming, exciting words).\"\n    },\n    \"genre\": {\n      \"type\": \"string\",\n      \"description\": \"The story’s main flavor (e.g., fantasy, adventure, real life).\"\n    },\n    \"card\": {\n      \"type\": \"object\",\n      \"description\": \"Which card you pick and how will it build our story\",\n      \"properties\": {\n        \"card_title\": {\n          \"type\": \"string\",\n          \"description\": \"Title of the card\"\n        },\n        \"card_description\": {\n          \"type\": \"string\",\n          \"description\": \"Long description of how this card will build the story\"\n        }\n      }\n    }\n  },\n  \"required\": [\"language\", \"story_type\", \"audience\", \"main_feeling\", \"big_idea\", \"telling_style\", \"genre\", \"card\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1540,
+        -360
+      ],
+      "id": "bafa436b-f8d6-4228-99d0-1b9794d34d57",
+      "name": "rules json"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.input }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Help Us Figure Out Your Awesome Story!\nHey, story detective! Your mission is to help us figure out what kind of amazing children’s story we’re making. Be super clear – like solving a fun mystery with clues! Let’s find out:\n\nStory Language\nWhat language will the story be in? (Like English or something else cool!)\nStory Type\nWhat kind of story is it? A magical adventure with talking animals? A true story that teaches us something? Or a cozy bedtime tale?\nWho It’s For\nWho will love this story? Little kids, bigger kids, or even grown-ups who like kid stuff?\nMain Feeling\nWhat feeling will the story give? Will it make us happy, excited, cozy, or maybe a little sad but sweet?\nBig Idea\nWhat’s the big, important thing the story is about? Like friendship, bravery, or kindness?\nTelling Style\nHow will we tell it? Silly and funny, with rhymes, or with big, exciting words?\nStory Genre\nWhat’s the story’s flavor? Fantasy, adventure, or real-life fun?\nPut your answers in a JSON – it’s like a secret code for your story! Answer in the same language you’re using now. Happy storytelling!\nStory Card:\nPick a story card and explain how the whole story will be built around it. Write a long paragraph on this card and our story\n\nAvailable cards:\n{{ $('$INPUTS$').item.json.cards }}\n\nReply in JSON"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1320,
+        -320
+      ],
+      "id": "26a186c2-1eef-4bec-8e39-0c8cf9530dd1",
+      "name": "story rules",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "content": "## Set ground rules\nSet the format, tone, basic story rules",
+        "height": 300,
+        "width": 500,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        -440
+      ],
+      "id": "e92fba6c-0119-4e7f-b0d5-10ad26cbe4d4",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"characters\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"maxItems\": 7,\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"A real name or a fun nickname.\"\n          },\n          \"appearance\": {\n            \"type\": \"string\",\n            \"description\": \"What they look like—hair, clothes, special features.\"\n          },\n          \"what_they_do_or_like\": {\n            \"type\": \"string\",\n            \"description\": \"Their favorite activity or hobby.\"\n          },\n          \"family_or_friends\": {\n            \"type\": \"string\",\n            \"description\": \"Who is important in their life—siblings, pets, friends.\"\n          },\n          \"quirks_or_habits\": {\n            \"type\": \"string\",\n            \"description\": \"Funny or unique traits that make them special.\"\n          },\n          \"special_skill_or_talent\": {\n            \"type\": \"string\",\n            \"description\": \"Something they’re really good at.\"\n          },\n          \"goal_or_dream\": {\n            \"type\": \"string\",\n            \"description\": \"What they want more than anything.\"\n          }\n        },\n        \"required\": [\n          \"name\",\n          \"appearance\",\n          \"what_they_do_or_like\",\n          \"family_or_friends\",\n          \"quirks_or_habits\",\n          \"special_skill_or_talent\",\n          \"goal_or_dream\"\n        ]\n      }\n    }\n  },\n  \"required\": [\"characters\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2560,
+        -360
+      ],
+      "id": "ca0e11f8-a438-43e7-8dc4-50e7753d6903",
+      "name": "character json"
+    },
+    {
+      "parameters": {
+        "content": "## Save results\nCreate a google drive file with the story",
+        "height": 280,
+        "width": 340,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        680,
+        180
+      ],
+      "id": "dcf0d902-55bb-40d1-8814-26a29a9596d0",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "## Write the story\nWrite the final story version",
+        "height": 280,
+        "width": 400,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2280,
+        -120
+      ],
+      "id": "137645ae-b391-48da-aaa7-0ceebecc525c",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "## Write the draft\nFirst attempt at the story",
+        "height": 280,
+        "width": 440,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1220,
+        -120
+      ],
+      "id": "9da31e90-566c-4f88-b2dc-543496f01f46",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Story Draft:\n\n{{ $('story draft').item.json.output.story }}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=User Input: {{ $('$INPUTS$').item.json.input }}\n\nStory Rules\n{{ $('story rules').first().json.output.toJsonString() }}\n\nStory Baseline:\n\n{{ $('story baseline').item.json.output.toJsonString() }}\n\nCharacters:\n\n{{ $('characters').item.json.output.toJsonString() }}\n\nTimeline:\n\n{{ $('story timeline').item.json.output.toJsonString() }}\n\nAct as a sharp, no-bullshit editor. Your job: Identify clichés, boring scenes, stale situations, weak stakes, flat characters, watered-down dialogue, or uninspiring parts in this story draft.\n\nBe brutally honest. Ground your critique in authentic, everyday human struggles—no forced DEI fluff. If the story is serious, suggest how to make plot twists emotionally gut-wrenching. If humorous, recommend ways to heighten the comedy through relatable adult life experiences.\n\nSubtly weave in realistic themes related to health, wealth, and relationships.\n\nExplicitly address only the story drafts and point out bad writing and how to un-cliche it.\n\nSuggest 5 better story titles.\n\nMost importantly, see if the current plan still matches original user input or if we lose the requirement (mismatching the requested format, misunderstanding the irony in the request, missing key intent, etc of this nature), in which case correct it.\n\nReply in JSON\nReply in the language of the original user input"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1820,
+        -20
+      ],
+      "id": "ba7c199c-3ac7-43d9-b10e-19ad49433b44",
+      "name": "edit notes",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 100
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User Input: {{ $('$INPUTS$').item.json.input }}\n\nStory Rules\n{{ $('story rules').first().json.output.toJsonString() }}\n\nStory Baseline:\n\n{{ $('story baseline').item.json.output.toJsonString() }}\n\nCharacters:\n\n{{ $('characters').item.json.output.toJsonString() }}\n\nTimeline\n\n{{ $('story timeline').item.json.output.toJsonString() }}\n\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Repy in JSON.\n\nCreate an Awesome Children’s Story!\n\nWrite a full, exciting children’s story from start to finish, using this setup. Give it a catchy title that kids will love! Jump straight into the story—no extra stuff—just weave a fun tale packed with chatter, wild adventures, a tricky problem, a cool twist, and a happy ending that sneaks in a little lesson for kids to soak up.\n\nHow to Do It:\n\nTell the whole story, from the first moment to the big finish—don’t stop early!\nAdd tons of talking between characters, their own loud thoughts, funny interruptions, and big emotions.\nSend the heroes on a thrilling trip with a challenge to beat, a surprise twist to gasp at, and a cheerful ending that feels just right.\nHide a simple lesson—like trying hard, helping friends, or being yourself—so kids learn something cool without noticing.\nKeep it lively and exciting with lots of action and fun!\nIf There’s More Than One Character:\n\nLet them talk a lot—shouting, giggling, or even arguing a little!\nShow their thoughts with silly or brave words they say out loud.\nHave them interrupt each other or team up in fun ways.\n20 Awesome Story Enhancement Ideas Kids Love:\n\nBright Colors Everywhere: Paint the world with wild reds, sunny yellows, or sparkly blues kids can picture.\nSilly Sounds: Add boings, whooshes, or squawks to make it noisy and fun.\nCool Costumes: Give characters wacky hats, capes, or mismatched socks.\nYummy Treats: Toss in candy trees, cookie rivers, or a picnic with gooey snacks.\nFast Chases: Include a race on bikes, roller skates, or bouncing balls.\nSecret Hideouts: Add a treehouse, cave, or blanket fort with a password.\nFunny Falls: Let someone slip on a banana peel or tumble into mud for laughs.\nMagic Words: Use chants like “Bippity-Bop!” to unlock doors or fix messes.\nCute Pets: Bring in a fluffy kitten, a chatty parrot, or a clumsy pup.\nBig Surprises: Hide a party, a lost twin, or a talking rock for a wow moment.\nMessy Fun: Throw in paint splashes, muddy puddles, or glitter explosions.\nSuper Moves: Let kids flip, jump, or spin like heroes in a game.\nFriendly Monsters: Add a goofy dragon or a ticklish troll who loves hugs.\nTreasure Hunts: Search for shiny coins, a lost toy, or a mystery box.\nSinging Fun: Make up a silly song everyone sings together.\nWeather Wonders: Add a rainbow storm, snowy bubbles, or windy giggles.\nTeam Power: Show friends winning by helping each other out.\nToy Magic: Turn a teddy bear or kite into a magical helper.\nKid Heroes: Let the smallest or shyest kid save the day.\nHappy Dance: End with a wiggly, jiggly dance party for everyone!\nHow Long?\n\nWrite it as long as it needs to be to tell the whole adventure—don’t hurry it!\n\nWrite it in the same language as this prompt. Have a blast making it super exciting for kids!"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1300,
+        -20
+      ],
+      "id": "1fabf747-9391-4286-96a9-82fd84a659c3",
+      "name": "story draft",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 100
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"story_type\": {\n      \"type\": \"string\",\n      \"description\": \"What kind of story it is (e.g., picture book, adventure, play).\"\n    },\n    \"big_idea\": {\n      \"type\": \"string\",\n      \"description\": \"The one big, true idea of the story.\"\n    },\n    \"reason_for_story\": {\n      \"type\": \"string\",\n      \"description\": \"Why you are telling this story.\"\n    },\n    \"feelings\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"The feelings the story should evoke.\"\n    },\n    \"smart_ideas\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"Deeper thoughts hidden in the story.\"\n    },\n    \"big_questions\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"Questions to make kids think after the story.\"\n    },\n    \"fun_way_to_tell_it\": {\n      \"type\": \"string\",\n      \"description\": \"A new, fun way to tell the story.\"\n    }\n  },\n  \"required\": [\"story_type\", \"big_idea\", \"reason_for_story\", \"feelings\", \"smart_ideas\", \"big_questions\", \"fun_way_to_tell_it\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2040,
+        -360
+      ],
+      "id": "cb1ae724-fa55-4473-9c3c-3207f2aac81b",
+      "name": "json schema"
+    },
+    {
+      "parameters": {
+        "content": "## Write the timeline\nHow does the story evolves",
+        "height": 280,
+        "width": 520,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        680,
+        -120
+      ],
+      "id": "28d1fbe4-04f4-4cc3-9114-ade54e864341",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## Send to Editor\nGet critique of the story and improvement suggestions",
+        "height": 280,
+        "width": 560,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1700,
+        -120
+      ],
+      "id": "6f5cd8b8-f756-4b44-93ed-53b2bb1c960d",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Define characters\nBuild strong independent and lively characters",
+        "height": 300,
+        "width": 440,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        -440
+      ],
+      "id": "9e8234eb-ec9f-46ac-84da-ecdab2bb56ec",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Write a baseline\nSetting the ground philosophies for this story",
+        "height": 300,
+        "width": 500,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1720,
+        -440
+      ],
+      "id": "0695999b-2f8d-4d94-867b-64adff3e8963",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Set inputs\nYour story goes here",
+        "height": 300,
+        "width": 260,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        920,
+        -440
+      ],
+      "id": "0cbd0eeb-7b14-4b70-abc5-4635780fa98f",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Start of Funnel",
+        "height": 300,
+        "width": 220
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        680,
+        -440
+      ],
+      "id": "e00d05b4-3292-484f-9250-5536c1228b63",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User Input: {{ $('$INPUTS$').item.json.input }}\n\nStory Rules\n{{ $('story rules').first().json.output.toJsonString() }}\n\nStory Baseline:\n\n{{ $('story baseline').item.json.output.toJsonString() }}\n\nCharacters:\n\n{{ $('characters').item.json.output.toJsonString() }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Reply in JSON \n\nYour Mission:\n\nWrite a delightful and imaginative children's story using the story cards selected by the user. The story should be exciting, full of wonder, and teach a simple lesson that kids can relate to. Keep it suitable for young readers—fun, lighthearted, and ending on a happy note!\n\nInstructions:\n\nUse ONLY the cards provided by the user to shape the story. No extra cards allowed!\nWeave the selected cards into a clear and exciting plot that flows naturally.\nMake the story feel real and relatable for kids—think about everyday adventures like making friends, solving mysteries, or helping others, not adult struggles.\nKeep it bold and fun: add surprises, giggles, and a big smile at the end!\nWhat Your Story Must Include:\nStory Plot\nWrite a full, flowing story that connects the cards and includes:\n\nOpening Scene: Start with a bang! Describe an exciting moment that grabs the reader—like finding a mysterious map or meeting a talking animal.\nMain Challenge: Tell us the big problem or adventure the hero faces—like rescuing a lost pet or figuring out a secret code.\nFun Moments and Clues: Add some silly or surprising bits (like a funny mistake or a quirky helper) and drop hints about the surprise to come.\nBig Surprise: Reveal a twist near the end—like a grumpy character turning out to be nice or a treasure being something unexpected. Keep it fun, not scary!\nLesson Learned: Share what the hero learns—like being brave, kind, or working together.\nHappy Ending: Finish with a joyful scene—like a party with new friends or a promise of more fun ahead.\nStory Timeline Context\nGive a little extra background to make the story feel complete:\n\nBefore the Story: Briefly say what was happening just before the adventure—like the hero playing in the backyard or feeling bored at home.\nAfter the Story: Tell us what happens next—like the hero making a new friend or planning another adventure.\nTips for a Great Story:\nUse simple, clear words that kids can understand.\nMake the hero brave, kind, and someone kids can cheer for.\nKeep the surprise exciting but gentle—no big shocks, just happy twists!\nTie the lesson to something kids care about, like friendship or trying new things.\nExample:\nIf the user picks cards like \"a magical forest,\" \"a talking squirrel,\" and \"a lost key\":\n\nBefore: Lily was picking flowers in her garden.\nPlot: One day, she wanders into a magical forest and meets a talking squirrel who’s lost a key to a treasure chest. They search together, dodging funny falling acorns (fun moment) and noticing the squirrel’s tiny crown (clue). The big surprise? The key unlocks a chest of toys, not gold! Lily learns sharing is more fun than keeping things to herself, and they throw a toy party for the forest animals.\nAfter: Lily visits the forest every weekend to play with her new pals.\nNow It’s Your Turn!\n\nUse the user’s selected cards to create your own amazing story. Reply in JSON format, following the schema below."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        720,
+        -20
+      ],
+      "id": "d96c9927-f90f-4d02-a09f-0a96dcaf2767",
+      "name": "story timeline",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 100
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c8767d42-b610-4b6d-b4ef-1d3ace83b9d7",
+              "name": "story_frile_url",
+              "value": "=https://docs.google.com/document/d/{{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1200,
+        280
+      ],
+      "id": "0b7be1e7-2b8e-4506-926c-c2b06e0e2ebb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write characters that would fit this story (if none needed - use default narrator/author) \n\nUser Input: \n{{ $('$INPUTS$').item.json.input }}\n\nStory Baseline:\n{{ $('story baseline').item.json.output.toJsonString() }}\n\nStory Rules\n{{ $('story rules').first().json.output.toJsonString() }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Simplified Prompt for Children's Story Characters\n\nYou’re a Character Creator for our children’s storytelling system. Your job is to build fun, relatable characters that kids will love. Each character should feel real and have their own personality—not just exist to help the main character.\n\nRules for Creating Characters:\n\nLimit to 7 key points per character.\nMake them unique and memorable, but keep it simple and age-appropriate.\nWrite in clear, fun language that kids can understand.\n\nFor Each Character, Define These 7 Points:\n\nName: A real name or a fun nickname (e.g., \"Tommy\" or \"Captain Sparkles\").\nAppearance: What they look like—hair, clothes, special features (e.g., \"messy red hair and a polka-dot shirt\").\nWhat They Do or Like: Their favorite activity or hobby (e.g., \"loves building forts\" or \"plays soccer all day\").\nFamily or Friends: Who is important in their life—siblings, pets, friends (e.g., \"has a goofy dog named Max\").\nQuirks or Habits: Funny or unique traits that make them special (e.g., \"always hums silly songs\" or \"wears one sock\").\nSpecial Skill or Talent: Something they’re really good at (e.g., \"can climb any tree\" or \"tells the best stories\").\nGoal or Dream: What they want more than anything (e.g., \"wants to find a treasure\" or \"dreams of flying\").\n\nImportant:\nCharacters should have their own personalities and interests, even if they’re not the main character.\nThey can have small flaws or make mistakes (like forgetting homework or being scared of thunder), but they should also be kind and learn from their experiences.\nCreate characters that kids will remember and want to read about again.\nSpecial Cases:\nIf there are no characters (like in a story about a storm or a forest), use a narrator with all points set to \"N/A.\" Or, turn a concept into a character—like a talking river or a friendly mountain.\n\n\nIf no characters are presesnt (perhaps you are describing the natural event, a city life, a police high speed chase, you know what i mean - in that case use only one character - narrator with everything set to NA. Unless you choose to take a concept and turn it into a character (e.g. a business could be considered a separate organism with its own path)\n\nReply in the language of the original user input\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        2320,
+        -320
+      ],
+      "id": "f3c12987-2e6d-4845-aa1f-b574cf33f839",
+      "name": "characters",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('$INPUTS$').first().json.input }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Reply as JSON\n\nMake a Strong Story Base\nWe’ve got what the child wants and our fun story plan. Now, let’s build a strong start that makes readers smile and wonder!\n\n1. Story Type\nTell us what kind of story it is.\nIs it a short picture book? A long adventure? A play with songs?\nSay if it has pages, drawings, or maybe even music.\n2. Big Idea\nPick one big, true idea for the story.\nIt should be bold and real—something that matters to kids, like friendship or bravery.\nNo fuzzy ideas like just “hope.” Make it clear!\n3. Reason for the Story\nSay why you’re sharing this tale.\nDo you want to make friends laugh? Teach a cool lesson?\nExplain your reason in simple words.\n4. Feelings\nList the feelings you want the story to bring.\nWill it make kids feel joyful, excited, surprised, or maybe a little sad?\nBe clear and true with your choices.\n5. Smart Ideas\nList deeper thoughts hidden in the fun tale.\nHide smart ideas about real life, like being kind or working hard.\nKeep it simple but meaningful.\n6. Big Questions\nWrite one or two big questions that make kids think after the story.\nLet these questions help them learn about life.\n7. Fun Way to Tell It\nSuggest a new, fun way to tell the tale.\nMaybe use a funny narrator or a twist in the plot.\nSurprise your readers with a fresh idea.\nUse this plan with our special recipe and rules:\n\nStory Rules:\n\n{{ $('story rules').first().json.output.toJsonString() }}\n\nWrite in the language of the original user input. Have fun making a strong and exciting story base!"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1840,
+        -320
+      ],
+      "id": "e0b3a846-b42f-45f2-8177-69aa57ee3b1c",
+      "name": "story baseline",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        740,
+        -320
+      ],
+      "id": "181d9c64-dbd9-4ef4-ba90-30c77e6817b8",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6732a4f9-659b-44b0-954a-db8c4c830e0e",
+              "name": "input",
+              "value": "=⚠️ WRITE YOUR STORY IDEA HERE ⚠️",
+              "type": "string"
+            },
+            {
+              "id": "86da6d70-4bb6-4f57-b24d-afa2b67b3669",
+              "name": "cards",
+              "value": "=1. Meet the Hero\nWho's the star of our story? It could be a brave little boy or girl, or maybe a talking animal like a clever fox or a friendly dragon. What's their name? Do they have something special about them, like super speed or a magic hat? Where do they live? Maybe in a tiny village, a treehouse in the woods, or a colorful castle. What do they dream about? Maybe finding a lost treasure or making a new friend. Tell us about them in a way that makes them feel like a real friend.\n\n2. The Call to Adventure\nSomething exciting happens! Maybe the hero finds a mysterious map, hears a whisper in the wind, or sees a shooting star. It could be a lost puppy, a friend who needs help, or a strange noise in the night. This is the start of their adventure. What makes them say, \"I have to do something!\"?\n\n3. The Big Journey\nNow, the hero sets off on their adventure. Where do they go? Maybe through a sunny meadow full of flowers, a dark and spooky forest, or a bustling town with friendly faces. Along the way, they might meet a silly squirrel, find a hidden cave, or cross a wobbly bridge. Sometimes it's fun, sometimes a little scary, but always exciting. What amazing places do they see?\n\n4. The Big Challenge\nUh-oh, there's a big problem! Maybe a grumpy giant blocking the path, a tricky puzzle to solve, or a friend who's lost. The hero might feel a little scared, but they're brave too. How do they solve it? Do they use their brain, their kind heart, or maybe a special tool like a magic key or a shiny sword? It's tough, but they can do it!\n\n5. Help from Friends\nThe hero isn't alone! A friend joins the adventure. Maybe it's a wise old owl, a funny monkey, or another kid with a big smile. This friend helps out with a clever idea, a secret map, or just by being brave together. They show that friends make everything better. Who's the hero's buddy?\n\n6. The Lesson and the Win\nThe hero figures it out! They learn something important, like sharing is caring, being brave is cool, or helping others feels great. They solve the big problem step by step, and it feels awesome. What did they learn? How did they win?\n\n7. The Happy Ending\nAnd they all lived happily ever after! The hero goes back home, or maybe starts a new adventure. There's a big hug, lots of laughter, and maybe even a party. Everything feels just right. How does the story end with a big smile?",
+              "type": "string"
+            },
+            {
+              "id": "a1c1bc72-077a-4c10-b7d3-682692c9140e",
+              "name": "google_drive_folder_id",
+              "value": "⚠️ GOOGLE DRIVE FOLDER ID HERE ⚠️",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1000,
+        -320
+      ],
+      "id": "7c37540e-1db0-4ed2-82df-05083b06a782",
+      "name": "$INPUTS$"
+    },
+    {
+      "parameters": {
+        "content": "## 1. Write a fun story idea for your kids!\nTell us what your story is about—like a brave kitten or a magic treehouse. Make it simple and exciting!\n\n## 2. Add your Google Drive folder ID.\nThis is where your finished story will magically appear for you to share with your little ones!\n\n## 3. Try your idea a few times (5-7 is perfect!).\nTweak it until it’s just right—maybe add a silly monster or a surprise party!\n\n## 4. Play with the settings if you want.\nChange how the story starts or ends to make it your own—super easy!\n\n## Have fun making bedtime stories your kids will love!",
+        "height": 360,
+        "width": 620
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        -820
+      ],
+      "id": "da756813-bd06-4484-883f-3dbb91c9486b",
+      "name": "Sticky Note20"
+    },
+    {
+      "parameters": {
+        "content": "# Welcome to Your Family Story Magic Maker!\nGet ready to create awesome tales for your kids with a little help from automation fun!",
+        "height": 360,
+        "width": 460,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        680,
+        -820
+      ],
+      "id": "e61b9333-896a-43a0-a8f0-7cba8e7b5821",
+      "name": "Sticky Note21"
+    },
+    {
+      "parameters": {
+        "content": "# Want to write more complex stories? Check out the complete storytelling system.\n\n# https://link.bundly.ai/storyteller\n",
+        "height": 360,
+        "width": 620,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        -820
+      ],
+      "id": "6616d0af-015b-4ba4-851e-ec9a363ae581",
+      "name": "Sticky Note22"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "story_final": {
+      "main": [
+        [
+          {
+            "node": "create_story_file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "story_final",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gpt-4o1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "story_final",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "story rules",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "edit notes",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "story draft",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "story timeline",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "characters",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "story baseline",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "rules json": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "story rules",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "story rules": {
+      "main": [
+        [
+          {
+            "node": "story baseline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "edit notes json": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "edit notes",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "edit notes": {
+      "main": [
+        [
+          {
+            "node": "story_final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "story draft",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "story draft": {
+      "main": [
+        [
+          {
+            "node": "edit notes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "timeline json": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "story timeline",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "story timeline": {
+      "main": [
+        [
+          {
+            "node": "story draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_story_file": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "character json": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "characters",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "characters": {
+      "main": [
+        [
+          {
+            "node": "story timeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "json schema": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "story baseline",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "story baseline": {
+      "main": [
+        [
+          {
+            "node": "characters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "$INPUTS$",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "$INPUTS$": {
+      "main": [
+        [
+          {
+            "node": "story rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9d72beb4-623e-4644-8d39-86ef60d21d73",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c468f3e9ec76d6a999f2a3139e7b38fe14df5109932c20629efadf9cb993c0f1"
+  },
+  "id": "XjxSRgD7igoF8xeZ",
+  "tags": []
+}
