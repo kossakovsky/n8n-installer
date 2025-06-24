@@ -37,8 +37,6 @@ declare -A VARS_TO_GENERATE=(
     # From MD file (ensure they are in template if needed)
     ["SECRET_KEY_BASE"]="base64:64" # 48 bytes -> 64 chars
     ["VAULT_ENC_KEY"]="alphanum:32"
-    ["LOGFLARE_LOGGER_BACKEND_API_KEY"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
-    ["LOGFLARE_API_KEY"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
     ["LOGFLARE_PRIVATE_ACCESS_TOKEN"]="fixed:not-in-use" # For supabase-vector, can't be empty
     ["LOGFLARE_PUBLIC_ACCESS_TOKEN"]="fixed:not-in-use" # For supabase-vector, can't be empty
     ["PROMETHEUS_PASSWORD"]="password:32" # Added Prometheus password
