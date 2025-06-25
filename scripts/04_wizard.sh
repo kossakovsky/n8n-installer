@@ -62,6 +62,8 @@ base_services_data=(
     "searxng" "SearXNG (Private Metasearch Engine)"
     "crawl4ai" "Crawl4ai (Web Crawler for AI)"
     "letta" "Letta (Agent Server & SDK)"
+    "appflowy" "AppFlowy (Knowledge Management & Notion Alternative)"
+    "affine" "Affine (Collaborative Workspace & Notion Alternative)"
     "ollama" "Ollama (Local LLM Runner - select hardware in next step)"
 )
 
@@ -97,7 +99,7 @@ done
 
 # Use whiptail to display the checklist
 CHOICES=$(whiptail --title "Service Selection Wizard" --checklist \
-  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 22 78 10 \
+  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 25 90 15 \
   "${services[@]}" \
   3>&1 1>&2 2>&3)
 
@@ -208,7 +210,11 @@ else
                  echo "  - $profile"
             fi
         else
-            echo "  - $profile"
+            case "$profile" in
+                "appflowy") echo "  - AppFlowy (Knowledge Management & Notion Alternative)" ;;
+                "affine") echo "  - Affine (Collaborative Workspace & Notion Alternative)" ;;
+                *) echo "  - $profile" ;;
+            esac
         fi
     done
 fi
@@ -237,4 +243,4 @@ fi
 # Make the script executable (though install.sh calls it with bash)
 chmod +x "$SCRIPT_DIR/04_wizard.sh"
 
-exit 0 
+exit 0
