@@ -1,6 +1,6 @@
 # n8n Installer
 
-**n8n Installer** is an open-source Docker Compose template designed to significantly simplify setting up a comprehensive, self-hosted environment for n8n and Flowise. It bundles essential supporting tools like Open WebUI (as an interface for n8n agents), Supabase (database, vector information storage, authentication), Qdrant (high-performance vector information storage), Langfuse (to observe AI model performance), SearXNG (private metasearch), Grafana/Prometheus (monitoring), Crawl4ai (web crawling), and Caddy (for managed HTTPS). Plus, during setup, you can optionally import over 300 community workflows into your n8n instance!
+**n8n Installer** is an open-source Docker Compose template designed to significantly simplify setting up a comprehensive, self-hosted environment for n8n and Flowise. It bundles essential supporting tools like Open WebUI (as an interface for n8n agents), Supabase (database, vector information storage, authentication), Qdrant (high-performance vector information storage), Langfuse (to observe AI model performance), SearXNG (private metasearch), Grafana/Prometheus (monitoring), Crawl4ai (web crawling), AppFlowy (knowledge management), Affine (collaborative workspace), and Caddy (for managed HTTPS). Plus, during setup, you can optionally import over 300 community workflows into your n8n instance!
 
 ### Why This Setup?
 
@@ -10,10 +10,11 @@ This installer helps you create your own powerful, private AI workshop. Imagine 
 - Build smart assistants tailored to your needs.
 - Analyze information and gain insights.
 - Generate creative content.
+- Manage knowledge and collaborate with teams.
 
 This setup provides a comprehensive suite of cutting-edge services, all pre-configured to work together. Key advantages include:
 
-- **Rich Toolset:** Get a curated collection of powerful open-source tools for AI development, automation, and monitoring, all in one place.
+- **Rich Toolset:** Get a curated collection of powerful open-source tools for AI development, automation, knowledge management, and monitoring, all in one place.
 - **Scalable n8n Performance:** n8n runs in `queue` mode by default, leveraging Redis for task management and Postgres for data storage. You can dynamically specify the number of n8n workers during installation, allowing for robust parallel processing of your workflows to handle demanding loads.
 - **Full Control:** All of this is hosted by you, giving you full control over your data, operations, and how resources are allocated.
 
@@ -29,6 +30,10 @@ The installer also makes the following powerful open-source tools **available fo
 ✅ [**Open WebUI**](https://openwebui.com/) - A user-friendly, ChatGPT-like interface to interact privately with your AI models and n8n agents.
 
 ✅ [**Flowise**](https://flowiseai.com/) - A no-code/low-code AI agent builder that complements n8n perfectly, allowing you to create sophisticated AI applications with ease.
+
+✅ [**AppFlowy**](https://appflowy.io/) - An open-source Notion alternative for knowledge management. Create wikis, take notes, manage projects, and collaborate with teams using a modern block-based editor with AI capabilities.
+
+✅ [**Affine**](https://affine.pro/) - A next-generation collaborative workspace that combines the best of Notion, Miro, and Monday. Features real-time collaboration, block-based editing, and powerful database capabilities.
 
 ✅ [**Qdrant**](https://qdrant.tech/) - A high-performance open-source vector store, specialized for AI. While Supabase also offers vector capabilities, Qdrant is included for its speed, making it ideal for demanding AI tasks.
 
@@ -67,6 +72,7 @@ Get started quickly with a vast library of pre-built automations (optional impor
 - **Social Media:** LinkedIn, Pinterest, Instagram, Twitter/X, YouTube, TikTok automations
 - **Telegram, WhatsApp, Discord:** Bots, notifications, voice, and image workflows
 - **WordPress, WooCommerce:** AI content, chatbots, auto-tagging
+- **Knowledge Management:** AppFlowy and Affine integrations for organizing and sharing information
 
 ## Installation
 
@@ -104,7 +110,7 @@ During the installation, the script will prompt you for:
 3.  An optional **OpenAI API key** (Not required. If provided, it can be used by Supabase AI features and Crawl4ai. Press Enter to skip).
 4.  Whether you want to **import ~300 ready-made n8n community workflows** (y/n, Optional. This can take 20-30 minutes, depending on your server and network speed).
 5.  The **number of n8n workers** you want to run (Required, e.g., 1, 2, 3, 4. This determines how many workflows can be processed in parallel. Defaults to 1 if not specified).
-6.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
+6.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, AppFlowy, Affine, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
 
 Upon successful completion, the script will display a summary report. This report contains the access URLs and credentials for the deployed services. **Save this information in a safe place!**
 
@@ -118,6 +124,8 @@ After successful installation, your services are up and running! Here's how to g
     - **n8n:** `n8n.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report. You may be prompted to change this password on first login.)
     - **Open WebUI:** `webui.yourdomain.com`
     - **Flowise:** `flowise.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report.)
+    - **AppFlowy:** `appflowy.yourdomain.com` (Modern knowledge management and team collaboration)
+    - **Affine:** `affine.yourdomain.com` (Next-generation collaborative workspace)
     - **Supabase (Dashboard):** `supabase.yourdomain.com`
     - **Langfuse:** `langfuse.yourdomain.com`
     - **Letta:** `letta.yourdomain.com`
@@ -133,14 +141,20 @@ After successful installation, your services are up and running! Here's how to g
     - If you chose to import the community workflows during installation, you'll find over 300 examples in your "Workflows" section. These are a great way to learn and get ideas.
     - Start building your first workflow! You have access to over 400 integrations and powerful AI tools.
 
-3.  **Utilize Integrated AI Tools:**
+3.  **Utilize Knowledge Management Tools:**
+
+    - **AppFlowy:** Perfect for creating wikis, project documentation, and team knowledge bases. Features AI-powered writing assistance and real-time collaboration.
+    - **Affine:** Ideal for visual collaboration with its whiteboard features, block-based editing, and powerful database capabilities.
+    - Both tools can integrate with your n8n workflows for automated content creation and data synchronization.
+
+4.  **Utilize Integrated AI Tools:**
 
     - **Connect n8n with Vector Stores:** Use n8n to connect to Qdrant (accessible via its own endpoint if needed, typically `qdrant.yourdomain.com`), Supabase, or Weaviate (`weaviate.yourdomain.com`) to store and retrieve information for your AI tasks like Retrieval Augmented Generation (RAG).
     - **Build with Flowise:** Access Flowise at `flowise.yourdomain.com` to create AI agents and applications. You can trigger Flowise agents from n8n or vice-versa.
     - **Interact with Open WebUI:** Use Open WebUI at `webui.yourdomain.com` as a chat interface for your local AI models or n8n agents (e.g., using the n8n_pipe integration if configured).
     - **Configure LLMs:** If you wish to use large language models (LLMs) from providers like OpenAI, Anthropic, or locally via Ollama (if installed), you can easily configure credentials and connections within n8n nodes or in services like Flowise and Open WebUI.
 
-4.  **Check Monitoring (Optional):**
+5.  **Check Monitoring (Optional):**
     - Visit Grafana (`grafana.yourdomain.com`) to see dashboards monitoring your system's performance (data sourced from Prometheus).
 
 ### Using Pre-installed Libraries in n8n's Custom JavaScript
@@ -194,6 +208,18 @@ Here are solutions to common issues you might encounter:
 - **Supabase Analytics Startup Failure:** If the `supabase-analytics` component fails to start after changing your Postgres password, you might need to reset its data. **Warning: This will delete your Supabase database data. Proceed with extreme caution and ensure you have backups if needed.** The technical step involves deleting the `supabase/docker/volumes/db/data` folder.
 - **Supabase Service Unavailable:** Ensure your Postgres database password does not contain special characters like "@". Other special characters might also cause issues. If services like n8n report they cannot connect to Supabase, and other diagnostics seem fine, this is a common cause.
 
+### AppFlowy Issues
+
+- **AppFlowy Service Startup:** AppFlowy requires all dependent services (PostgreSQL, Redis, MinIO, GoTrue) to be healthy before starting. If AppFlowy fails to start, check the logs of its dependencies first.
+- **Database Connection:** Ensure the AppFlowy PostgreSQL service is running and accessible. The pgvector extension is automatically available in the official pgvector/pgvector image.
+- **File Upload Issues:** MinIO must be properly configured and accessible for file uploads to work in AppFlowy.
+
+### Affine Issues
+
+- **Migration Service:** Affine requires a one-time migration to set up the database schema. If Affine fails to start, ensure the migration service completed successfully.
+- **Redis Connection:** Affine requires Redis for session management. Ensure the Affine Redis service is running and accessible.
+- **GraphQL API:** The Affine GraphQL API should be accessible at `https://affine.yourdomain.com/graphql` once the service is running.
+
 ### General Issues
 
 - **VPN Conflicts:** Using a VPN might interfere with downloading Docker images. If you encounter issues pulling images, try temporarily disabling your VPN.
@@ -245,6 +271,23 @@ When you build automations in n8n that need to read or write files on your serve
 - [Read/Write Files from Disk](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.filesreadwrite/)
 - [Local File Trigger](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.localfiletrigger/) (To start workflows when files change)
 - [Execute Command](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.executecommand/) (To run command-line tools)
+
+### Knowledge Management Integration
+
+**AppFlowy Integration with n8n:**
+- Use n8n workflows to automatically create AppFlowy pages from external data sources
+- Set up triggers to sync AppFlowy content with other systems
+- Automate team notifications when important AppFlowy documents are updated
+
+**Affine Integration with n8n:**
+- Create automated workflows to populate Affine workspaces with data from APIs
+- Set up synchronization between Affine databases and external systems
+- Use Affine's GraphQL API in n8n for advanced data manipulation
+
+**Cross-Platform Knowledge Management:**
+- Sync content between AppFlowy and Affine using n8n workflows
+- Create automated backups of knowledge management data
+- Set up workflows to migrate content between different knowledge management platforms
 
 ## 🙌 Contributors
 
