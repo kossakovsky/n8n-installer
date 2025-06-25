@@ -73,6 +73,58 @@ https://{$NEO4J_HOSTNAME}:7687 {
     reverse_proxy neo4j:7687
 }
 
+# AppFlowy Web Interface
+{$APPFLOWY_HOSTNAME} {
+    reverse_proxy appflowy-web:3000
+    encode zstd gzip
+    
+    # Handle WebSocket connections for real-time features
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websockets appflowy-web:3000
+    
+    # Enable CORS for API requests
+    header {
+        Access-Control-Allow-Origin *
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization"
+    }
+    
+    # Handle preflight requests
+    @preflight {
+        method OPTIONS
+    }
+    respond @preflight 204
+}
+
+# Affine Web Interface
+{$AFFINE_HOSTNAME} {
+    reverse_proxy affine:3010
+    encode zstd gzip
+    
+    # Handle WebSocket connections for collaboration
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websockets affine:3010
+    
+    # Enable CORS for API requests
+    header {
+        Access-Control-Allow-Origin *
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+    }
+    
+    # Handle preflight requests
+    @preflight {
+        method OPTIONS
+    }
+    respond @preflight 204
+}
+
 # SearXNG
 {$SEARXNG_HOSTNAME} {
     basic_auth { 
