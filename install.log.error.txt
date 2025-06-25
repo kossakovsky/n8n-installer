@@ -1,3 +1,4 @@
+ ✔ Container n8n-import                       Exited                                                                                                                         731.7s 
  ✘ Container appflowy-gotrue                  Error                                                                                                                           13.1s 
  ✔ Container localai-langfuse-web-1           Started                                                                                                                          8.8s 
  ✔ Container localai-langfuse-worker-1        Started                                                                                                                          8.8s 
@@ -23,3 +24,5 @@ Traceback (most recent call last):
 subprocess.CalledProcessError: Command '['docker', 'compose', '-p', 'localai', '-f', 'docker-compose.yml', 'up', '-d']' returned non-zero exit status 1.
 ╭─────────────────────────────────────────────╮
 │ [ERROR] 16:33:17: Running Services failed   │
+╰─────────────────────────────────────────────╯
+dev@desktop-vm:~/n8n-installer$ sudo bash ./scripts/install.sh
