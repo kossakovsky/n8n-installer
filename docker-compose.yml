@@ -15,6 +15,13 @@ volumes:
   prometheus_data:
   letta_data:
   weaviate_data:
+  appflowy_postgres_data:
+  appflowy_redis_data:
+  appflowy_minio_data:
+  affine_postgres_data:
+  affine_redis_data:
+  affine_storage:
+  affine_config:
 
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
@@ -174,6 +181,215 @@ services:
         soft: 40000
         hard: 40000
 
+  # AppFlowy Services
+  appflowy-postgres:
+    image: pgvector/pgvector:pg16
+    container_name: appflowy-postgres
+    profiles: ["appflowy"]
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${APPFLOWY_POSTGRES_USER:-appflowy}
+      - POSTGRES_PASSWORD=${APPFLOWY_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${APPFLOWY_POSTGRES_DB:-appflowy}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - appflowy_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${APPFLOWY_POSTGRES_USER:-appflowy}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  appflowy-redis:
+    image: redis:7-alpine
+    container_name: appflowy-redis
+    profiles: ["appflowy"]
+    restart: unless-stopped
+    volumes:
+      - appflowy_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  appflowy-minio:
+    image: minio/minio:latest
+    container_name: appflowy-minio
+    profiles: ["appflowy"]
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${APPFLOWY_MINIO_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${APPFLOWY_MINIO_PASSWORD}
+    volumes:
+      - appflowy_minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  appflowy-gotrue:
+    image: appflowyinc/gotrue:latest
+    container_name: appflowy-gotrue
+    profiles: ["appflowy"]
+    restart: unless-stopped
+    environment:
+      - GOTRUE_JWT_SECRET=${APPFLOWY_JWT_SECRET}
+      - GOTRUE_JWT_EXP=7200
+      - GOTRUE_ADMIN_PASSWORD=${APPFLOWY_ADMIN_PASSWORD}
+      - GOTRUE_DISABLE_SIGNUP=${APPFLOWY_DISABLE_SIGNUP:-false}
+      - GOTRUE_SITE_URL=appflowy-flutter://
+      - GOTRUE_URI_ALLOW_LIST=**
+      - DATABASE_URL=postgresql://${APPFLOWY_POSTGRES_USER:-appflowy}:${APPFLOWY_POSTGRES_PASSWORD}@appflowy-postgres:5432/${APPFLOWY_POSTGRES_DB:-appflowy}
+      - GOTRUE_SMTP_HOST=${APPFLOWY_SMTP_HOST:-}
+      - GOTRUE_SMTP_PORT=${APPFLOWY_SMTP_PORT:-587}
+      - GOTRUE_SMTP_USER=${APPFLOWY_SMTP_USER:-}
+      - GOTRUE_SMTP_PASS=${APPFLOWY_SMTP_PASS:-}
+    depends_on:
+      appflowy-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9999/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  appflowy-cloud:
+    image: appflowyinc/appflowy_cloud:latest
+    container_name: appflowy-cloud
+    profiles: ["appflowy"]
+    restart: unless-stopped
+    environment:
+      - APPFLOWY_ENVIRONMENT=production
+      - APPFLOWY_DATABASE_URL=postgresql://${APPFLOWY_POSTGRES_USER:-appflowy}:${APPFLOWY_POSTGRES_PASSWORD}@appflowy-postgres:5432/${APPFLOWY_POSTGRES_DB:-appflowy}
+      - APPFLOWY_DATABASE_MAX_CONNECTIONS=40
+      - APPFLOWY_WEB_URL=https://${APPFLOWY_HOSTNAME}
+      - APPFLOWY_S3_USE_MINIO=true
+      - APPFLOWY_S3_MINIO_URL=http://appflowy-minio:9000
+      - APPFLOWY_S3_ACCESS_KEY=${APPFLOWY_MINIO_USER:-minioadmin}
+      - APPFLOWY_S3_SECRET_KEY=${APPFLOWY_MINIO_PASSWORD}
+      - APPFLOWY_S3_BUCKET=appflowy
+      - APPFLOWY_S3_REGION=us-east-1
+      - RUST_LOG=info
+    depends_on:
+      appflowy-postgres:
+        condition: service_healthy
+      appflowy-redis:
+        condition: service_healthy
+      appflowy-minio:
+        condition: service_healthy
+      appflowy-gotrue:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  appflowy-web:
+    image: appflowyinc/appflowy_web:latest
+    container_name: appflowy-web
+    profiles: ["appflowy"]
+    restart: unless-stopped
+    environment:
+      - APPFLOWY_CLOUD_URL=http://appflowy-cloud:8000
+    depends_on:
+      appflowy-cloud:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Affine Services
+  affine-postgres:
+    image: postgres:16
+    container_name: affine-postgres
+    profiles: ["affine"]
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${AFFINE_POSTGRES_USER:-affine}
+      - POSTGRES_PASSWORD=${AFFINE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${AFFINE_POSTGRES_DB:-affine}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - affine_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AFFINE_POSTGRES_USER:-affine}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  affine-redis:
+    image: redis:7-alpine
+    container_name: affine-redis
+    profiles: ["affine"]
+    restart: unless-stopped
+    volumes:
+      - affine_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  affine-migration:
+    image: ghcr.io/toeverything/affine-graphql:stable
+    container_name: affine-migration
+    profiles: ["affine"]
+    command: ["sh", "-c", "node ./scripts/self-host-predeploy.js"]
+    environment:
+      - REDIS_SERVER_HOST=affine-redis
+      - DATABASE_URL=postgresql://${AFFINE_POSTGRES_USER:-affine}:${AFFINE_POSTGRES_PASSWORD}@affine-postgres:5432/${AFFINE_POSTGRES_DB:-affine}
+    volumes:
+      - affine_storage:/root/.affine/storage
+      - affine_config:/root/.affine/config
+    depends_on:
+      affine-postgres:
+        condition: service_healthy
+      affine-redis:
+        condition: service_healthy
+
+  affine:
+    image: ghcr.io/toeverything/affine-graphql:stable
+    container_name: affine
+    profiles: ["affine"]
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - REDIS_SERVER_HOST=affine-redis
+      - DATABASE_URL=postgresql://${AFFINE_POSTGRES_USER:-affine}:${AFFINE_POSTGRES_PASSWORD}@affine-postgres:5432/${AFFINE_POSTGRES_DB:-affine}
+      - AFFINE_INDEXER_ENABLED=false
+      - AFFINE_SERVER_HTTPS=true
+      - AFFINE_SERVER_EXTERNAL_URL=https://${AFFINE_HOSTNAME}
+      - AFFINE_SERVER_HOST=${AFFINE_HOSTNAME}
+      - AFFINE_ADMIN_EMAIL=${AFFINE_ADMIN_EMAIL}
+      - AFFINE_ADMIN_PASSWORD=${AFFINE_ADMIN_PASSWORD}
+      - MAILER_HOST=${AFFINE_SMTP_HOST:-}
+      - MAILER_PORT=${AFFINE_SMTP_PORT:-587}
+      - MAILER_USER=${AFFINE_SMTP_USER:-}
+      - MAILER_PASSWORD=${AFFINE_SMTP_PASS:-}
+      - TELEMETRY_ENABLE=false
+    volumes:
+      - affine_storage:/root/.affine/storage
+      - affine_config:/root/.affine/config
+    depends_on:
+      affine-postgres:
+        condition: service_healthy
+      affine-redis:
+        condition: service_healthy
+      affine-migration:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "timeout", "10s", "bash", "-c", ": > /dev/tcp/127.0.0.1/3010"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+
   caddy:
     container_name: caddy
     image: docker.io/library/caddy:2-alpine
@@ -197,6 +413,8 @@ services:
       - WEAVIATE_HOSTNAME=${WEAVIATE_HOSTNAME}
       - QDRANT_HOSTNAME=${QDRANT_HOSTNAME}
       - NEO4J_HOSTNAME=${NEO4J_HOSTNAME}
+      - APPFLOWY_HOSTNAME=${APPFLOWY_HOSTNAME}
+      - AFFINE_HOSTNAME=${AFFINE_HOSTNAME}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-internal}
       - PROMETHEUS_HOSTNAME=${PROMETHEUS_HOSTNAME}
       - GRAFANA_HOSTNAME=${GRAFANA_HOSTNAME}
