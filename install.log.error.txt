@@ -1,24 +1,41 @@
+[+] Running 35/35lai-clickhouse-1       Healthy                                                                     6.5s 
+ ✔ Network localai_default              Created                                                                     0.0s 
+ ✔ Container affine-redis               Healthy                                                                    11.8s 
+ ✔ Container postgres                   Healthy                                                                     4.5s 
+ ✔ Container weaviate                   Started                                                                     0.8s 
+ ✔ Container redis                      Healthy                                                                     4.5s 
+ ✘ Container appflowy-postgres          Error                                                                       1.9s 
+ ✔ Container localai-clickhouse-1       Healthy                                                                     6.5s 
+ ✔ Container appflowy-minio             Started                                                                     1.3s 
+ ✔ Container crawl4ai                   Started                                                                     1.3s 
+ ✔ Container cadvisor                   Started                                                                     0.7s 
+ ✔ Container flowise                    Started                                                                     1.2s 
+ ✔ Container neo4j                      Started                                                                     1.5s 
+ ✔ Container affine-postgres            Healthy                                                                     5.8s 
+ ✔ Container node-exporter              Started                                                                     1.2s 
+ ✔ Container searxng                    Started                                                                     1.4s 
+ ✔ Container open-webui                 Started                                                                     1.4s 
+ ✔ Container caddy                      Started                                                                     1.1s 
+ ✔ Container appflowy-redis             Started                                                                     0.7s 
+ ✔ Container qdrant                     Started                                                                     1.4s 
+ ✔ Container localai-minio-1            Healthy                                                                     7.0s 
+ ✔ Container letta                      Started                                                                     1.1s 
+ ✔ Container prometheus                 Started                                                                     0.6s 
+ ✔ Container ollama                     Started                                                                     1.2s 
+ ✔ Container n8n-import                 Started                                                                     4.8s 
+ ✔ Container grafana                    Started                                                                     1.1s 
  ✔ Container ollama-pull-llama          Started                                                                     1.6s 
- ✘ Container appflowy-gotrue            Error                                                                       7.8s 
- ✔ Container affine-migration           Started                                                                    12.1s 
- ✔ Container localai-langfuse-worker-1  Started                                                                     7.5s 
- ✔ Container n8n-import                 Exited                                                                    676.0s 
- ✔ Container localai-langfuse-web-1     Started                                                                     7.4s 
- ✔ Container n8n                        Started                                                                   676.0s 
- ✔ Container appflowy-cloud             Created                                                                     0.1s 
+ ✔ Container appflowy-gotrue            Created                                                                     0.1s 
+ ✔ Container affine-migration           Started                                                                    11.9s 
+ ✔ Container localai-langfuse-web-1     Started                                                                     7.2s 
+ ✔ Container localai-langfuse-worker-1  Started                                                                     7.2s 
+ ✔ Container n8n                        Created                                                                     0.1s 
  ✔ Container affine                     Created                                                                     0.1s 
+ ✔ Container appflowy-cloud             Created                                                                     0.0s 
  ✔ Container localai-n8n-worker-1       Created                                                                     0.1s 
- ✔ Container appflowy-web               Created                                                                     0.1s 
-dependency failed to start: container appflowy-gotrue is unhealthy
-Traceback (most recent call last):
-  File "/home/dev/n8n-installer/./start_services.py", line 418, in <module>
-    main()
-  File "/home/dev/n8n-installer/./start_services.py", line 402, in main
-    start_local_ai()
-  File "/home/dev/n8n-installer/./start_services.py", line 126, in start_local_ai
-    run_command(cmd)
-  File "/home/dev/n8n-installer/./start_services.py", line 42, in run_command
-    subprocess.run(cmd, cwd=cwd, check=True)
-  File "/usr/lib/python3.12/subprocess.py", line 571, in run
-    raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command '['docker', 'compose', '-p', 'localai', '-f', 'docker-compose.yml', 'up', '-d']' returned non-zero exit status 1.
+ ✔ Container appflowy-web               Created                                                                     0.0s 
+dependency failed to start: container appflowy-postgres is unhealthy
+=== FIX COMPLETE ===
+Monitor with: sudo docker logs appflowy-gotrue -f
+dev@desktop-vm:~/n8n-installer$ sudo docker logs appflowy-gotrue -f
+dev@desktop-vm:~/n8n-installer$ 
