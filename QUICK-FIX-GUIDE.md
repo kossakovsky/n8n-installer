@@ -1,5 +1,15 @@
 # 🚨 QUICK FIX GUIDE - AppFlowy Installation Issues
 
+# Stoppe alles
+sudo docker compose -p localai down
+
+# Entferne alte Images (optional)
+sudo docker image rm appflowyinc/appflowy_web:0.5.9 appflowyinc/appflowy_cloud:0.5.9 2>/dev/null || true
+
+# Starte neu mit korrigierter Konfiguration
+sudo bash scripts/05_run_services.sh
+
+
 ## Sofortige Lösung für den GoTrue Fehler
 
 Der Fehler `appflowy-gotrue is unhealthy` kann mit diesen Schritten behoben werden:
