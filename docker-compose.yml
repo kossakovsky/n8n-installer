@@ -181,7 +181,7 @@ services:
         soft: 40000
         hard: 40000
 
-  # AppFlowy Services
+  # AppFlowy Services - Fixed version with better error handling
   appflowy-postgres:
     image: pgvector/pgvector:pg16
     container_name: appflowy-postgres
@@ -195,10 +195,11 @@ services:
     volumes:
       - appflowy_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${APPFLOWY_POSTGRES_USER:-appflowy}"]
+      test: ["CMD-SHELL", "pg_isready -U ${APPFLOWY_POSTGRES_USER:-appflowy} -d ${APPFLOWY_POSTGRES_DB:-appflowy}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   appflowy-redis:
     image: redis:7-alpine
@@ -228,44 +229,60 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 60s
 
+  # Using Supabase GoTrue instead of AppFlowy-specific GoTrue for better compatibility
   appflowy-gotrue:
-    image: appflowyinc/gotrue:latest
+    image: supabase/gotrue:v2.132.3
     container_name: appflowy-gotrue
     profiles: ["appflowy"]
     restart: unless-stopped
     environment:
+      - GOTRUE_API_HOST=0.0.0.0
+      - GOTRUE_API_PORT=9999
       - GOTRUE_JWT_SECRET=${APPFLOWY_JWT_SECRET}
       - GOTRUE_JWT_EXP=7200
-      - GOTRUE_ADMIN_PASSWORD=${APPFLOWY_ADMIN_PASSWORD}
+      - GOTRUE_SITE_URL=https://${APPFLOWY_HOSTNAME}
+      - GOTRUE_URI_ALLOW_LIST=https://${APPFLOWY_HOSTNAME}
       - GOTRUE_DISABLE_SIGNUP=${APPFLOWY_DISABLE_SIGNUP:-false}
-      - GOTRUE_SITE_URL=appflowy-flutter://
-      - GOTRUE_URI_ALLOW_LIST=**
-      - DATABASE_URL=postgresql://${APPFLOWY_POSTGRES_USER:-appflowy}:${APPFLOWY_POSTGRES_PASSWORD}@appflowy-postgres:5432/${APPFLOWY_POSTGRES_DB:-appflowy}
+      - GOTRUE_DB_DRIVER=postgres
+      - DATABASE_URL=postgres://${APPFLOWY_POSTGRES_USER:-appflowy}:${APPFLOWY_POSTGRES_PASSWORD}@appflowy-postgres:5432/${APPFLOWY_POSTGRES_DB:-appflowy}?sslmode=disable
       - GOTRUE_SMTP_HOST=${APPFLOWY_SMTP_HOST:-}
       - GOTRUE_SMTP_PORT=${APPFLOWY_SMTP_PORT:-587}
       - GOTRUE_SMTP_USER=${APPFLOWY_SMTP_USER:-}
       - GOTRUE_SMTP_PASS=${APPFLOWY_SMTP_PASS:-}
+      - GOTRUE_SMTP_ADMIN_EMAIL=${LETSENCRYPT_EMAIL}
+      - GOTRUE_MAILER_AUTOCONFIRM=true
+      - GOTRUE_LOG_LEVEL=info
     depends_on:
       appflowy-postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9999/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 60s
 
   appflowy-cloud:
-    image: appflowyinc/appflowy_cloud:latest
+    image: appflowyinc/appflowy_cloud:0.5.9
     container_name: appflowy-cloud
     profiles: ["appflowy"]
     restart: unless-stopped
     environment:
       - APPFLOWY_ENVIRONMENT=production
-      - APPFLOWY_DATABASE_URL=postgresql://${APPFLOWY_POSTGRES_USER:-appflowy}:${APPFLOWY_POSTGRES_PASSWORD}@appflowy-postgres:5432/${APPFLOWY_POSTGRES_DB:-appflowy}
+      - APPFLOWY_APPLICATION_COMPRESSION_QUALITY=6
+      - APPFLOWY_APPLICATION_COMPRESSION_BUFFER_SIZE=10485760
+      - APPFLOWY_DATABASE_URL=postgres://${APPFLOWY_POSTGRES_USER:-appflowy}:${APPFLOWY_POSTGRES_PASSWORD}@appflowy-postgres:5432/${APPFLOWY_POSTGRES_DB:-appflowy}
       - APPFLOWY_DATABASE_MAX_CONNECTIONS=40
-      - APPFLOWY_WEB_URL=https://${APPFLOWY_HOSTNAME}
+      - APPFLOWY_DATABASE_DISABLE_MIGRATION=false
+      - APPFLOWY_GOTRUE_BASE_URL=http://appflowy-gotrue:9999
+      - APPFLOWY_GOTRUE_EXT_URL=https://${APPFLOWY_HOSTNAME}
+      - APPFLOWY_GOTRUE_JWT_SECRET=${APPFLOWY_JWT_SECRET}
+      - APPFLOWY_GOTRUE_ADMIN_EMAIL=${LETSENCRYPT_EMAIL}
+      - APPFLOWY_GOTRUE_ADMIN_PASSWORD=${APPFLOWY_ADMIN_PASSWORD}
+      - APPFLOWY_REDIS_URL=redis://appflowy-redis:6379
       - APPFLOWY_S3_USE_MINIO=true
       - APPFLOWY_S3_MINIO_URL=http://appflowy-minio:9000
       - APPFLOWY_S3_ACCESS_KEY=${APPFLOWY_MINIO_USER:-minioadmin}
@@ -273,6 +290,7 @@ services:
       - APPFLOWY_S3_BUCKET=appflowy
       - APPFLOWY_S3_REGION=us-east-1
       - RUST_LOG=info
+      - RUST_BACKTRACE=1
     depends_on:
       appflowy-postgres:
         condition: service_healthy
@@ -286,25 +304,28 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 10
+      start_period: 120s
 
   appflowy-web:
-    image: appflowyinc/appflowy_web:latest
+    image: appflowyinc/appflowy_web:0.5.9
     container_name: appflowy-web
     profiles: ["appflowy"]
     restart: unless-stopped
     environment:
-      - APPFLOWY_CLOUD_URL=http://appflowy-cloud:8000
+      - AF_CLOUD_URL=http://appflowy-cloud:8000
+      - AF_GOTRUE_URL=http://appflowy-gotrue:9999
     depends_on:
       appflowy-cloud:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 60s
 
-  # Affine Services
+  # Affine Services - Enhanced with better health checks
   affine-postgres:
     image: postgres:16
     container_name: affine-postgres
@@ -318,10 +339,11 @@ services:
     volumes:
       - affine_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${AFFINE_POSTGRES_USER:-affine}"]
+      test: ["CMD-SHELL", "pg_isready -U ${AFFINE_POSTGRES_USER:-affine} -d ${AFFINE_POSTGRES_DB:-affine}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   affine-redis:
     image: redis:7-alpine
@@ -340,10 +362,13 @@ services:
     image: ghcr.io/toeverything/affine-graphql:stable
     container_name: affine-migration
     profiles: ["affine"]
-    command: ["sh", "-c", "node ./scripts/self-host-predeploy.js"]
+    command: ["sh", "-c", "node ./scripts/self-host-predeploy.js && echo 'Migration completed'"]
     environment:
+      - NODE_ENV=production
       - REDIS_SERVER_HOST=affine-redis
       - DATABASE_URL=postgresql://${AFFINE_POSTGRES_USER:-affine}:${AFFINE_POSTGRES_PASSWORD}@affine-postgres:5432/${AFFINE_POSTGRES_DB:-affine}
+      - AFFINE_SERVER_HOST=${AFFINE_HOSTNAME}
+      - AFFINE_SERVER_HTTPS=true
     volumes:
       - affine_storage:/root/.affine/storage
       - affine_config:/root/.affine/config
@@ -373,6 +398,7 @@ services:
       - MAILER_USER=${AFFINE_SMTP_USER:-}
       - MAILER_PASSWORD=${AFFINE_SMTP_PASS:-}
       - TELEMETRY_ENABLE=false
+      - COPILOT_OPENAI_API_KEY=${OPENAI_API_KEY:-}
     volumes:
       - affine_storage:/root/.affine/storage
       - affine_config:/root/.affine/config
@@ -387,8 +413,8 @@ services:
       test: ["CMD", "timeout", "10s", "bash", "-c", ": > /dev/tcp/127.0.0.1/3010"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 90s
+      retries: 10
+      start_period: 120s
 
   caddy:
     container_name: caddy
@@ -467,7 +493,7 @@ services:
       LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: ${LANGFUSE_S3_MEDIA_UPLOAD_BUCKET:-langfuse}
       LANGFUSE_S3_MEDIA_UPLOAD_REGION: ${LANGFUSE_S3_MEDIA_UPLOAD_REGION:-auto}
       LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ${LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID:-minio}
-      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
       LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: ${LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT:-http://localhost:9090}
       LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: ${LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE:-true}
       LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: ${LANGFUSE_S3_MEDIA_UPLOAD_PREFIX:-media/}
