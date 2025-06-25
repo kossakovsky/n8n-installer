@@ -131,6 +131,60 @@ if is_profile_active "crawl4ai"; then
   echo "(Note: Not exposed externally via Caddy by default)"
 fi
 
+if is_profile_active "appflowy"; then
+  echo
+  echo "================================= AppFlowy ============================"
+  echo
+  echo "Host: https://${APPFLOWY_HOSTNAME:-<hostname_not_set>}"
+  echo "Admin Password: ${APPFLOWY_ADMIN_PASSWORD:-<not_set_in_env>}"
+  echo "Disable Signup: ${APPFLOWY_DISABLE_SIGNUP:-false}"
+  echo
+  echo "AppFlowy Cloud Configuration:"
+  echo "  Internal API: http://appflowy-cloud:8000"
+  echo "  Internal Auth Service: http://appflowy-gotrue:9999"
+  echo "  Internal MinIO: http://appflowy-minio:9000"
+  echo "  MinIO Credentials: ${APPFLOWY_MINIO_USER:-minioadmin} / ${APPFLOWY_MINIO_PASSWORD:-<not_set_in_env>}"
+  echo
+  echo "Database Access:"
+  echo "  PostgreSQL Host: appflowy-postgres:5432"
+  echo "  Database: ${APPFLOWY_POSTGRES_DB:-appflowy}"
+  echo "  Username: ${APPFLOWY_POSTGRES_USER:-appflowy}"
+  echo "  Password: ${APPFLOWY_POSTGRES_PASSWORD:-<not_set_in_env>}"
+  echo
+  if [[ -n "${APPFLOWY_SMTP_HOST}" ]]; then
+    echo "SMTP Configuration:"
+    echo "  Host: ${APPFLOWY_SMTP_HOST}"
+    echo "  Port: ${APPFLOWY_SMTP_PORT:-587}"
+    echo "  User: ${APPFLOWY_SMTP_USER:-<not_set>}"
+  fi
+fi
+
+if is_profile_active "affine"; then
+  echo
+  echo "================================= Affine ==============================="
+  echo
+  echo "Host: https://${AFFINE_HOSTNAME:-<hostname_not_set>}"
+  echo "Admin Email: ${AFFINE_ADMIN_EMAIL:-<not_set_in_env>}"
+  echo "Admin Password: ${AFFINE_ADMIN_PASSWORD:-<not_set_in_env>}"
+  echo
+  echo "Affine Configuration:"
+  echo "  Internal GraphQL API: http://affine:3010"
+  echo "  Internal Redis: affine-redis:6379"
+  echo
+  echo "Database Access:"
+  echo "  PostgreSQL Host: affine-postgres:5432"
+  echo "  Database: ${AFFINE_POSTGRES_DB:-affine}"
+  echo "  Username: ${AFFINE_POSTGRES_USER:-affine}"
+  echo "  Password: ${AFFINE_POSTGRES_PASSWORD:-<not_set_in_env>}"
+  echo
+  if [[ -n "${AFFINE_SMTP_HOST}" ]]; then
+    echo "SMTP Configuration:"
+    echo "  Host: ${AFFINE_SMTP_HOST}"
+    echo "  Port: ${AFFINE_SMTP_PORT:-587}"
+    echo "  User: ${AFFINE_SMTP_USER:-<not_set>}"
+  fi
+fi
+
 if is_profile_active "n8n" || is_profile_active "langfuse"; then
   echo
   echo "================================= Redis (Valkey) ======================"
@@ -200,11 +254,50 @@ if is_profile_active "n8n" || is_profile_active "langfuse"; then
   echo "Password: ${POSTGRES_PASSWORD:-<not_set_in_env>}"
   echo "(Note: This is the PostgreSQL instance used by services like n8n and Langfuse.)"
   echo "(It is separate from Supabase's internal PostgreSQL if Supabase is also enabled.)"
+  if is_profile_active "appflowy" || is_profile_active "affine"; then
+    echo "(AppFlowy and Affine use their own separate PostgreSQL instances.)"
+  fi
 fi
 
 echo
 echo "======================================================================="
 echo
+
+# --- Additional Information for AppFlowy and Affine ---
+if is_profile_active "appflowy" || is_profile_active "affine"; then
+  echo
+  echo "=========================== Knowledge Management Tips =========================="
+  if is_profile_active "appflowy"; then
+    echo
+    echo "AppFlowy Usage Tips:"
+    echo "• AppFlowy supports real-time collaboration with multiple users"
+    echo "• Use the mobile apps by connecting to your self-hosted instance"
+    echo "• Configure SMTP for user invitations and notifications"
+    echo "• The MinIO storage handles all file uploads and document assets"
+    echo "• API access available at: https://${APPFLOWY_HOSTNAME}/api"
+  fi
+  
+  if is_profile_active "affine"; then
+    echo
+    echo "Affine Usage Tips:"
+    echo "• Affine provides block-based editing similar to Notion"
+    echo "• Supports collaborative editing with real-time synchronization"
+    echo "• Configure SMTP for user invitations and password resets"
+    echo "• All data is stored locally in your PostgreSQL instance"
+    echo "• GraphQL API available at: https://${AFFINE_HOSTNAME}/graphql"
+  fi
+  
+  if is_profile_active "appflowy" && is_profile_active "affine"; then
+    echo
+    echo "Running Both AppFlowy and Affine:"
+    echo "• Both services use separate databases and storage"
+    echo "• No conflicts between the two knowledge management systems"
+    echo "• Choose the interface that better fits your workflow"
+    echo "• Both support markdown import/export for data portability"
+  fi
+  echo
+  echo "==============================================================================="
+fi
 
 # --- Update Script Info (Placeholder) ---
 log_info "To update the services, run the 'update.sh' script: bash ./scripts/update.sh"
@@ -216,10 +309,16 @@ echo "Next Steps:"
 echo "1. Review the credentials above and store them safely."
 echo "2. Access the services via their respective URLs (check \`docker compose ps\` if needed)."
 echo "3. Configure services as needed (e.g., first-run setup for n8n)."
+if is_profile_active "appflowy"; then
+  echo "4. AppFlowy: Create your first workspace and configure team settings."
+fi
+if is_profile_active "affine"; then
+  echo "4. Affine: Sign in with the admin credentials and create your first workspace."
+fi
 echo
 echo "======================================================================"
 echo
 log_info "Thank you for using this installer setup!"
 echo
 
-exit 0 
+exit 0
