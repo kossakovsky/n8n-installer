@@ -1,0 +1,25 @@
+ ✘ Container appflowy-gotrue                  Error                                                                                                                           13.1s 
+ ✔ Container localai-langfuse-web-1           Started                                                                                                                          8.8s 
+ ✔ Container localai-langfuse-worker-1        Started                                                                                                                          8.8s 
+ ✔ Container affine-migration                 Exited                                                                                                                          32.7s 
+ ✔ Container ollama-pull-llama                Started                                                                                                                          4.6s 
+ ✔ Container n8n                              Started                                                                                                                        731.6s 
+ ✔ Container appflowy-cloud                   Created                                                                                                                          0.1s 
+ ✔ Container affine                           Started                                                                                                                         32.8s 
+ ✔ Container localai-n8n-worker-1             Created                                                                                                                          0.1s 
+ ✔ Container appflowy-web                     Created                                                                                                                          0.1s 
+dependency failed to start: container appflowy-gotrue is unhealthy
+Traceback (most recent call last):
+  File "/home/dev/n8n-installer/./start_services.py", line 418, in <module>
+    main()
+  File "/home/dev/n8n-installer/./start_services.py", line 402, in main
+    start_local_ai()
+  File "/home/dev/n8n-installer/./start_services.py", line 126, in start_local_ai
+    run_command(cmd)
+  File "/home/dev/n8n-installer/./start_services.py", line 42, in run_command
+    subprocess.run(cmd, cwd=cwd, check=True)
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['docker', 'compose', '-p', 'localai', '-f', 'docker-compose.yml', 'up', '-d']' returned non-zero exit status 1.
+╭─────────────────────────────────────────────╮
+│ [ERROR] 16:33:17: Running Services failed   │
