@@ -1,0 +1,779 @@
+volumes:
+  n8n_storage:
+  ollama_storage:
+  qdrant_storage:
+  open-webui:
+  flowise:
+  caddy-data:
+  caddy-config:
+  valkey-data:
+  langfuse_postgres_data:
+  langfuse_clickhouse_data:
+  langfuse_clickhouse_logs:
+  langfuse_minio_data:
+  grafana:
+  prometheus_data:
+  letta_data:
+  weaviate_data:
+  appflowy_postgres_data:
+  appflowy_minio_data:
+  affine_postgres_data:
+  affine_redis_data:
+  affine_storage:
+  affine_config:
+  portainer_data:
+  # Shared database volume for consolidation
+  shared_postgres_data:
+
+x-n8n: &service-n8n
+  image: n8nio/n8n:latest
+  environment: &service-n8n-env
+    DB_TYPE: postgresdb
+    DB_POSTGRESDB_HOST: shared-postgres
+    DB_POSTGRESDB_USER: postgres
+    DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+    DB_POSTGRESDB_DATABASE: n8n_db
+    N8N_DIAGNOSTICS_ENABLED: false
+    N8N_PERSONALIZATION_ENABLED: false
+    N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+    N8N_USER_MANAGEMENT_JWT_SECRET: ${N8N_USER_MANAGEMENT_JWT_SECRET}
+    WEBHOOK_URL: ${N8N_HOSTNAME:+https://}${N8N_HOSTNAME:-http://localhost:5678}
+    N8N_METRICS: true
+    NODE_ENV: production
+    EXECUTIONS_MODE: queue
+    N8N_RUNNERS_ENABLED: true
+    QUEUE_HEALTH_CHECK_ACTIVE: true
+    QUEUE_BULL_REDIS_HOST: ${REDIS_HOST:-shared-redis}
+    QUEUE_BULL_REDIS_PORT: ${REDIS_PORT:-6379}
+    N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: true
+    N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE: true
+    NODE_FUNCTION_ALLOW_BUILTIN: "*"
+    NODE_FUNCTION_ALLOW_EXTERNAL: cheerio,axios,moment,lodash
+
+x-ollama: &service-ollama
+  image: ollama/ollama:latest
+  container_name: ollama
+  restart: unless-stopped
+  environment:
+    - OLLAMA_CONTEXT_LENGTH=8192
+    - OLLAMA_FLASH_ATTENTION=1
+    - OLLAMA_KV_CACHE_TYPE=q8_0
+    - OLLAMA_MAX_LOADED_MODELS=2
+  volumes:
+    - ollama_storage:/root/.ollama
+
+x-init-ollama: &init-ollama
+  image: ollama/ollama:latest
+  container_name: ollama-pull-llama
+  volumes:
+    - ollama_storage:/root/.ollama
+  entrypoint: /bin/sh
+  command:
+    - "-c"
+    - "sleep 3; OLLAMA_HOST=ollama:11434 ollama pull qwen2.5:7b-instruct-q4_K_M; OLLAMA_HOST=ollama:11434 ollama pull nomic-embed-text"
+
+networks:
+  internal_network:
+    driver: bridge
+    internal: false
+  database_network:
+    driver: bridge
+    internal: true
+
+services:
+  # Shared Database - Central PostgreSQL with multiple databases
+  shared-postgres:
+    image: pgvector/pgvector:pg16
+    container_name: shared-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      POSTGRES_MULTIPLE_DATABASES: "n8n_db,supabase_db,langfuse_db,appflowy_db,affine_db"
+    volumes:
+      - shared_postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
+    networks:
+      - database_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Shared Redis - Central caching service
+  shared-redis:
+    image: redis:7-alpine
+    container_name: shared-redis
+    restart: unless-stopped
+    command: redis-server --save 30 1 --loglevel warning
+    volumes:
+      - valkey-data:/data
+    networks:
+      - database_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  flowise:
+    image: flowiseai/flowise
+    restart: unless-stopped
+    container_name: flowise
+    profiles: ["flowise"]
+    environment:
+      - PORT=3001
+      - FLOWISE_USERNAME=${FLOWISE_USERNAME}
+      - FLOWISE_PASSWORD=${FLOWISE_PASSWORD}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ~/.flowise:/root/.flowise
+    networks:
+      - internal_network
+    entrypoint: /bin/sh -c "sleep 3; flowise start"
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    restart: unless-stopped
+    container_name: open-webui
+    profiles: ["open-webui"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - open-webui:/app/backend/data
+    networks:
+      - internal_network
+
+  n8n-import:
+    <<: *service-n8n
+    container_name: n8n-import
+    profiles: ["n8n"]
+    environment:
+      <<: *service-n8n-env
+      RUN_N8N_IMPORT: ${RUN_N8N_IMPORT:-false}
+    entrypoint: /bin/sh
+    command: /scripts/n8n_import_script.sh
+    volumes:
+      - ./n8n/backup:/backup
+      - ./n8n/n8n_import_script.sh:/scripts/n8n_import_script.sh:ro
+    networks:
+      - internal_network
+      - database_network
+    depends_on:
+      shared-postgres:
+        condition: service_healthy
+
+  n8n:
+    <<: *service-n8n
+    container_name: n8n
+    profiles: ["n8n"]
+    restart: unless-stopped
+    volumes:
+      - n8n_storage:/home/node/.n8n
+      - ./n8n/backup:/backup
+      - ./shared:/data/shared
+    networks:
+      - internal_network
+      - database_network
+    depends_on:
+      n8n-import:
+        condition: service_completed_successfully
+      shared-postgres:
+        condition: service_healthy
+      shared-redis:
+        condition: service_healthy
+
+  n8n-worker:
+    <<: *service-n8n
+    profiles: ["n8n"]
+    restart: unless-stopped
+    command: worker
+    volumes:
+      - n8n_storage:/home/node/.n8n
+      - ./shared:/data/shared
+    networks:
+      - internal_network
+      - database_network
+    depends_on:
+      n8n:
+        condition: service_started
+      shared-redis:
+        condition: service_healthy
+      shared-postgres:
+        condition: service_healthy
+    deploy:
+      replicas: ${N8N_WORKER_COUNT:-1}
+
+  # AppFlowy Services - Enhanced with shared database integration
+  appflowy-minio:
+    image: minio/minio:latest
+    container_name: appflowy-minio
+    profiles: ["appflowy"]
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=${APPFLOWY_MINIO_PASSWORD}
+    volumes:
+      - appflowy_minio_data:/data
+    networks:
+      - internal_network
+
+  appflowy-gotrue:
+    image: appflowyinc/gotrue:latest
+    container_name: appflowy-gotrue
+    profiles: ["appflowy"]
+    restart: unless-stopped
+    environment:
+      - GOTRUE_ADMIN_EMAIL=${LETSENCRYPT_EMAIL}
+      - GOTRUE_ADMIN_PASSWORD=${APPFLOWY_ADMIN_PASSWORD}
+      - GOTRUE_DISABLE_SIGNUP=${APPFLOWY_DISABLE_SIGNUP:-false}
+      - GOTRUE_SITE_URL=https://${APPFLOWY_HOSTNAME}
+      - GOTRUE_URI_ALLOW_LIST=**
+      - GOTRUE_JWT_SECRET=${APPFLOWY_JWT_SECRET}
+      - GOTRUE_JWT_EXP=7200
+      - GOTRUE_JWT_ADMIN_GROUP_NAME=supabase_admin
+      - GOTRUE_DB_DRIVER=postgres
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@shared-postgres:5432/appflowy_db?sslmode=disable
+      - PORT=9999
+      - GOTRUE_SMTP_HOST=${APPFLOWY_SMTP_HOST:-}
+      - GOTRUE_SMTP_PORT=${APPFLOWY_SMTP_PORT:-587}
+      - GOTRUE_SMTP_USER=${APPFLOWY_SMTP_USER:-}
+      - GOTRUE_SMTP_PASS=${APPFLOWY_SMTP_PASS:-}
+      - GOTRUE_MAILER_URLPATHS_CONFIRMATION=/gotrue/verify
+      - GOTRUE_MAILER_URLPATHS_INVITE=/gotrue/verify
+      - GOTRUE_MAILER_URLPATHS_RECOVERY=/gotrue/verify
+      - GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE=/gotrue/verify
+      - GOTRUE_SMTP_ADMIN_EMAIL=${LETSENCRYPT_EMAIL}
+      - GOTRUE_SMTP_MAX_FREQUENCY=1ns
+      - GOTRUE_RATE_LIMIT_EMAIL_SENT=100
+      - GOTRUE_MAILER_AUTOCONFIRM=true
+    networks:
+      - internal_network
+      - database_network
+    depends_on:
+      shared-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail http://127.0.0.1:9999/health || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  appflowy-cloud:
+    image: appflowyinc/appflowy_cloud:latest
+    container_name: appflowy-cloud
+    profiles: ["appflowy"]
+    restart: unless-stopped
+    environment:
+      - RUST_LOG=info
+      - APPFLOWY_ENVIRONMENT=production
+      - APPFLOWY_DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@shared-postgres:5432/appflowy_db
+      - APPFLOWY_REDIS_URI=redis://shared-redis:6379
+      - APPFLOWY_GOTRUE_JWT_SECRET=${APPFLOWY_JWT_SECRET}
+      - APPFLOWY_GOTRUE_JWT_EXP=7200
+      - APPFLOWY_GOTRUE_BASE_URL=http://appflowy-gotrue:9999
+      - APPFLOWY_S3_CREATE_BUCKET=true
+      - APPFLOWY_S3_USE_MINIO=true
+      - APPFLOWY_S3_MINIO_URL=http://appflowy-minio:9000
+      - APPFLOWY_S3_ACCESS_KEY=minioadmin
+      - APPFLOWY_S3_SECRET_KEY=${APPFLOWY_MINIO_PASSWORD}
+      - APPFLOWY_S3_BUCKET=appflowy
+      - APPFLOWY_S3_REGION=us-east-1
+      - APPFLOWY_MAILER_SMTP_HOST=${APPFLOWY_SMTP_HOST:-}
+      - APPFLOWY_MAILER_SMTP_PORT=${APPFLOWY_SMTP_PORT:-587}
+      - APPFLOWY_MAILER_SMTP_USERNAME=${APPFLOWY_SMTP_USER:-}
+      - APPFLOWY_MAILER_SMTP_EMAIL=${APPFLOWY_SMTP_USER:-}
+      - APPFLOWY_MAILER_SMTP_PASSWORD=${APPFLOWY_SMTP_PASS:-}
+      - APPFLOWY_MAILER_SMTP_TLS_KIND=opportunistic
+      - APPFLOWY_ACCESS_CONTROL=false
+      - APPFLOWY_DATABASE_MAX_CONNECTIONS=40
+      - APPFLOWY_WEB_URL=https://${APPFLOWY_HOSTNAME}
+    networks:
+      - internal_network
+      - database_network
+    depends_on:
+      appflowy-gotrue:
+        condition: service_healthy
+      shared-redis:
+        condition: service_healthy
+
+  appflowy-web:
+    image: appflowyinc/appflowy_web:latest
+    container_name: appflowy-web
+    profiles: ["appflowy"]
+    restart: unless-stopped
+    networks:
+      - internal_network
+    depends_on:
+      - appflowy-cloud
+
+  # Affine Services - Enhanced with shared database integration
+  affine-migration:
+    image: ghcr.io/toeverything/affine-graphql:stable
+    container_name: affine-migration
+    profiles: ["affine"]
+    command: ["sh", "-c", "node ./scripts/self-host-predeploy.js && echo 'Migration completed successfully'"]
+    environment:
+      - NODE_ENV=production
+      - REDIS_SERVER_HOST=shared-redis
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@shared-postgres:5432/affine_db
+      - AFFINE_SERVER_HOST=${AFFINE_HOSTNAME}
+      - AFFINE_SERVER_HTTPS=true
+    volumes:
+      - affine_storage:/root/.affine/storage
+      - affine_config:/root/.affine/config
+    networks:
+      - internal_network
+      - database_network
+    depends_on:
+      shared-postgres:
+        condition: service_healthy
+      shared-redis:
+        condition: service_healthy
+
+  affine:
+    image: ghcr.io/toeverything/affine-graphql:stable
+    container_name: affine
+    profiles: ["affine"]
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - REDIS_SERVER_HOST=shared-redis
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@shared-postgres:5432/affine_db
+      - AFFINE_INDEXER_ENABLED=false
+      - AFFINE_SERVER_HTTPS=true
+      - AFFINE_SERVER_EXTERNAL_URL=https://${AFFINE_HOSTNAME}
+      - AFFINE_SERVER_HOST=${AFFINE_HOSTNAME}
+      - AFFINE_ADMIN_EMAIL=${AFFINE_ADMIN_EMAIL}
+      - AFFINE_ADMIN_PASSWORD=${AFFINE_ADMIN_PASSWORD}
+      - MAILER_HOST=${AFFINE_SMTP_HOST:-}
+      - MAILER_PORT=${AFFINE_SMTP_PORT:-587}
+      - MAILER_USER=${AFFINE_SMTP_USER:-}
+      - MAILER_PASSWORD=${AFFINE_SMTP_PASS:-}
+      - TELEMETRY_ENABLE=false
+      - COPILOT_OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    volumes:
+      - affine_storage:/root/.affine/storage
+      - affine_config:/root/.affine/config
+    networks:
+      - internal_network
+      - database_network
+    depends_on:
+      shared-postgres:
+        condition: service_healthy
+      shared-redis:
+        condition: service_healthy
+      affine-migration:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "timeout", "10s", "bash", "-c", ": > /dev/tcp/127.0.0.1/3010"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 180s
+
+  # Portainer - Container Management Interface
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    profiles: ["portainer"]
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - internal_network
+    security_opt:
+      - no-new-privileges:true
+
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant
+    profiles: ["qdrant"]
+    restart: unless-stopped
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY}
+    networks:
+      - internal_network
+    expose:
+      - "6333"
+
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j
+    profiles: ["neo4j"]
+    restart: unless-stopped
+    volumes:
+      - ./neo4j/logs:/logs
+      - ./neo4j/config:/config
+      - ./neo4j/data:/data
+      - ./neo4j/plugins:/plugins
+    environment:
+      - NEO4J_AUTH=${NEO4J_AUTH_USERNAME}/${NEO4J_AUTH_PASSWORD}
+    networks:
+      - internal_network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ulimits:
+      nofile:
+        soft: 40000
+        hard: 40000
+
+  caddy:
+    container_name: caddy
+    image: docker.io/library/caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "7687:7687"
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy-addon:/etc/caddy/addons:ro
+      - caddy-data:/data:rw
+      - caddy-config:/config:rw
+    environment:
+      - N8N_HOSTNAME=${N8N_HOSTNAME}
+      - WEBUI_HOSTNAME=${WEBUI_HOSTNAME}
+      - FLOWISE_HOSTNAME=${FLOWISE_HOSTNAME}
+      - SUPABASE_HOSTNAME=${SUPABASE_HOSTNAME}
+      - SEARXNG_HOSTNAME=${SEARXNG_HOSTNAME}
+      - LANGFUSE_HOSTNAME=${LANGFUSE_HOSTNAME}
+      - WEAVIATE_HOSTNAME=${WEAVIATE_HOSTNAME}
+      - QDRANT_HOSTNAME=${QDRANT_HOSTNAME}
+      - NEO4J_HOSTNAME=${NEO4J_HOSTNAME}
+      - APPFLOWY_HOSTNAME=${APPFLOWY_HOSTNAME}
+      - AFFINE_HOSTNAME=${AFFINE_HOSTNAME}
+      - PORTAINER_HOSTNAME=${PORTAINER_HOSTNAME}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-internal}
+      - PROMETHEUS_HOSTNAME=${PROMETHEUS_HOSTNAME}
+      - GRAFANA_HOSTNAME=${GRAFANA_HOSTNAME}
+      - LETTA_HOSTNAME=${LETTA_HOSTNAME}
+      - PROMETHEUS_USERNAME=${PROMETHEUS_USERNAME}
+      - PROMETHEUS_PASSWORD_HASH=${PROMETHEUS_PASSWORD_HASH}
+      - SEARXNG_USERNAME=${SEARXNG_USERNAME}
+      - SEARXNG_PASSWORD_HASH=${SEARXNG_PASSWORD_HASH}
+    networks:
+      - internal_network
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+  # Legacy services from original compose (langfuse, etc.)
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3
+    restart: always
+    profiles: ["langfuse"]
+    depends_on: &langfuse-depends-on
+      shared-postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      shared-redis:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    environment: &langfuse-worker-env
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@shared-postgres:5432/langfuse_db
+      SALT: ${LANGFUSE_SALT}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-true}
+      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-true}
+      CLICKHOUSE_MIGRATION_URL: ${CLICKHOUSE_MIGRATION_URL:-clickhouse://clickhouse:9000}
+      CLICKHOUSE_URL: ${CLICKHOUSE_URL:-http://clickhouse:8123}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-clickhouse}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_CLUSTER_ENABLED: ${CLICKHOUSE_CLUSTER_ENABLED:-false}
+      REDIS_HOST: shared-redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_AUTH: ${REDIS_AUTH:-LOCALONLYREDIS}
+      REDIS_TLS_ENABLED: ${REDIS_TLS_ENABLED:-false}
+    networks:
+      - internal_network
+      - database_network
+
+  langfuse-web:
+    image: langfuse/langfuse:3
+    restart: always
+    profiles: ["langfuse"]
+    depends_on: *langfuse-depends-on
+    environment:
+      <<: *langfuse-worker-env
+      NEXTAUTH_URL: https://${LANGFUSE_HOSTNAME}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-organization_id}
+      LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_INIT_ORG_NAME:-Organization}
+      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_INIT_PROJECT_ID:-project_id}
+      LANGFUSE_INIT_PROJECT_NAME: ${LANGFUSE_INIT_PROJECT_NAME:-Project}
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_INIT_PROJECT_PUBLIC_KEY:-}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_INIT_PROJECT_SECRET_KEY:-}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-}
+      LANGFUSE_INIT_USER_NAME: ${LANGFUSE_INIT_USER_NAME:-}
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-}
+      AUTH_DISABLE_SIGNUP: ${AUTH_DISABLE_SIGNUP:-true}
+    networks:
+      - internal_network
+      - database_network
+
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    restart: always
+    profiles: ["langfuse"]
+    user: "101:101"
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+    volumes:
+      - langfuse_clickhouse_data:/var/lib/clickhouse
+      - langfuse_clickhouse_logs:/var/log/clickhouse-server
+    networks:
+      - internal_network
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 1s
+
+  minio:
+    image: minio/minio
+    restart: always
+    profiles: ["langfuse"]
+    entrypoint: sh
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - langfuse_minio_data:/data
+    networks:
+      - internal_network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 1s
+      timeout: 5s
+      retries: 5
+      start_period: 1s
+
+  searxng:
+    container_name: searxng
+    image: docker.io/searxng/searxng:latest
+    profiles: ["searxng"]
+    restart: unless-stopped
+    volumes:
+      - ./searxng:/etc/searxng:rw
+    environment:
+      - SEARXNG_BASE_URL=https://${SEARXNG_HOSTNAME:-localhost}/
+      - UWSGI_WORKERS=${SEARXNG_UWSGI_WORKERS:-4}
+      - UWSGI_THREADS=${SEARXNG_UWSGI_THREADS:-4}
+    networks:
+      - internal_network
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+  ollama-cpu:
+    profiles: ["cpu"]
+    <<: *service-ollama
+    networks:
+      - internal_network
+
+  ollama-gpu:
+    profiles: ["gpu-nvidia"]
+    <<: *service-ollama
+    networks:
+      - internal_network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  ollama-gpu-amd:
+    profiles: ["gpu-amd"]
+    <<: *service-ollama
+    image: ollama/ollama:rocm
+    networks:
+      - internal_network
+    devices:
+      - "/dev/kfd"
+      - "/dev/dri"
+
+  ollama-pull-llama-cpu:
+    profiles: ["cpu"]
+    <<: *init-ollama
+    depends_on:
+      - ollama-cpu
+
+  ollama-pull-llama-gpu:
+    profiles: ["gpu-nvidia"]
+    <<: *init-ollama
+    depends_on:
+      - ollama-gpu
+
+  ollama-pull-llama-gpu-amd:
+    profiles: [gpu-amd]
+    <<: *init-ollama
+    image: ollama/ollama:rocm
+    depends_on:
+      - ollama-gpu-amd
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - internal_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    networks:
+      - internal_network
+    expose:
+      - 9100
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - internal_network
+    expose:
+      - 8080
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_PROVISIONING_PATH=/etc/grafana/provisioning
+    volumes:
+      - grafana:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - internal_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - prometheus
+
+  crawl4ai:
+    image: unclecode/crawl4ai:latest
+    container_name: crawl4ai
+    profiles: ["crawl4ai"]
+    restart: unless-stopped
+    shm_size: 1g
+    env_file:
+      - .env
+    networks:
+      - internal_network
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 4G
+
+  letta:
+    image: letta/letta:latest
+    container_name: letta
+    profiles: ["letta"]
+    restart: unless-stopped
+    volumes:
+      - letta_data:/var/lib/postgresql/data
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+      SECURE: ${LETTA_SECURE:-true}
+      LETTA_SERVER_PASSWORD: ${LETTA_SERVER_PASSWORD:-}
+    networks:
+      - internal_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:latest
+    container_name: weaviate
+    profiles: ["weaviate"]
+    restart: unless-stopped
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "false"
+      AUTHENTICATION_APIKEY_ENABLED: "true"
+      AUTHENTICATION_APIKEY_ALLOWED_KEYS: ${WEAVIATE_API_KEY}
+      AUTHENTICATION_APIKEY_USERS: ${WEAVIATE_USERNAME}
+      AUTHORIZATION_ENABLE_RBAC: "true"
+      AUTHORIZATION_RBAC_ROOT_USERS: ${WEAVIATE_USERNAME}
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      ENABLE_API_BASED_MODULES: "true"
+      CLUSTER_HOSTNAME: "node1"
+      DEFAULT_VECTORIZER_MODULE: "none"
+    networks:
+      - internal_network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider http://localhost:8080/v1/.well-known/ready || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
