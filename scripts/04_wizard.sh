@@ -92,7 +92,7 @@ read_current_profiles() {
     echo ",$current_profiles,"
 }
 
-# Enhanced service definitions including workspace tools and editor options
+# Service definitions including workspace tools and editor options
 prepare_service_data() {
     local current_profiles="$1"
     
@@ -202,7 +202,7 @@ show_editor_selection() {
 
 Currently configured: $current_editor ($install_type)
 
-The enhanced workspace includes integrated development editor support:
+The  workspace includes integrated development editor support:
 
 NATIVE EDITORS (Recommended):
 • ⚡ Zed Editor - Ultra-fast, AI-powered, collaborative
@@ -221,7 +221,7 @@ Would you like to reconfigure your editor selection?" 18 80
         whiptail --title "Editor Setup Required" --yesno \
 "🎨 DEVELOPMENT EDITOR SETUP
 
-The enhanced workspace includes integrated development tools. 
+The  workspace includes integrated development tools. 
 You can choose between multiple editor options:
 
 ⚡ NATIVE INSTALLATION (Recommended):
@@ -235,7 +235,7 @@ You can choose between multiple editor options:
    • Web-based access options
 
 Would you like to configure your development editor now?
-(You can also run this later with: python enhanced_editor_selection.py)" 18 85
+(You can also run this later with: python _editor_selection.py)" 18 85
         
         if [ $? -eq 0 ]; then
             run_editor_selection
@@ -245,12 +245,12 @@ Would you like to configure your development editor now?
 
 # Function to run editor selection
 run_editor_selection() {
-    # Check if the enhanced editor selection script exists
-    local editor_script="$PROJECT_ROOT/enhanced_editor_selection.py"
+    # Check if the  editor selection script exists
+    local editor_script="$PROJECT_ROOT/_editor_selection.py"
     
     if [ ! -f "$editor_script" ]; then
         whiptail --title "Editor Selection" --msgbox \
-"❌ Enhanced editor selection script not found.
+"❌  editor selection script not found.
 
 The editor setup will be skipped. You can manually:
 1. Install Zed: curl https://zed.dev/install.sh | sh
@@ -263,7 +263,7 @@ The editor setup will be skipped. You can manually:
     export DEBIAN_FRONTEND="$ORIGINAL_DEBIAN_FRONTEND"
     
     clear
-    echo "🎨 Starting Enhanced Editor Selection..."
+    echo "🎨 Starting  Editor Selection..."
     echo "======================================"
     
     if python3 "$editor_script"; then
@@ -280,12 +280,12 @@ The editor setup will be skipped. You can manually:
     export DEBIAN_FRONTEND=dialog
 }
 
-# Enhanced service selection with categories
+#  service selection with categories
 show_enhanced_service_selection() {
     local services=("$@")
     
-    CHOICES=$(whiptail --title "Enhanced Service Selection Wizard" --checklist \
-"🚀 ENHANCED n8n-INSTALLER + WORKSPACE SERVICES
+    CHOICES=$(whiptail --title "Service Selection Wizard" --checklist \
+"🚀 N8N-INSTALLER + WORKSPACE SERVICES
 
 Select services for your unified AI development environment:
 
@@ -655,7 +655,7 @@ main() {
     show_deployment_summary "${selected_profiles[*]}" "$editor_configured"
     
     if ! whiptail --title "Final Confirmation" --yesno \
-"🚀 START ENHANCED WORKSPACE DEPLOYMENT?
+"🚀 START AI-WORKSPACE DEPLOYMENT?
 
 This will:
 • Configure ${#selected_profiles[@]} services
@@ -701,7 +701,7 @@ Proceed with deployment?" 15 60; then
     fi
     
     # Success message
-    log_success "Enhanced workspace configuration completed!"
+    log_success "AI-workspace configuration completed!"
     echo ""
     log_info "Selected profiles: ${compose_profiles_value}"
     log_info "Editor configured: $editor_configured"
