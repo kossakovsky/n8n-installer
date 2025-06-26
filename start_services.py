@@ -33,7 +33,7 @@ from typing import List, Dict, Any, Optional
 def show_banner():
     """Enhanced banner for the unified workspace"""
     print("\n" + "="*90)
-    print("🚀 ENHANCED n8n-INSTALLER + WORKSPACE-IN-A-BOX")
+    print("🚀 AI-WORKSPACE-INSTALLER")
     print("="*90)
     print("🧠 AI Automation + 📝 Knowledge Management + 🎨 Native Development")
     print()
