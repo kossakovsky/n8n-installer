@@ -1,67 +1,73 @@
+# Enhanced Caddyfile for n8n-installer + Workspace Integration
+# Provides unified domain routing for all services with automatic HTTPS
+
 {
-    # Global options - works for both environments
+    # Global options
     email {$LETSENCRYPT_EMAIL}
     admin off
+    
+    # Logging configuration
     log {
-        output file /var/log/caddy/access.log
+        output file /var/log/caddy/access.log {
+            roll_size 100mb
+            roll_keep 5
+            roll_keep_for 720h
+        }
         format json
+        level INFO
+    }
+    
+    # Security headers
+    header {
+        # Security headers for all sites
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
     }
 }
 
-# Import additional configurations
-import /etc/caddy/addons/*.conf
+# =============================================================================
+# CORE AI AUTOMATION SERVICES
+# =============================================================================
 
-# N8N - Core Automation Platform
-{$N8N_HOSTNAME} {
+# n8n Workflow Automation Platform
+n8n.{$USER_DOMAIN_NAME:localhost} {
     reverse_proxy n8n:5678 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         header_up X-Forwarded-For {remote}
         header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+        
+        # Health check for n8n
+        health_uri /healthz
+        health_interval 30s
+        health_timeout 10s
     }
-    
-    # Enable compression for better performance
-    encode zstd gzip
-    
-    # Handle WebSocket connections for real-time features
-    @websockets {
-        header Connection *Upgrade*
-        header Upgrade websocket
-    }
-    reverse_proxy @websockets n8n:5678
     
     log {
         output file /var/log/caddy/n8n.log
         format json
     }
-}
-
-# Open WebUI - ChatGPT-like Interface
-{$WEBUI_HOSTNAME} {
-    reverse_proxy open-webui:8080 {
-        header_up Host {host}
-        header_up X-Real-IP {remote}
-        header_up X-Forwarded-For {remote}
-        header_up X-Forwarded-Proto {scheme}
-    }
     
-    encode zstd gzip
+    # Enable compression
+    encode gzip
     
-    # Handle WebSocket connections
-    @websockets {
-        header Connection *Upgrade*
-        header Upgrade websocket
-    }
-    reverse_proxy @websockets open-webui:8080
-    
-    log {
-        output file /var/log/caddy/webui.log
-        format json
+    # Rate limiting for n8n webhooks
+    rate_limit {
+        zone n8n {
+            key {remote}
+            events 100
+            window 1m
+        }
     }
 }
 
-# Flowise - AI Agent Builder
-{$FLOWISE_HOSTNAME} {
+# Flowise AI Agent Builder
+flowise.{$USER_DOMAIN_NAME:localhost} {
     reverse_proxy flowise:3001 {
         header_up Host {host}
         header_up X-Real-IP {remote}
@@ -69,48 +75,54 @@ import /etc/caddy/addons/*.conf
         header_up X-Forwarded-Proto {scheme}
     }
     
-    encode zstd gzip
-    
     log {
         output file /var/log/caddy/flowise.log
-        format json
+    }
+    
+    encode gzip
+    
+    # Authentication for Flowise (if credentials are set)
+    @has_flowise_auth expression `{$FLOWISE_USERNAME} != ""`
+    basicauth @has_flowise_auth {
+        {$FLOWISE_USERNAME} {$FLOWISE_PASSWORD_HASH}
     }
 }
 
-# AppFlowy - Knowledge Management & Notion Alternative
-{$APPFLOWY_HOSTNAME} {
-    reverse_proxy appflowy-web:3000 {
+# Open WebUI - ChatGPT-like Interface
+webui.{$USER_DOMAIN_NAME:localhost} {
+    reverse_proxy open-webui:8080 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         header_up X-Forwarded-For {remote}
         header_up X-Forwarded-Proto {scheme}
     }
     
-    encode zstd gzip
-    
-    # Handle WebSocket connections for real-time collaboration
-    @websockets {
-        header Connection *Upgrade*
-        header Upgrade websocket
-    }
-    reverse_proxy @websockets appflowy-web:3000
-    
-    # Enable CORS for API requests
-    header {
-        Access-Control-Allow-Origin *
-        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-        Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
-        Access-Control-Max-Age "86400"
+    log {
+        output file /var/log/caddy/open-webui.log
     }
     
-    # Handle preflight requests
-    @preflight {
-        method OPTIONS
+    encode gzip
+}
+
+# =============================================================================
+# KNOWLEDGE MANAGEMENT SERVICES
+# =============================================================================
+
+# AppFlowy - Knowledge Management & Notion Alternative
+appflowy.{$USER_DOMAIN_NAME:localhost} {
+    reverse_proxy appflowy-web:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+        
+        # WebSocket support for real-time features
+        header_up Connection {>Connection}
+        header_up Upgrade {>Upgrade}
     }
-    respond @preflight 204
     
-    # API routes for AppFlowy Cloud
-    handle /api/* {
+    # Handle AppFlowy API routes
+    handle_path /api/* {
         reverse_proxy appflowy-cloud:8000 {
             header_up Host {host}
             header_up X-Real-IP {remote}
@@ -119,8 +131,8 @@ import /etc/caddy/addons/*.conf
         }
     }
     
-    # GoTrue auth routes
-    handle /gotrue/* {
+    # Handle authentication routes
+    handle_path /gotrue/* {
         reverse_proxy appflowy-gotrue:9999 {
             header_up Host {host}
             header_up X-Real-IP {remote}
@@ -131,101 +143,67 @@ import /etc/caddy/addons/*.conf
     
     log {
         output file /var/log/caddy/appflowy.log
-        format json
     }
+    
+    encode gzip
 }
 
-# Affine - Collaborative Workspace
-{$AFFINE_HOSTNAME} {
+# Affine - Collaborative Workspace & Block-based Editor
+affine.{$USER_DOMAIN_NAME:localhost} {
     reverse_proxy affine:3010 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         header_up X-Forwarded-For {remote}
         header_up X-Forwarded-Proto {scheme}
-    }
-    
-    encode zstd gzip
-    
-    # Handle WebSocket connections for collaboration
-    @websockets {
-        header Connection *Upgrade*
-        header Upgrade websocket
-    }
-    reverse_proxy @websockets affine:3010
-    
-    # Enable CORS for API requests
-    header {
-        Access-Control-Allow-Origin *
-        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-        Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-CSRF-Token"
-        Access-Control-Max-Age "86400"
-    }
-    
-    # Handle preflight requests
-    @preflight {
-        method OPTIONS
-    }
-    respond @preflight 204
-    
-    # GraphQL endpoint
-    handle /graphql* {
-        reverse_proxy affine:3010 {
-            header_up Host {host}
-            header_up X-Real-IP {remote}
-            header_up X-Forwarded-For {remote}
-            header_up X-Forwarded-Proto {scheme}
-        }
+        header_up X-Forwarded-Host {host}
+        
+        # WebSocket support for collaboration
+        header_up Connection {>Connection}
+        header_up Upgrade {>Upgrade}
     }
     
     log {
         output file /var/log/caddy/affine.log
-        format json
+    }
+    
+    encode gzip
+    
+    # File upload handling for large files
+    request_body {
+        max_size 100MB
     }
 }
 
-# Portainer - Container Management Interface
-{$PORTAINER_HOSTNAME} {
+# =============================================================================
+# CONTAINER MANAGEMENT
+# =============================================================================
+
+# Portainer - Docker Container Management
+portainer.{$USER_DOMAIN_NAME:localhost} {
     reverse_proxy portainer:9000 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         header_up X-Forwarded-For {remote}
         header_up X-Forwarded-Proto {scheme}
+        
+        # WebSocket support for real-time updates
+        header_up Connection {>Connection}
+        header_up Upgrade {>Upgrade}
     }
-    
-    encode zstd gzip
-    
-    # Handle WebSocket connections for container logs
-    @websockets {
-        header Connection *Upgrade*
-        header Upgrade websocket
-    }
-    reverse_proxy @websockets portainer:9000
     
     log {
         output file /var/log/caddy/portainer.log
-        format json
     }
+    
+    encode gzip
 }
 
-# Langfuse - AI Observability
-{$LANGFUSE_HOSTNAME} {
-    reverse_proxy langfuse-web:3000 {
-        header_up Host {host}
-        header_up X-Real-IP {remote}
-        header_up X-Forwarded-For {remote}
-        header_up X-Forwarded-Proto {scheme}
-    }
-    
-    encode zstd gzip
-    
-    log {
-        output file /var/log/caddy/langfuse.log
-        format json
-    }
-}
+# =============================================================================
+# INFRASTRUCTURE SERVICES
+# =============================================================================
 
 # Supabase - Backend as a Service
-{$SUPABASE_HOSTNAME} {
+supabase.{$USER_DOMAIN_NAME:localhost} {
     reverse_proxy kong:8000 {
         header_up Host {host}
         header_up X-Real-IP {remote}
@@ -233,16 +211,20 @@ import /etc/caddy/addons/*.conf
         header_up X-Forwarded-Proto {scheme}
     }
     
-    encode zstd gzip
-    
     log {
         output file /var/log/caddy/supabase.log
-        format json
+    }
+    
+    encode gzip
+    
+    @has_supabase_auth expression `{$DASHBOARD_USERNAME} != ""`
+    basicauth @has_supabase_auth {
+        {$DASHBOARD_USERNAME} {$DASHBOARD_PASSWORD_HASH}
     }
 }
 
 # Grafana - Monitoring Dashboard
-{$GRAFANA_HOSTNAME} {
+grafana.{$USER_DOMAIN_NAME:localhost} {
     reverse_proxy grafana:3000 {
         header_up Host {host}
         header_up X-Real-IP {remote}
@@ -250,27 +232,15 @@ import /etc/caddy/addons/*.conf
         header_up X-Forwarded-Proto {scheme}
     }
     
-    encode zstd gzip
-    
-    # Handle WebSocket connections for real-time updates
-    @websockets {
-        header Connection *Upgrade*
-        header Upgrade websocket
-    }
-    reverse_proxy @websockets grafana:3000
-    
     log {
         output file /var/log/caddy/grafana.log
-        format json
-    }
-}
-
-# Prometheus - Metrics Collection (with Basic Auth)
-{$PROMETHEUS_HOSTNAME} {
-    basic_auth { 
-        {$PROMETHEUS_USERNAME} {$PROMETHEUS_PASSWORD_HASH}
     }
     
+    encode gzip
+}
+
+# Prometheus - Metrics Collection
+prometheus.{$USER_DOMAIN_NAME:localhost} {
     reverse_proxy prometheus:9090 {
         header_up Host {host}
         header_up X-Real-IP {remote}
@@ -278,50 +248,40 @@ import /etc/caddy/addons/*.conf
         header_up X-Forwarded-Proto {scheme}
     }
     
-    encode zstd gzip
-    
     log {
         output file /var/log/caddy/prometheus.log
-        format json
+    }
+    
+    encode gzip
+    
+    @has_prometheus_auth expression `{$PROMETHEUS_USERNAME} != ""`
+    basicauth @has_prometheus_auth {
+        {$PROMETHEUS_USERNAME} {$PROMETHEUS_PASSWORD_HASH}
     }
 }
 
-# Letta - Agent Server & SDK
-{$LETTA_HOSTNAME} {
-    reverse_proxy letta:8283 {
+# Langfuse - AI Observability Platform
+langfuse.{$USER_DOMAIN_NAME:localhost} {
+    reverse_proxy langfuse-web:3000 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         header_up X-Forwarded-For {remote}
         header_up X-Forwarded-Proto {scheme}
     }
     
-    encode zstd gzip
-    
     log {
-        output file /var/log/caddy/letta.log
-        format json
+        output file /var/log/caddy/langfuse.log
     }
+    
+    encode gzip
 }
 
-# Weaviate - Vector Database
-{$WEAVIATE_HOSTNAME} {
-    reverse_proxy weaviate:8080 {
-        header_up Host {host}
-        header_up X-Real-IP {remote}
-        header_up X-Forwarded-For {remote}
-        header_up X-Forwarded-Proto {scheme}
-    }
-    
-    encode zstd gzip
-    
-    log {
-        output file /var/log/caddy/weaviate.log
-        format json
-    }
-}
+# =============================================================================
+# VECTOR DATABASES
+# =============================================================================
 
-# Qdrant - Vector Database
-{$QDRANT_HOSTNAME} {
+# Qdrant - High-Performance Vector Database
+qdrant.{$USER_DOMAIN_NAME:localhost} {
     reverse_proxy qdrant:6333 {
         header_up Host {host}
         header_up X-Real-IP {remote}
@@ -329,16 +289,65 @@ import /etc/caddy/addons/*.conf
         header_up X-Forwarded-Proto {scheme}
     }
     
-    encode zstd gzip
-    
     log {
         output file /var/log/caddy/qdrant.log
-        format json
+    }
+    
+    encode gzip
+    
+    # API key authentication for Qdrant
+    @api_key_missing not header_regexp api-key Authorization "Bearer .+"
+    respond @api_key_missing "API key required" 401
+}
+
+# Weaviate - AI-Native Vector Database  
+weaviate.{$USER_DOMAIN_NAME:localhost} {
+    reverse_proxy weaviate:8080 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    log {
+        output file /var/log/caddy/weaviate.log
+    }
+    
+    encode gzip
+    
+    @has_weaviate_auth expression `{$WEAVIATE_USERNAME} != ""`
+    basicauth @has_weaviate_auth {
+        {$WEAVIATE_USERNAME} {$WEAVIATE_API_KEY_HASH}
     }
 }
 
-# Neo4j - Graph Database
-{$NEO4J_HOSTNAME} {
+# =============================================================================
+# ADDITIONAL SERVICES
+# =============================================================================
+
+# SearXNG - Private Metasearch Engine
+search.{$USER_DOMAIN_NAME:localhost} {
+    reverse_proxy searxng:8080 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    log {
+        output file /var/log/caddy/searxng.log
+    }
+    
+    encode gzip
+    
+    @has_searxng_auth expression `{$SEARXNG_USERNAME} != ""`
+    basicauth @has_searxng_auth {
+        {$SEARXNG_USERNAME} {$SEARXNG_PASSWORD_HASH}
+    }
+}
+
+# Neo4j - Graph Database Browser
+neo4j.{$USER_DOMAIN_NAME:localhost} {
     reverse_proxy neo4j:7474 {
         header_up Host {host}
         header_up X-Real-IP {remote}
@@ -346,93 +355,154 @@ import /etc/caddy/addons/*.conf
         header_up X-Forwarded-Proto {scheme}
     }
     
-    encode zstd gzip
-    
     log {
         output file /var/log/caddy/neo4j.log
-        format json
     }
+    
+    encode gzip
 }
 
-# Neo4j Bolt Protocol (wss)
-https://{$NEO4J_HOSTNAME}:7687 {
-    reverse_proxy neo4j:7687 {
+# Letta - Agent Server & SDK
+letta.{$USER_DOMAIN_NAME:localhost} {
+    reverse_proxy letta:8283 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         header_up X-Forwarded-For {remote}
         header_up X-Forwarded-Proto {scheme}
+        header_up Authorization "Bearer {$LETTA_SERVER_PASSWORD}"
     }
     
     log {
-        output file /var/log/caddy/neo4j-bolt.log
-        format json
+        output file /var/log/caddy/letta.log
+    }
+    
+    encode gzip
+}
+
+# =============================================================================
+# DEVELOPMENT ENVIRONMENT (Optional code-server)
+# =============================================================================
+
+# VS Code Server (when using container editor)
+vscode.{$USER_DOMAIN_NAME:localhost} {
+    reverse_proxy vscode-server:8080 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+        
+        # WebSocket support for terminal and extensions
+        header_up Connection {>Connection}
+        header_up Upgrade {>Upgrade}
+    }
+    
+    log {
+        output file /var/log/caddy/vscode.log
+    }
+    
+    encode gzip
+    
+    # Password protection for code-server
+    basicauth {
+        admin {$EDITOR_PASSWORD_HASH:$2a$10$rQ7XkbQz6QR8N2bQz8QR8u}
     }
 }
 
-# SearXNG - Private Metasearch Engine (with Basic Auth)
-{$SEARXNG_HOSTNAME} {
-    basic_auth { 
-        {$SEARXNG_USERNAME} {$SEARXNG_PASSWORD_HASH}
+# =============================================================================
+# LOCALHOST DEVELOPMENT CONFIGURATION
+# =============================================================================
+
+# When using localhost, provide port-based access as fallback
+@localhost_domain expression `{$USER_DOMAIN_NAME} == "localhost"`
+
+# Core services localhost routing
+handle @localhost_domain {
+    # n8n
+    handle_path /n8n* {
+        reverse_proxy n8n:5678
     }
     
-    encode zstd gzip
-    
-    @api {
-        path /config
-        path /healthz
-        path /stats/errors
-        path /stats/checker
-    }
-    @search {
-        path /search
-    }
-    @imageproxy {
-        path /image_proxy
-    }
-    @static {
-        path /static/*
+    # AppFlowy
+    handle_path /appflowy* {
+        reverse_proxy appflowy-web:3000
     }
     
-    header {
-        # CSP (https://content-security-policy.com)
-        Content-Security-Policy "upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://github.com/searxng/searxng/issues/new; font-src 'self'; frame-ancestors 'self'; base-uri 'self'; connect-src 'self' https://overpass-api.de; img-src * data:; frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.dailymotion.com https://www.deezer.com https://www.mixcloud.com https://w.soundcloud.com https://embed.spotify.com;"
-        # Disable some browser features
-        Permissions-Policy "accelerometer=(),camera=(),geolocation=(),gyroscope=(),magnetometer=(),microphone=(),payment=(),usb=()"
-        # Set referrer policy
-        Referrer-Policy "no-referrer"
-        # Force clients to use HTTPS
-        Strict-Transport-Security "max-age=31536000"
-        # Prevent MIME type sniffing from the declared Content-Type
-        X-Content-Type-Options "nosniff"
-        # X-Robots-Tag (comment to allow site indexing)
-        X-Robots-Tag "noindex, noarchive, nofollow"
-        # Remove "Server" header
-        -Server
+    # Affine  
+    handle_path /affine* {
+        reverse_proxy affine:3010
     }
     
-    header @api {
-        Access-Control-Allow-Methods "GET, OPTIONS"
-        Access-Control-Allow-Origin "*"
+    # Portainer
+    handle_path /portainer* {
+        reverse_proxy portainer:9000
     }
     
-    route {
-        # Cache policy
-        header Cache-Control "max-age=0, no-store"
-        header @search Cache-Control "max-age=5, private"
-        header @imageproxy Cache-Control "max-age=604800, public"
-        header @static Cache-Control "max-age=31536000, public, immutable"
-    }
-    
-    # SearXNG (uWSGI)
-    reverse_proxy searxng:8080 {
-        header_up X-Forwarded-Port {http.request.port}
-        header_up X-Real-IP {http.request.remote.host}
-        # https://github.com/searx/searx-docker/issues/24
-        header_up Connection "close"
-    }
-    
-    log {
-        output file /var/log/caddy/searxng.log
-        format json
+    # Default to n8n dashboard
+    handle {
+        reverse_proxy n8n:5678
     }
 }
+
+# =============================================================================
+# HEALTH CHECK ENDPOINTS
+# =============================================================================
+
+# Global health check endpoint
+/health {
+    respond "OK" 200
+}
+
+# Service-specific health checks
+/health/n8n {
+    reverse_proxy n8n:5678/healthz
+}
+
+/health/appflowy {
+    reverse_proxy appflowy-cloud:8000/health
+}
+
+/health/affine {
+    reverse_proxy affine:3010/api/health
+}
+
+# =============================================================================
+# ERROR HANDLING
+# =============================================================================
+
+# Custom error pages
+handle_errors {
+    @5xx expression `{http.error.status_code} >= 500`
+    @4xx expression `{http.error.status_code} >= 400 && {http.error.status_code} < 500`
+    
+    respond @5xx "Service temporarily unavailable" 503
+    respond @4xx "Resource not found" 404
+}
+
+# =============================================================================
+# RATE LIMITING AND SECURITY
+# =============================================================================
+
+# Global rate limiting
+rate_limit {
+    zone global {
+        key {remote}
+        events 1000
+        window 1h
+    }
+    
+    zone api {
+        key {remote}
+        events 100
+        window 1m
+        match path /api/*
+    }
+}
+
+# Block common attack patterns
+@blocked_patterns {
+    path_regexp \.(?:php|asp|aspx|jsp|cgi)$
+    path_regexp /(?:wp-admin|phpmyadmin|admin|administrator)/
+    query_regexp (?i)(?:union|select|insert|delete|drop|create|alter|exec|script)
+}
+
+respond @blocked_patterns "Forbidden" 403
