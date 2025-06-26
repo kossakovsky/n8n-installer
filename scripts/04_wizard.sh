@@ -1,423 +1,732 @@
 #!/bin/bash
 
 # Service Selection Wizard for n8n-installer + Workspace Integration
-# Script to guide user through service selection including knowledge management tools
+# Includes editor selection, service configuration, and resource optimization
+
+set -e
 
 # Source utility functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ENV_FILE="$PROJECT_ROOT/.env"
 
-# Source the utilities file
 source "$(dirname "$0")/utils.sh"
+
+# Store original DEBIAN_FRONTEND and set to dialog for whiptail
+ORIGINAL_DEBIAN_FRONTEND="$DEBIAN_FRONTEND"
+export DEBIAN_FRONTEND=dialog
 
 # Function to check if whiptail is installed
 check_whiptail() {
     if ! command -v whiptail &> /dev/null; then
         log_error "'whiptail' is not installed."
         log_info "This tool is required for the interactive service selection."
-        log_info "On Debian/Ubuntu, you can install it using: sudo apt-get install whiptail"
+        log_info "On Debian/Ubuntu: sudo apt-get install whiptail"
         log_info "Please install whiptail and try again."
         exit 1
     fi
 }
 
-# Call the check
-check_whiptail
-
-# Store original DEBIAN_FRONTEND and set to dialog for whiptail
-ORIGINAL_DEBIAN_FRONTEND="$DEBIAN_FRONTEND"
-export DEBIAN_FRONTEND=dialog
-
-# --- Read current COMPOSE_PROFILES from .env ---
-CURRENT_PROFILES_VALUE=""
-if [ -f "$ENV_FILE" ]; then
-    LINE_CONTENT=$(grep "^COMPOSE_PROFILES=" "$ENV_FILE" || echo "")
-    if [ -n "$LINE_CONTENT" ]; then
-        # Get value after '=', remove potential surrounding quotes
-        CURRENT_PROFILES_VALUE=$(echo "$LINE_CONTENT" | cut -d'=' -f2- | sed 's/^"//' | sed 's/"$//')
+# Function to check system resources
+check_system_resources() {
+    local memory_gb=0
+    local cpu_cores=0
+    local disk_free_gb=0
+    
+    # Get memory info
+    if [ -f /proc/meminfo ]; then
+        local mem_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+        memory_gb=$((mem_kb / 1024 / 1024))
     fi
-fi
-# Prepare comma-separated current profiles for easy matching, adding leading/trailing commas
-current_profiles_for_matching=",$CURRENT_PROFILES_VALUE,"
+    
+    # Get CPU cores
+    cpu_cores=$(nproc 2>/dev/null || echo "1")
+    
+    # Get disk space
+    local disk_avail=$(df / | tail -1 | awk '{print $4}')
+    disk_free_gb=$((disk_avail / 1024 / 1024))
+    
+    echo "$memory_gb,$cpu_cores,$disk_free_gb"
+}
 
-# --- Define available services and their descriptions ---
-# Enhanced service definitions including workspace tools
-base_services_data=(
-    "n8n" "n8n, n8n-worker, n8n-import (Workflow Automation) [CORE]"
-    "flowise" "Flowise (No-code AI Agent Builder)"
-    "open-webui" "Open WebUI (ChatGPT-like Interface for Local LLMs)"
-    "appflowy" "AppFlowy (Knowledge Management & Notion Alternative) [WORKSPACE]"
-    "affine" "Affine (Collaborative Workspace & Block-based Editor) [WORKSPACE]"
-    "portainer" "Portainer (Docker Container Management Interface) [MANAGEMENT]"
-    "monitoring" "Monitoring Suite (Prometheus, Grafana, cAdvisor, Node-Exporter)"
-    "langfuse" "Langfuse Suite (AI Observability - includes Clickhouse, MinIO)"
-    "qdrant" "Qdrant (High-Performance Vector Database)"
-    "supabase" "Supabase (Backend as a Service with Auth & Database)"
-    "weaviate" "Weaviate (AI-Native Vector Database with API Key Auth)"
-    "neo4j" "Neo4j (Graph Database for Knowledge Graphs)"
-    "searxng" "SearXNG (Private Metasearch Engine)"
-    "crawl4ai" "Crawl4ai (AI-Optimized Web Crawler)"
-    "letta" "Letta (Agent Server & SDK for LLM Backends)"
-    "ollama" "Ollama (Local LLM Runner - select hardware in next step)"
-)
-
-services=() # This will be the final array for whiptail
-
-# Populate the services array for whiptail based on current profiles or defaults
-idx=0
-while [ $idx -lt ${#base_services_data[@]} ]; do
-    tag="${base_services_data[idx]}"
-    description="${base_services_data[idx+1]}"
-    status="OFF" # Default to OFF
-
-    if [ -n "$CURRENT_PROFILES_VALUE" ] && [ "$CURRENT_PROFILES_VALUE" != '""' ]; then # Check if .env has profiles
-        if [[ "$tag" == "ollama" ]]; then
-            if [[ "$current_profiles_for_matching" == *",cpu,"* || \
-                  "$current_profiles_for_matching" == *",gpu-nvidia,"* || \
-                  "$current_profiles_for_matching" == *",gpu-amd,"* ]]; then
-                status="ON"
-            fi
-        elif [[ "$current_profiles_for_matching" == *",$tag,"* ]]; then
-            status="ON"
-        fi
+# Function to get resource recommendations
+get_resource_recommendations() {
+    local memory_gb=$1
+    local cpu_cores=$2
+    local disk_free_gb=$3
+    
+    local recommendations=()
+    
+    if [ "$memory_gb" -lt 8 ]; then
+        recommendations+=("⚠️  Limited RAM ($memory_gb GB) - Consider lightweight services only")
+    elif [ "$memory_gb" -lt 16 ]; then
+        recommendations+=("💡 Moderate RAM ($memory_gb GB) - Avoid multiple knowledge services")
     else
-        # .env has no COMPOSE_PROFILES or it's empty/just quotes, use intelligent defaults
-        case "$tag" in
-            "n8n"|"flowise"|"monitoring"|"appflowy") status="ON" ;;
-            *) status="OFF" ;;
-        esac
+        recommendations+=("✅ Sufficient RAM ($memory_gb GB) - All services supported")
     fi
-    services+=("$tag" "$description" "$status")
-    idx=$((idx + 2))
-done
-
-# Show introductory message
-whiptail --title "Enhanced n8n-installer + Workspace Setup" --msgbox \
-"Welcome to the Enhanced n8n-installer with Workspace Integration!
-
-This installer now includes powerful knowledge management and collaboration tools:
-
-🧠 CORE AI AUTOMATION:
-• n8n - Workflow automation platform
-• Flowise - No-code AI agent builder  
-• Open WebUI - Chat interface for local LLMs
-
-📝 WORKSPACE & KNOWLEDGE MANAGEMENT:
-• AppFlowy - Modern Notion alternative with AI features
-• Affine - Collaborative workspace with real-time editing
-• Portainer - Docker container management
-
-🔧 SUPPORTING SERVICES:
-• Vector databases (Qdrant, Weaviate)
-• Monitoring (Grafana, Prometheus)
-• Search (SearXNG) and more...
-
-Next, you'll select which services to deploy." 20 78
-
-# Use whiptail to display the enhanced checklist
-CHOICES=$(whiptail --title "Enhanced Service Selection Wizard" --checklist \
-  "Choose the services you want to deploy.\n\n🧠 CORE services are recommended for all users\n📝 WORKSPACE services add knowledge management\n🔧 MANAGEMENT services help with administration\n\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 25 95 18 \
-  "${services[@]}" \
-  3>&1 1>&2 2>&3)
-
-# Restore original DEBIAN_FRONTEND
-if [ -n "$ORIGINAL_DEBIAN_FRONTEND" ]; then
-  export DEBIAN_FRONTEND="$ORIGINAL_DEBIAN_FRONTEND"
-else
-  unset DEBIAN_FRONTEND
-fi
-
-# Exit if user pressed Cancel or Esc
-exitstatus=$?
-if [ $exitstatus -ne 0 ]; then
-    log_info "Service selection cancelled by user. Exiting wizard."
-    log_info "No changes made to service profiles. Default services will be used."
-    # Set COMPOSE_PROFILES to core services only
-    if [ ! -f "$ENV_FILE" ]; then
-        touch "$ENV_FILE"
-    fi
-    if grep -q "^COMPOSE_PROFILES=" "$ENV_FILE"; then
-        sed -i.bak "/^COMPOSE_PROFILES=/d" "$ENV_FILE"
-    fi
-    echo "COMPOSE_PROFILES=n8n,flowise" >> "$ENV_FILE"
-    exit 0
-fi
-
-# Process selected services
-selected_profiles=()
-ollama_selected=0
-ollama_profile=""
-knowledge_management_selected=0
-
-if [ -n "$CHOICES" ]; then
-    # Whiptail returns a string like "tag1" "tag2" "tag3"
-    # We need to remove quotes and convert to an array
-    temp_choices=()
-    eval "temp_choices=($CHOICES)"
-
-    for choice in "${temp_choices[@]}"; do
-        if [ "$choice" == "ollama" ]; then
-            ollama_selected=1
-        elif [ "$choice" == "appflowy" ] || [ "$choice" == "affine" ]; then
-            knowledge_management_selected=1
-            selected_profiles+=("$choice")
-        else
-            selected_profiles+=("$choice")
-        fi
-    done
-fi
-
-# Show knowledge management configuration if applicable
-if [ $knowledge_management_selected -eq 1 ]; then
-    whiptail --title "Knowledge Management Configuration" --msgbox \
-"📝 KNOWLEDGE MANAGEMENT SERVICES SELECTED
-
-You've selected AppFlowy and/or Affine for knowledge management:
-
-• AppFlowy: Modern Notion alternative with AI-powered features
-  - Block-based editor with real-time collaboration
-  - Native support for databases, documents, and wikis
-  - Mobile apps available for iOS and Android
-
-• Affine: Next-generation collaborative workspace
-  - Combines Notion, Miro, and Monday functionality
-  - Real-time collaboration and whiteboard features
-  - Advanced database and project management tools
-
-📊 DATABASE INTEGRATION:
-Both services will use the shared PostgreSQL database with:
-- Automatic schema creation and optimization
-- Vector search capabilities for AI features
-- Backup and migration support
-
-🔧 CONFIGURATION:
-- Admin credentials will be configured automatically
-- SMTP settings can be added later for user invitations
-- Both services integrate with the n8n workflow system" 22 85
-fi
-
-# If Ollama was selected, prompt for the hardware profile
-if [ $ollama_selected -eq 1 ]; then
-    # Determine default selected Ollama hardware profile from .env
-    default_ollama_hardware="cpu" # Fallback default
-    ollama_hw_on_cpu="OFF"
-    ollama_hw_on_gpu_nvidia="OFF"
-    ollama_hw_on_gpu_amd="OFF"
-
-    # Check current_profiles_for_matching which includes commas, e.g., ",cpu,"
-    if [[ "$current_profiles_for_matching" == *",cpu,"* ]]; then
-        ollama_hw_on_cpu="ON"
-        default_ollama_hardware="cpu"
-    elif [[ "$current_profiles_for_matching" == *",gpu-nvidia,"* ]]; then
-        ollama_hw_on_gpu_nvidia="ON"
-        default_ollama_hardware="gpu-nvidia"
-    elif [[ "$current_profiles_for_matching" == *",gpu-amd,"* ]]; then
-        ollama_hw_on_gpu_amd="ON"
-        default_ollama_hardware="gpu-amd"
+    
+    if [ "$cpu_cores" -lt 4 ]; then
+        recommendations+=("⚠️  Limited CPU ($cpu_cores cores) - Performance may be affected")
     else
-        # If ollama was selected in the main list, but no specific hardware profile was previously set,
-        # default to CPU ON for the radiolist.
-        ollama_hw_on_cpu="ON"
-        default_ollama_hardware="cpu"
+        recommendations+=("✅ Sufficient CPU ($cpu_cores cores)")
     fi
+    
+    if [ "$disk_free_gb" -lt 20 ]; then
+        recommendations+=("⚠️  Low disk space ($disk_free_gb GB) - Monitor usage closely")
+    else
+        recommendations+=("✅ Sufficient disk space ($disk_free_gb GB)")
+    fi
+    
+    printf "%s\n" "${recommendations[@]}"
+}
 
-    ollama_hardware_options=(
-        "cpu" "CPU (Recommended for most users - no GPU required)" "$ollama_hw_on_cpu"
-        "gpu-nvidia" "NVIDIA GPU (Requires NVIDIA drivers & CUDA toolkit)" "$ollama_hw_on_gpu_nvidia"
-        "gpu-amd" "AMD GPU (Requires ROCm drivers - experimental)" "$ollama_hw_on_gpu_amd"
+# Function to read current COMPOSE_PROFILES from .env
+read_current_profiles() {
+    local current_profiles=""
+    if [ -f "$ENV_FILE" ]; then
+        local line_content=$(grep "^COMPOSE_PROFILES=" "$ENV_FILE" 2>/dev/null || echo "")
+        if [ -n "$line_content" ]; then
+            current_profiles=$(echo "$line_content" | cut -d'=' -f2- | sed 's/^"//' | sed 's/"$//')
+        fi
+    fi
+    echo ",$current_profiles,"
+}
+
+# Enhanced service definitions including workspace tools and editor options
+prepare_service_data() {
+    local current_profiles="$1"
+    
+    base_services_data=(
+        # Core AI Services
+        "n8n" "n8n Workflow Automation [CORE] - Essential automation platform"
+        "flowise" "Flowise AI Agent Builder - No-code AI workflow creation"
+        "open-webui" "Open WebUI - ChatGPT-like interface for local LLMs"
+        
+        # Knowledge Management Services [NEW]
+        "appflowy" "AppFlowy Knowledge Management [WORKSPACE] - Notion alternative with AI"
+        "affine" "Affine Collaborative Workspace [WORKSPACE] - Block-based editor with real-time collaboration"
+        
+        # Container Management [NEW]
+        "portainer" "Portainer Container Management [MANAGEMENT] - Web-based Docker interface"
+        
+        # Infrastructure Services
+        "monitoring" "Monitoring Suite - Prometheus, Grafana, cAdvisor, Node-Exporter"
+        "langfuse" "Langfuse AI Observability - Track and analyze AI model performance"
+        "supabase" "Supabase Backend Services - Auth, database, and APIs"
+        
+        # Vector Databases
+        "qdrant" "Qdrant Vector Database - High-performance similarity search"
+        "weaviate" "Weaviate AI-Native Vector Database - GraphQL API with vectorization"
+        "neo4j" "Neo4j Graph Database - Advanced graph analytics and queries"
+        
+        # Additional Services
+        "searxng" "SearXNG Private Search Engine - Privacy-focused metasearch"
+        "crawl4ai" "Crawl4AI Web Crawler - AI-optimized web scraping"
+        "letta" "Letta Agent Server - Advanced LLM agent management"
+        "ollama" "Ollama Local LLMs - Run models locally (select hardware in next step)"
     )
     
-    CHOSEN_OLLAMA_PROFILE=$(whiptail --title "Ollama Hardware Profile" --default-item "$default_ollama_hardware" --radiolist \
-      "Choose the hardware profile for Ollama LLM inference.\n\nℹ️  CPU Profile:\n• Works on all systems\n• Good for small to medium models (7B parameters)\n• Uses system RAM for model storage\n\n🚀 GPU Profiles:\n• Much faster inference\n• Supports larger models\n• Requires specific drivers" 18 85 3 \
-      "${ollama_hardware_options[@]}" \
-      3>&1 1>&2 2>&3)
+    services=() # Array for whiptail
+    
+    # Populate services array with current status
+    local idx=0
+    while [ $idx -lt ${#base_services_data[@]} ]; do
+        local tag="${base_services_data[idx]}"
+        local description="${base_services_data[idx+1]}"
+        local status="OFF"
+        
+        # Check if service is currently enabled
+        if [ -n "$current_profiles" ] && [ "$current_profiles" != '""' ]; then
+            if [[ "$tag" == "ollama" ]]; then
+                if [[ "$current_profiles" == *",cpu,"* || \
+                      "$current_profiles" == *",gpu-nvidia,"* || \
+                      "$current_profiles" == *",gpu-amd,"* ]]; then
+                    status="ON"
+                fi
+            elif [[ "$current_profiles" == *",$tag,"* ]]; then
+                status="ON"
+            fi
+        else
+            # Default selections for new installations
+            case "$tag" in
+                "n8n"|"flowise"|"monitoring"|"appflowy") status="ON" ;;
+                *) status="OFF" ;;
+            esac
+        fi
+        
+        services+=("$tag" "$description" "$status")
+        idx=$((idx + 2))
+    done
+}
 
-    ollama_exitstatus=$?
-    if [ $ollama_exitstatus -eq 0 ] && [ -n "$CHOSEN_OLLAMA_PROFILE" ]; then
-        selected_profiles+=("$CHOSEN_OLLAMA_PROFILE")
-        ollama_profile="$CHOSEN_OLLAMA_PROFILE" # Store for user message
-        log_info "Ollama hardware profile selected: $CHOSEN_OLLAMA_PROFILE"
+# Function to show system analysis
+show_system_analysis() {
+    local memory_gb=$1
+    local cpu_cores=$2
+    local disk_free_gb=$3
+    
+    whiptail --title "System Analysis" --msgbox \
+"🖥️  SYSTEM RESOURCE ANALYSIS
+
+Current System Specifications:
+💾 Memory: ${memory_gb}GB RAM
+⚡ CPU: ${cpu_cores} cores
+💿 Disk: ${disk_free_gb}GB available
+
+$(get_resource_recommendations "$memory_gb" "$cpu_cores" "$disk_free_gb")
+
+RECOMMENDATIONS:
+• Lightweight setup: n8n + monitoring (4GB+ RAM)
+• Standard setup: Add AppFlowy or Affine (8GB+ RAM)  
+• Full workspace: All services (16GB+ RAM)
+• Performance setup: Add Ollama GPU (32GB+ RAM)
+
+Continue to select services that match your system capabilities." 20 85
+}
+
+# Function to show editor selection
+show_editor_selection() {
+    local editor_configured=false
+    local editor_config_file="$PROJECT_ROOT/editor-config/editor-choice.json"
+    
+    if [ -f "$editor_config_file" ]; then
+        editor_configured=true
+    fi
+    
+    if [ "$editor_configured" = true ]; then
+        local current_editor=$(jq -r '.editor_name // "Unknown"' "$editor_config_file" 2>/dev/null)
+        local install_type=$(jq -r '.installation_type // "unknown"' "$editor_config_file" 2>/dev/null)
+        
+        whiptail --title "Editor Configuration" --yesno \
+"🎨 DEVELOPMENT EDITOR STATUS
+
+Currently configured: $current_editor ($install_type)
+
+The enhanced workspace includes integrated development editor support:
+
+NATIVE EDITORS (Recommended):
+• ⚡ Zed Editor - Ultra-fast, AI-powered, collaborative
+• 📝 VS Code - Feature-rich with extensive extensions
+
+CONTAINER EDITORS:
+• 🐳 Zed Container - Isolated development environment  
+• 🌐 VS Code Server - Web-based development interface
+
+Would you like to reconfigure your editor selection?" 18 80
+        
+        if [ $? -eq 0 ]; then
+            run_editor_selection
+        fi
     else
-        log_info "Ollama hardware profile selection cancelled or no choice made. Ollama will not be configured."
-        ollama_selected=0
+        whiptail --title "Editor Setup Required" --yesno \
+"🎨 DEVELOPMENT EDITOR SETUP
+
+The enhanced workspace includes integrated development tools. 
+You can choose between multiple editor options:
+
+⚡ NATIVE INSTALLATION (Recommended):
+   • Best performance and system integration
+   • Direct file system access
+   • Lower resource usage
+
+🐳 CONTAINER INSTALLATION:
+   • Isolated development environment
+   • Easy backup and portability
+   • Web-based access options
+
+Would you like to configure your development editor now?
+(You can also run this later with: python enhanced_editor_selection.py)" 18 85
+        
+        if [ $? -eq 0 ]; then
+            run_editor_selection
+        fi
     fi
-fi
+}
 
-# Resource requirement check
-if [ ${#selected_profiles[@]} -gt 6 ]; then
-    whiptail --title "Resource Requirements" --yesno \
-"⚠️  RESOURCE REQUIREMENTS WARNING
+# Function to run editor selection
+run_editor_selection() {
+    # Check if the enhanced editor selection script exists
+    local editor_script="$PROJECT_ROOT/enhanced_editor_selection.py"
+    
+    if [ ! -f "$editor_script" ]; then
+        whiptail --title "Editor Selection" --msgbox \
+"❌ Enhanced editor selection script not found.
 
-You've selected ${#selected_profiles[@]} services, which may require significant system resources:
-
-💾 MINIMUM RECOMMENDED:
-• RAM: 8GB (16GB preferred for knowledge management)
-• CPU: 4 cores (8 cores preferred)
-• Storage: 50GB free space
-• Network: Stable internet connection
-
-🚀 SELECTED SERVICES REQUIRE:
-• PostgreSQL: ~1GB RAM (shared database)
-• AppFlowy/Affine: ~2GB RAM each (if selected)
-• n8n + Workers: ~1GB RAM  
-• Monitoring: ~1GB RAM (if selected)
-• Ollama: 4-32GB RAM (depending on models)
-
-Continue with current selection?" 20 75
-
-    if [ $? -ne 0 ]; then
-        log_info "User cancelled due to resource requirements. Please restart and select fewer services."
-        exit 0
+The editor setup will be skipped. You can manually:
+1. Install Zed: curl https://zed.dev/install.sh | sh
+2. Install VS Code: Install from Microsoft repository
+3. Configure manually in editor-config/ directory" 12 70
+        return
     fi
-fi
+    
+    # Temporarily switch back to normal terminal for Python script
+    export DEBIAN_FRONTEND="$ORIGINAL_DEBIAN_FRONTEND"
+    
+    clear
+    echo "🎨 Starting Enhanced Editor Selection..."
+    echo "======================================"
+    
+    if python3 "$editor_script"; then
+        echo ""
+        echo "✅ Editor selection completed successfully!"
+        read -p "Press Enter to continue with service selection..."
+    else
+        echo ""
+        echo "⚠️  Editor selection encountered issues. Continuing with service setup..."
+        read -p "Press Enter to continue..."
+    fi
+    
+    # Switch back to dialog mode
+    export DEBIAN_FRONTEND=dialog
+}
 
-# Final confirmation and summary
-if [ ${#selected_profiles[@]} -eq 0 ]; then
-    log_info "No optional services selected. Only core services (n8n, Caddy, PostgreSQL, Redis) will be deployed."
-    COMPOSE_PROFILES_VALUE="n8n"
-else
-    # Build summary message
-    SUMMARY_MSG="🎯 DEPLOYMENT SUMMARY\n\nThe following services will be deployed:\n\n"
+# Enhanced service selection with categories
+show_enhanced_service_selection() {
+    local services=("$@")
     
-    # Add core services
-    SUMMARY_MSG+="🧠 CORE SERVICES:\n"
-    SUMMARY_MSG+="• n8n - Workflow Automation\n"
-    SUMMARY_MSG+="• PostgreSQL - Shared Database\n"
-    SUMMARY_MSG+="• Redis - Caching Layer\n"
-    SUMMARY_MSG+="• Caddy - Reverse Proxy\n\n"
+    CHOICES=$(whiptail --title "Enhanced Service Selection Wizard" --checklist \
+"🚀 ENHANCED n8n-INSTALLER + WORKSPACE SERVICES
+
+Select services for your unified AI development environment:
+
+🧠 CORE AI AUTOMATION:
+   Essential workflow automation and AI agent platforms
+
+📝 WORKSPACE & KNOWLEDGE:
+   Modern knowledge management and collaboration tools
+   
+🐳 CONTAINER MANAGEMENT:
+   Web-based Docker and service management
+
+🔧 INFRASTRUCTURE:
+   Monitoring, databases, and supporting services
+
+💡 RESOURCE TIPS:
+   • Start with Core services (4GB+ RAM)
+   • Add Workspace services (8GB+ RAM)
+   • Full setup recommended for 16GB+ RAM
+
+Use ARROW KEYS to navigate, SPACEBAR to select, ENTER to confirm." 25 95 18 \
+      "${services[@]}" \
+      3>&1 1>&2 2>&3)
     
-    # Add selected services by category
-    workspace_services=()
-    ai_services=()
-    infra_services=()
+    echo "$CHOICES"
+}
+
+# Function to handle Ollama hardware selection
+select_ollama_hardware() {
+    local current_profiles="$1"
     
-    for profile in "${selected_profiles[@]}"; do
+    # Determine current selection
+    local default_hardware="cpu"
+    local hw_on_cpu="OFF"
+    local hw_on_gpu_nvidia="OFF" 
+    local hw_on_gpu_amd="OFF"
+    
+    if [[ "$current_profiles" == *",cpu,"* ]]; then
+        hw_on_cpu="ON"
+        default_hardware="cpu"
+    elif [[ "$current_profiles" == *",gpu-nvidia,"* ]]; then
+        hw_on_gpu_nvidia="ON"
+        default_hardware="gpu-nvidia"
+    elif [[ "$current_profiles" == *",gpu-amd,"* ]]; then
+        hw_on_gpu_amd="ON"
+        default_hardware="gpu-amd"
+    else
+        hw_on_cpu="ON"
+    fi
+    
+    local ollama_options=(
+        "cpu" "CPU - Works on all systems, good for 7B models" "$hw_on_cpu"
+        "gpu-nvidia" "NVIDIA GPU - Requires CUDA drivers, much faster" "$hw_on_gpu_nvidia"
+        "gpu-amd" "AMD GPU - Requires ROCm drivers (experimental)" "$hw_on_gpu_amd"
+    )
+    
+    CHOSEN_OLLAMA=$(whiptail --title "Ollama Hardware Configuration" --default-item "$default_hardware" --radiolist \
+"🤖 OLLAMA LOCAL LLM HARDWARE SELECTION
+
+Choose the hardware acceleration for Ollama:
+
+💾 SYSTEM REQUIREMENTS:
+CPU Mode:  4GB+ RAM, any system
+GPU Mode:  8GB+ VRAM, 16GB+ RAM, proper drivers
+
+🚀 PERFORMANCE COMPARISON:
+CPU:       ~5-15 tokens/sec (7B models)
+NVIDIA:    ~50-200 tokens/sec (larger models supported)
+AMD:       ~30-100 tokens/sec (experimental support)
+
+📦 DRIVER REQUIREMENTS:
+NVIDIA:    CUDA toolkit and drivers
+AMD:       ROCm drivers and libraries
+CPU:       No additional requirements
+
+Select the option that matches your hardware:" 22 85 3 \
+      "${ollama_options[@]}" \
+      3>&1 1>&2 2>&3)
+    
+    echo "$CHOSEN_OLLAMA"
+}
+
+# Function to show workspace integration information
+show_workspace_integration() {
+    local selected_services="$1"
+    
+    # Check which workspace services are selected
+    local has_knowledge_mgmt=false
+    local has_container_mgmt=false
+    local has_ai_services=false
+    
+    if [[ "$selected_services" == *"appflowy"* || "$selected_services" == *"affine"* ]]; then
+        has_knowledge_mgmt=true
+    fi
+    
+    if [[ "$selected_services" == *"portainer"* ]]; then
+        has_container_mgmt=true
+    fi
+    
+    if [[ "$selected_services" == *"n8n"* || "$selected_services" == *"flowise"* ]]; then
+        has_ai_services=true
+    fi
+    
+    local integration_info="🔗 WORKSPACE INTEGRATION FEATURES\n\n"
+    
+    if [ "$has_ai_services" = true ] && [ "$has_knowledge_mgmt" = true ]; then
+        integration_info+="🧠 AI ↔️ Knowledge Management:\n"
+        integration_info+="   • Automated documentation generation\n"
+        integration_info+="   • Workflow-driven content creation\n"
+        integration_info+="   • AI-powered knowledge search\n\n"
+    fi
+    
+    if [ "$has_container_mgmt" = true ]; then
+        integration_info+="🐳 Container Management:\n"
+        integration_info+="   • Visual service monitoring\n"
+        integration_info+="   • One-click service restarts\n"
+        integration_info+="   • Resource usage tracking\n\n"
+    fi
+    
+    integration_info+="🗄️ Unified Architecture:\n"
+    integration_info+="   • Shared PostgreSQL database\n"
+    integration_info+="   • Centralized Redis caching\n"
+    integration_info+="   • Caddy reverse proxy with HTTPS\n"
+    integration_info+="   • Optimized resource allocation\n\n"
+    
+    integration_info+="🎨 Development Integration:\n"
+    integration_info+="   • Native editor installation\n"
+    integration_info+="   • Project template generation\n"
+    integration_info+="   • Language server configuration\n"
+    integration_info+="   • Git workflow integration"
+    
+    whiptail --title "Workspace Integration" --msgbox "$integration_info" 22 80
+}
+
+# Function to show resource requirements warning
+check_resource_requirements() {
+    local selected_services="$1"
+    local memory_gb=$2
+    local cpu_cores=$3
+    local disk_free_gb=$4
+    
+    local service_count=$(echo "$selected_services" | tr ' ' '\n' | wc -l)
+    local estimated_ram=2 # Base overhead
+    local estimated_cpu=1
+    local estimated_disk=5
+    
+    # Calculate resource requirements
+    for service in $selected_services; do
+        case "$service" in
+            "n8n") estimated_ram=$((estimated_ram + 2)); estimated_cpu=$((estimated_cpu + 1)) ;;
+            "appflowy") estimated_ram=$((estimated_ram + 3)); estimated_cpu=$((estimated_cpu + 1)) ;;
+            "affine") estimated_ram=$((estimated_ram + 2)); estimated_cpu=$((estimated_cpu + 1)) ;;
+            "monitoring") estimated_ram=$((estimated_ram + 2)); estimated_cpu=$((estimated_cpu + 1)) ;;
+            "langfuse") estimated_ram=$((estimated_ram + 3)); estimated_cpu=$((estimated_cpu + 1)) ;;
+            "ollama"|"cpu"|"gpu-nvidia"|"gpu-amd") estimated_ram=$((estimated_ram + 4)); estimated_cpu=$((estimated_cpu + 2)) ;;
+            *) estimated_ram=$((estimated_ram + 1)) ;;
+        esac
+        estimated_disk=$((estimated_disk + 2))
+    done
+    
+    local warnings=()
+    
+    if [ "$estimated_ram" -gt "$memory_gb" ]; then
+        warnings+=("⚠️ RAM: Need ${estimated_ram}GB, have ${memory_gb}GB")
+    fi
+    
+    if [ "$estimated_cpu" -gt "$cpu_cores" ]; then
+        warnings+=("⚠️ CPU: Need ${estimated_cpu} cores, have ${cpu_cores}")
+    fi
+    
+    if [ "$estimated_disk" -gt "$disk_free_gb" ]; then
+        warnings+=("⚠️ Disk: Need ${estimated_disk}GB, have ${disk_free_gb}GB available")
+    fi
+    
+    if [ ${#warnings[@]} -gt 0 ]; then
+        local warning_text="⚠️ RESOURCE REQUIREMENTS WARNING\n\n"
+        warning_text+="Selected ${service_count} services may require:\n"
+        warning_text+="💾 RAM: ~${estimated_ram}GB\n"
+        warning_text+="⚡ CPU: ~${estimated_cpu} cores\n" 
+        warning_text+="💿 Disk: ~${estimated_disk}GB\n\n"
+        warning_text+="DETECTED ISSUES:\n"
+        
+        for warning in "${warnings[@]}"; do
+            warning_text+="   $warning\n"
+        done
+        
+        warning_text+="\nCONTINUE WITH CURRENT SELECTION?\n"
+        warning_text+="Services may run slower or fail to start."
+        
+        whiptail --title "Resource Requirements" --yesno "$warning_text" 18 75
+        return $?
+    fi
+    
+    return 0
+}
+
+# Function to show deployment summary
+show_deployment_summary() {
+    local selected_profiles="$1"
+    local editor_configured="$2"
+    
+    local summary="🎯 DEPLOYMENT SUMMARY\n\n"
+    
+    # Core infrastructure
+    summary+="🏗️ CORE INFRASTRUCTURE:\n"
+    summary+="   ✅ PostgreSQL - Shared database\n"
+    summary+="   ✅ Redis - Caching layer\n"
+    summary+="   ✅ Caddy - Reverse proxy with HTTPS\n\n"
+    
+    # Selected services by category
+    local ai_services=()
+    local workspace_services=()
+    local infra_services=()
+    
+    for profile in $selected_profiles; do
         case "$profile" in
-            "appflowy"|"affine"|"portainer") workspace_services+=("$profile") ;;
-            "flowise"|"open-webui"|"ollama"|"cpu"|"gpu-nvidia"|"gpu-amd"|"qdrant"|"weaviate"|"langfuse") ai_services+=("$profile") ;;
-            *) infra_services+=("$profile") ;;
+            "n8n"|"flowise"|"open-webui"|"cpu"|"gpu-nvidia"|"gpu-amd"|"ollama") 
+                ai_services+=("$profile") ;;
+            "appflowy"|"affine"|"portainer") 
+                workspace_services+=("$profile") ;;
+            *) 
+                infra_services+=("$profile") ;;
         esac
     done
     
-    if [ ${#workspace_services[@]} -gt 0 ]; then
-        SUMMARY_MSG+="📝 WORKSPACE SERVICES:\n"
-        for service in "${workspace_services[@]}"; do
-            case "$service" in
-                "appflowy") SUMMARY_MSG+="• AppFlowy - Knowledge Management\n" ;;
-                "affine") SUMMARY_MSG+="• Affine - Collaborative Workspace\n" ;;
-                "portainer") SUMMARY_MSG+="• Portainer - Container Management\n" ;;
-            esac
-        done
-        SUMMARY_MSG+="\n"
-    fi
-    
     if [ ${#ai_services[@]} -gt 0 ]; then
-        SUMMARY_MSG+="🤖 AI SERVICES:\n"
+        summary+="🧠 AI SERVICES:\n"
         for service in "${ai_services[@]}"; do
             case "$service" in
-                "flowise") SUMMARY_MSG+="• Flowise - AI Agent Builder\n" ;;
-                "open-webui") SUMMARY_MSG+="• Open WebUI - LLM Chat Interface\n" ;;
+                "n8n") summary+="   ✅ n8n - Workflow automation\n" ;;
+                "flowise") summary+="   ✅ Flowise - AI agent builder\n" ;;
+                "open-webui") summary+="   ✅ Open WebUI - LLM interface\n" ;;
                 "cpu"|"gpu-nvidia"|"gpu-amd") 
-                    if [ "$service" == "$ollama_profile" ]; then
-                        SUMMARY_MSG+="• Ollama ($service profile) - Local LLMs\n"
-                    fi ;;
-                "qdrant") SUMMARY_MSG+="• Qdrant - Vector Database\n" ;;
-                "weaviate") SUMMARY_MSG+="• Weaviate - AI-Native Vector DB\n" ;;
-                "langfuse") SUMMARY_MSG+="• Langfuse - AI Observability\n" ;;
+                    summary+="   ✅ Ollama ($service) - Local LLMs\n" ;;
             esac
         done
-        SUMMARY_MSG+="\n"
+        summary+="\n"
+    fi
+    
+    if [ ${#workspace_services[@]} -gt 0 ]; then
+        summary+="📝 WORKSPACE SERVICES:\n"
+        for service in "${workspace_services[@]}"; do
+            case "$service" in
+                "appflowy") summary+="   ✅ AppFlowy - Knowledge management\n" ;;
+                "affine") summary+="   ✅ Affine - Collaborative workspace\n" ;;
+                "portainer") summary+="   ✅ Portainer - Container management\n" ;;
+            esac
+        done
+        summary+="\n"
     fi
     
     if [ ${#infra_services[@]} -gt 0 ]; then
-        SUMMARY_MSG+="🔧 INFRASTRUCTURE:\n"
+        summary+="🔧 INFRASTRUCTURE:\n"
         for service in "${infra_services[@]}"; do
             case "$service" in
-                "monitoring") SUMMARY_MSG+="• Prometheus + Grafana - Monitoring\n" ;;
-                "supabase") SUMMARY_MSG+="• Supabase - Backend as a Service\n" ;;
-                "searxng") SUMMARY_MSG+="• SearXNG - Private Search\n" ;;
-                "neo4j") SUMMARY_MSG+="• Neo4j - Graph Database\n" ;;
-                "crawl4ai") SUMMARY_MSG+="• Crawl4ai - Web Crawler\n" ;;
-                "letta") SUMMARY_MSG+="• Letta - Agent Server\n" ;;
+                "monitoring") summary+="   ✅ Grafana + Prometheus\n" ;;
+                "langfuse") summary+="   ✅ Langfuse - AI observability\n" ;;
+                "supabase") summary+="   ✅ Supabase - Backend services\n" ;;
+                "qdrant") summary+="   ✅ Qdrant - Vector database\n" ;;
+                "weaviate") summary+="   ✅ Weaviate - AI vector DB\n" ;;
+                "neo4j") summary+="   ✅ Neo4j - Graph database\n" ;;
+                "searxng") summary+="   ✅ SearXNG - Private search\n" ;;
+                "crawl4ai") summary+="   ✅ Crawl4AI - Web crawler\n" ;;
+                "letta") summary+="   ✅ Letta - Agent server\n" ;;
             esac
         done
-        SUMMARY_MSG+="\n"
+        summary+="\n"
     fi
     
-    SUMMARY_MSG+="💡 All services will be accessible via:\n"
-    SUMMARY_MSG+="• Internal Docker network for inter-service communication\n"
-    SUMMARY_MSG+="• Caddy reverse proxy with automatic HTTPS\n"
-    SUMMARY_MSG+="• Shared PostgreSQL database for optimal performance"
+    # Development environment
+    summary+="🎨 DEVELOPMENT ENVIRONMENT:\n"
+    if [ "$editor_configured" = "true" ]; then
+        summary+="   ✅ Editor configured and ready\n"
+    else
+        summary+="   ⚠️ Editor not configured (optional)\n"
+    fi
+    summary+="   ✅ Project structure setup\n"
+    summary+="   ✅ Management scripts included\n\n"
     
-    whiptail --title "Deployment Confirmation" --yesno "$SUMMARY_MSG" 25 90
+    # Next steps
+    summary+="🚀 NEXT STEPS:\n"
+    summary+="   1. Services will start automatically\n"
+    summary+="   2. Access via web interfaces\n"
+    summary+="   3. Check final report for URLs\n"
+    summary+="   4. Start developing with your editor!"
     
+    whiptail --title "Deployment Summary" --msgbox "$summary" 24 80
+}
+
+# Main function
+main() {
+    check_whiptail
+    
+    # Get system resources
+    local resource_info=$(check_system_resources)
+    local memory_gb=$(echo "$resource_info" | cut -d',' -f1)
+    local cpu_cores=$(echo "$resource_info" | cut -d',' -f2)
+    local disk_free_gb=$(echo "$resource_info" | cut -d',' -f3)
+    
+    # Show system analysis
+    show_system_analysis "$memory_gb" "$cpu_cores" "$disk_free_gb"
+    
+    # Check for editor configuration
+    show_editor_selection
+    local editor_configured=false
+    if [ -f "$PROJECT_ROOT/editor-config/editor-choice.json" ]; then
+        editor_configured=true
+    fi
+    
+    # Read current profiles
+    local current_profiles=$(read_current_profiles)
+    
+    # Prepare service data
+    prepare_service_data "$current_profiles"
+    
+    # Show service selection
+    local choices=$(show_enhanced_service_selection "${services[@]}")
+    
+    # Exit if user cancelled
     if [ $? -ne 0 ]; then
-        log_info "Deployment cancelled by user. No changes made."
+        log_info "Service selection cancelled by user."
         exit 0
     fi
     
-    log_info "You have selected the following service profiles to be deployed:"
-    # Join the array into a comma-separated string
-    COMPOSE_PROFILES_VALUE=$(IFS=,; echo "${selected_profiles[*]}")
-    for profile in "${selected_profiles[@]}"; do
-        # Check if the current profile is an Ollama hardware profile that was chosen
-        if [[ "$profile" == "cpu" || "$profile" == "gpu-nvidia" || "$profile" == "gpu-amd" ]]; then
-            if [ "$profile" == "$ollama_profile" ]; then
-                 echo "  - Ollama ($profile profile)"
+    # Process selections
+    local selected_profiles=()
+    local ollama_selected=false
+    local knowledge_selected=false
+    
+    if [ -n "$choices" ]; then
+        eval "temp_choices=($choices)"
+        
+        for choice in "${temp_choices[@]}"; do
+            if [ "$choice" == "ollama" ]; then
+                ollama_selected=true
+            elif [ "$choice" == "appflowy" ] || [ "$choice" == "affine" ]; then
+                knowledge_selected=true
+                selected_profiles+=("$choice")
+            else
+                selected_profiles+=("$choice")
             fi
+        done
+    fi
+    
+    # Handle Ollama hardware selection
+    if [ "$ollama_selected" = true ]; then
+        local ollama_hardware=$(select_ollama_hardware "$current_profiles")
+        if [ -n "$ollama_hardware" ]; then
+            selected_profiles+=("$ollama_hardware")
         else
-            case "$profile" in
-                "appflowy") echo "  - AppFlowy (Knowledge Management & Notion Alternative)" ;;
-                "affine") echo "  - Affine (Collaborative Workspace & Block-based Editor)" ;;
-                "portainer") echo "  - Portainer (Container Management Interface)" ;;
-                *) echo "  - $profile" ;;
-            esac
+            ollama_selected=false
         fi
-    done
-fi
+    fi
+    
+    # Show workspace integration info if relevant
+    if [ "$knowledge_selected" = true ] || [ "$ollama_selected" = true ]; then
+        show_workspace_integration "${selected_profiles[*]}"
+    fi
+    
+    # Check resource requirements
+    if ! check_resource_requirements "${selected_profiles[*]}" "$memory_gb" "$cpu_cores" "$disk_free_gb"; then
+        log_info "Deployment cancelled due to resource constraints."
+        exit 0
+    fi
+    
+    # Show final summary and confirm
+    show_deployment_summary "${selected_profiles[*]}" "$editor_configured"
+    
+    if ! whiptail --title "Final Confirmation" --yesno \
+"🚀 START ENHANCED WORKSPACE DEPLOYMENT?
 
-# Update or add COMPOSE_PROFILES in .env file
-# Ensure .env file exists (it should have been created by 03_generate_secrets.sh or exist from previous run)
-if [ ! -f "$ENV_FILE" ]; then
-    log_warning "'.env' file not found at $ENV_FILE. Creating it."
-    touch "$ENV_FILE"
-fi
+This will:
+• Configure ${#selected_profiles[@]} services
+• Set up unified database and caching
+• Configure reverse proxy with HTTPS
+• Create development environment
+• Generate management scripts
 
-# Remove existing COMPOSE_PROFILES line if it exists
-if grep -q "^COMPOSE_PROFILES=" "$ENV_FILE"; then
-    # Using a different delimiter for sed because a profile name might contain '/' (unlikely here)
-    sed -i.bak "\|^COMPOSE_PROFILES=|d" "$ENV_FILE"
-fi
+Estimated deployment time: 5-15 minutes
 
-# Add the new COMPOSE_PROFILES line
-echo "COMPOSE_PROFILES=${COMPOSE_PROFILES_VALUE}" >> "$ENV_FILE"
-
-# Final status message
-if [ -z "$COMPOSE_PROFILES_VALUE" ] || [ "$COMPOSE_PROFILES_VALUE" == "n8n" ]; then
-    log_info "Core services (n8n, Caddy, PostgreSQL, Redis) will be started."
-else
-    log_info "The following Docker Compose profiles will be active: ${COMPOSE_PROFILES_VALUE}"
-fi
-
-# Display next steps
-echo ""
-log_info "🎯 CONFIGURATION COMPLETE!"
-echo ""
-echo "Next steps:"
-echo "1. Review your .env file for any additional configuration"
-echo "2. Run the installation: bash ./scripts/05_run_services.sh"
-echo "3. Access services via the URLs provided in the final report"
-echo ""
-if [ $knowledge_management_selected -eq 1 ]; then
-    echo "📝 Knowledge Management Services:"
-    echo "• Configure SMTP settings in .env for user invitations (optional)"
-    echo "• Both AppFlowy and Affine will be accessible via web browser"
-    echo "• Integration with n8n workflows available for automation"
+Proceed with deployment?" 15 60; then
+        log_info "Deployment cancelled by user."
+        exit 0
+    fi
+    
+    # Build final profiles string
+    local compose_profiles_value=""
+    if [ ${#selected_profiles[@]} -gt 0 ]; then
+        compose_profiles_value=$(IFS=,; echo "${selected_profiles[*]}")
+    else
+        compose_profiles_value="n8n"
+    fi
+    
+    # Update .env file
+    if [ ! -f "$ENV_FILE" ]; then
+        log_warning ".env file not found. Creating minimal version."
+        touch "$ENV_FILE"
+    fi
+    
+    # Remove existing COMPOSE_PROFILES line
+    if grep -q "^COMPOSE_PROFILES=" "$ENV_FILE"; then
+        sed -i.bak "/^COMPOSE_PROFILES=/d" "$ENV_FILE"
+    fi
+    
+    # Add new COMPOSE_PROFILES line
+    echo "COMPOSE_PROFILES=${compose_profiles_value}" >> "$ENV_FILE"
+    
+    # Restore DEBIAN_FRONTEND
+    if [ -n "$ORIGINAL_DEBIAN_FRONTEND" ]; then
+        export DEBIAN_FRONTEND="$ORIGINAL_DEBIAN_FRONTEND"
+    else
+        unset DEBIAN_FRONTEND
+    fi
+    
+    # Success message
+    log_success "Enhanced workspace configuration completed!"
     echo ""
-fi
+    log_info "Selected profiles: ${compose_profiles_value}"
+    log_info "Editor configured: $editor_configured"
+    echo ""
+    log_info "🎯 Configuration saved to .env file"
+    log_info "🚀 Ready to start services with: python start_services.py"
+    echo ""
+    
+    if [ "$knowledge_selected" = true ]; then
+        log_info "📝 Knowledge Management Services Enabled:"
+        log_info "   • Unified database for optimal performance"
+        log_info "   • Integrated with n8n workflows"
+        log_info "   • Real-time collaboration features"
+        echo ""
+    fi
+    
+    if [ "$editor_configured" = true ]; then
+        log_info "🎨 Development Environment Ready:"
+        log_info "   • Editor installation will be handled automatically"
+        log_info "   • Project structure will be created"
+        log_info "   • Language servers will be configured"
+    fi
+}
 
-# Make the script executable (though install.sh calls it with bash)
-chmod +x "$SCRIPT_DIR/04_wizard.sh"
+# Execute main function
+main "$@"
 
 exit 0
