@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Workspace Portal</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            margin: 0;
+            padding: 20px;
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .category {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .category h2 {
+            margin-top: 0;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+        .services {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+        .services li {
+            margin: 10px 0;
+        }
+        .services a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border-left: 4px solid #4CAF50;
+        }
+        .services a:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            opacity: 0.8;
+        }
+        .footer a {
+            color: white;
+            text-decoration: underline;
+        }
+        .footer a:visited {
+            color: white;
+        }
+        .footer a:hover {
+            color: #dddddd;
+        }
+    </style>  
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Workspace Portal</h1>
+        
+        <div class="grid">
+            <div class="category">
+                <h2>🤖 AI Services</h2>
+                <ul class="services">
+                    <li><a href="https://n8n.ecospherenet.work" target="_blank">🔄 N8N - Workflow Automation</a></li>
+                    <li><a href="https://flowise.ecospherenet.work" target="_blank">🧠 Flowise - AI Agent Builder</a></li>
+                    <li><a href="https://webui.ecospherenet.work" target="_blank">💬 Open WebUI - AI Chat</a></li>
+                    <li><a href="https://langfuse.ecospherenet.work" target="_blank">📊 Langfuse - AI Observability</a></li>
+                </ul>
+            </div>
+            
+            <div class="category">
+                <h2>📚 Productivity</h2>
+                <ul class="services">
+                    <li><a href="https://affine.ecospherenet.work" target="_blank">📝 Affine - Notes</a></li>
+                    <li><a href="https://appflowy.ecospherenet.work" target="_blank">📋 AppFlowy - Productivity</a></li>
+                    <li><a href="https://gitlab.ecospherenet.work" target="_blank">🦊 GitLab - Repository</a></li>
+                    <li><a href="https://openproject.ecospherenet.work" target="_blank">📊 OpenProject - Management</a></li>
+                </ul>
+            </div>
+            
+            <div class="category">
+                <h2>🔧 Management</h2>
+                <ul class="services">
+                    <li><a href="https://grafana.ecospherenet.work" target="_blank">📊 Grafana - Monitoring</a></li>
+                    <li><a href="https://portainer.ecospherenet.work" target="_blank">🐳 Portainer - Containers</a></li>
+                    <li><a href="https://supabase.ecospherenet.work" target="_blank">🗄️ Supabase - Database</a></li>
+                    <li><a href="https://prometheus.ecospherenet.work" target="_blank">🔍 Prometheus - Metrics</a></li>
+                </ul>
+            </div>
+            
+            <div class="category">
+                <h2>🔍 Tools</h2>
+                <ul class="services">
+                    <li><a href="https://searxng.ecospherenet.work" target="_blank">🔎 SearXNG - Private Search</a></li>
+                    <li><a href="https://crawl4ai.ecospherenet.work" target="_blank">🕸️ Crawl4AI - Web Scraping</a></li>
+                    <li><a href="https://qdrant.ecospherenet.work" target="_blank">🗃️ Qdrant - Vector DB</a></li>
+                    <li><a href="https://ollama.ecospherenet.work" target="_blank">🤖 Ollama - Local LLM</a></li>
+                </ul>
+            </div>
+        </div>
+        
+	<div class="footer">
+    	<p>
+        Your personal Workspace | 
+        Provided by <a href="https://www.ecospherenetwork.org/" target="_blank">EcoSphereNetwork</a>
+    </p>
+</div>
+
+
