@@ -1,84 +1,94 @@
 {
     # Global options - works for both environments
     email {$LETSENCRYPT_EMAIL}
-}
-
-# N8N
-{$N8N_HOSTNAME} {
-    # For domains, Caddy will automatically use Let's Encrypt
-    # For localhost/port addresses, HTTPS won't be enabled
-    reverse_proxy n8n:5678
-}
-
-# Open WebUI
-{$WEBUI_HOSTNAME} {
-    reverse_proxy open-webui:8080
-}
-
-# Flowise
-{$FLOWISE_HOSTNAME} {
-    reverse_proxy flowise:3001
-}
-
-# Langfuse
-{$LANGFUSE_HOSTNAME} {
-    reverse_proxy langfuse-web:3000
-}
-
-# # Ollama API
-# {$OLLAMA_HOSTNAME} {
-#     reverse_proxy ollama:11434
-# }
-
-# Supabase
-{$SUPABASE_HOSTNAME} {
-    reverse_proxy kong:8000
-}
-
-# Grafana
-{$GRAFANA_HOSTNAME} {
-    reverse_proxy grafana:3000
-}
-
-# Prometheus
-{$PROMETHEUS_HOSTNAME} {
-    basic_auth { 
-        {$PROMETHEUS_USERNAME} {$PROMETHEUS_PASSWORD_HASH}
+    admin off
+    log {
+        output file /var/log/caddy/access.log
+        format json
     }
-    reverse_proxy prometheus:9090
 }
 
-# Letta
-{$LETTA_HOSTNAME} {
-    reverse_proxy letta:8283
-}
+# Import additional configurations
+import /etc/caddy/addons/*.conf
 
-# Weaviate
-{$WEAVIATE_HOSTNAME} {
-    reverse_proxy weaviate:8080
-}
-
-# Qdrant
-{$QDRANT_HOSTNAME} {
-    reverse_proxy qdrant:6333
-}
-
-# Neo4j
-{$NEO4J_HOSTNAME} {
-    reverse_proxy neo4j:7474
-}
-
-# Neo4j Bolt Protocol (wss)
-https://{$NEO4J_HOSTNAME}:7687 {
-    reverse_proxy neo4j:7687
-}
-
-# AppFlowy Web Interface
-{$APPFLOWY_HOSTNAME} {
-    reverse_proxy appflowy-web:3000
+# N8N - Core Automation Platform
+{$N8N_HOSTNAME} {
+    reverse_proxy n8n:5678 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    # Enable compression for better performance
     encode zstd gzip
     
     # Handle WebSocket connections for real-time features
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websockets n8n:5678
+    
+    log {
+        output file /var/log/caddy/n8n.log
+        format json
+    }
+}
+
+# Open WebUI - ChatGPT-like Interface
+{$WEBUI_HOSTNAME} {
+    reverse_proxy open-webui:8080 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode zstd gzip
+    
+    # Handle WebSocket connections
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websockets open-webui:8080
+    
+    log {
+        output file /var/log/caddy/webui.log
+        format json
+    }
+}
+
+# Flowise - AI Agent Builder
+{$FLOWISE_HOSTNAME} {
+    reverse_proxy flowise:3001 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode zstd gzip
+    
+    log {
+        output file /var/log/caddy/flowise.log
+        format json
+    }
+}
+
+# AppFlowy - Knowledge Management & Notion Alternative
+{$APPFLOWY_HOSTNAME} {
+    reverse_proxy appflowy-web:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode zstd gzip
+    
+    # Handle WebSocket connections for real-time collaboration
     @websockets {
         header Connection *Upgrade*
         header Upgrade websocket
@@ -88,8 +98,9 @@ https://{$NEO4J_HOSTNAME}:7687 {
     # Enable CORS for API requests
     header {
         Access-Control-Allow-Origin *
-        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-        Access-Control-Allow-Headers "Content-Type, Authorization"
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+        Access-Control-Max-Age "86400"
     }
     
     # Handle preflight requests
@@ -97,11 +108,42 @@ https://{$NEO4J_HOSTNAME}:7687 {
         method OPTIONS
     }
     respond @preflight 204
+    
+    # API routes for AppFlowy Cloud
+    handle /api/* {
+        reverse_proxy appflowy-cloud:8000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # GoTrue auth routes
+    handle /gotrue/* {
+        reverse_proxy appflowy-gotrue:9999 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    log {
+        output file /var/log/caddy/appflowy.log
+        format json
+    }
 }
 
-# Affine Web Interface
+# Affine - Collaborative Workspace
 {$AFFINE_HOSTNAME} {
-    reverse_proxy affine:3010
+    reverse_proxy affine:3010 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
     encode zstd gzip
     
     # Handle WebSocket connections for collaboration
@@ -114,8 +156,9 @@ https://{$NEO4J_HOSTNAME}:7687 {
     # Enable CORS for API requests
     header {
         Access-Control-Allow-Origin *
-        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-        Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-CSRF-Token"
+        Access-Control-Max-Age "86400"
     }
     
     # Handle preflight requests
@@ -123,73 +166,273 @@ https://{$NEO4J_HOSTNAME}:7687 {
         method OPTIONS
     }
     respond @preflight 204
+    
+    # GraphQL endpoint
+    handle /graphql* {
+        reverse_proxy affine:3010 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    log {
+        output file /var/log/caddy/affine.log
+        format json
+    }
 }
 
-# SearXNG
+# Portainer - Container Management Interface
+{$PORTAINER_HOSTNAME} {
+    reverse_proxy portainer:9000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode zstd gzip
+    
+    # Handle WebSocket connections for container logs
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websockets portainer:9000
+    
+    log {
+        output file /var/log/caddy/portainer.log
+        format json
+    }
+}
+
+# Langfuse - AI Observability
+{$LANGFUSE_HOSTNAME} {
+    reverse_proxy langfuse-web:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode zstd gzip
+    
+    log {
+        output file /var/log/caddy/langfuse.log
+        format json
+    }
+}
+
+# Supabase - Backend as a Service
+{$SUPABASE_HOSTNAME} {
+    reverse_proxy kong:8000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode zstd gzip
+    
+    log {
+        output file /var/log/caddy/supabase.log
+        format json
+    }
+}
+
+# Grafana - Monitoring Dashboard
+{$GRAFANA_HOSTNAME} {
+    reverse_proxy grafana:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode zstd gzip
+    
+    # Handle WebSocket connections for real-time updates
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websockets grafana:3000
+    
+    log {
+        output file /var/log/caddy/grafana.log
+        format json
+    }
+}
+
+# Prometheus - Metrics Collection (with Basic Auth)
+{$PROMETHEUS_HOSTNAME} {
+    basic_auth { 
+        {$PROMETHEUS_USERNAME} {$PROMETHEUS_PASSWORD_HASH}
+    }
+    
+    reverse_proxy prometheus:9090 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode zstd gzip
+    
+    log {
+        output file /var/log/caddy/prometheus.log
+        format json
+    }
+}
+
+# Letta - Agent Server & SDK
+{$LETTA_HOSTNAME} {
+    reverse_proxy letta:8283 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode zstd gzip
+    
+    log {
+        output file /var/log/caddy/letta.log
+        format json
+    }
+}
+
+# Weaviate - Vector Database
+{$WEAVIATE_HOSTNAME} {
+    reverse_proxy weaviate:8080 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode zstd gzip
+    
+    log {
+        output file /var/log/caddy/weaviate.log
+        format json
+    }
+}
+
+# Qdrant - Vector Database
+{$QDRANT_HOSTNAME} {
+    reverse_proxy qdrant:6333 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode zstd gzip
+    
+    log {
+        output file /var/log/caddy/qdrant.log
+        format json
+    }
+}
+
+# Neo4j - Graph Database
+{$NEO4J_HOSTNAME} {
+    reverse_proxy neo4j:7474 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode zstd gzip
+    
+    log {
+        output file /var/log/caddy/neo4j.log
+        format json
+    }
+}
+
+# Neo4j Bolt Protocol (wss)
+https://{$NEO4J_HOSTNAME}:7687 {
+    reverse_proxy neo4j:7687 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    log {
+        output file /var/log/caddy/neo4j-bolt.log
+        format json
+    }
+}
+
+# SearXNG - Private Metasearch Engine (with Basic Auth)
 {$SEARXNG_HOSTNAME} {
     basic_auth { 
         {$SEARXNG_USERNAME} {$SEARXNG_PASSWORD_HASH}
     }
+    
     encode zstd gzip
+    
+    @api {
+        path /config
+        path /healthz
+        path /stats/errors
+        path /stats/checker
+    }
+    @search {
+        path /search
+    }
+    @imageproxy {
+        path /image_proxy
+    }
+    @static {
+        path /static/*
+    }
+    
+    header {
+        # CSP (https://content-security-policy.com)
+        Content-Security-Policy "upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://github.com/searxng/searxng/issues/new; font-src 'self'; frame-ancestors 'self'; base-uri 'self'; connect-src 'self' https://overpass-api.de; img-src * data:; frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.dailymotion.com https://www.deezer.com https://www.mixcloud.com https://w.soundcloud.com https://embed.spotify.com;"
+        # Disable some browser features
+        Permissions-Policy "accelerometer=(),camera=(),geolocation=(),gyroscope=(),magnetometer=(),microphone=(),payment=(),usb=()"
+        # Set referrer policy
+        Referrer-Policy "no-referrer"
+        # Force clients to use HTTPS
+        Strict-Transport-Security "max-age=31536000"
+        # Prevent MIME type sniffing from the declared Content-Type
+        X-Content-Type-Options "nosniff"
+        # X-Robots-Tag (comment to allow site indexing)
+        X-Robots-Tag "noindex, noarchive, nofollow"
+        # Remove "Server" header
+        -Server
+    }
+    
+    header @api {
+        Access-Control-Allow-Methods "GET, OPTIONS"
+        Access-Control-Allow-Origin "*"
+    }
+    
+    route {
+        # Cache policy
+        header Cache-Control "max-age=0, no-store"
+        header @search Cache-Control "max-age=5, private"
+        header @imageproxy Cache-Control "max-age=604800, public"
+        header @static Cache-Control "max-age=31536000, public, immutable"
+    }
+    
+    # SearXNG (uWSGI)
+    reverse_proxy searxng:8080 {
+        header_up X-Forwarded-Port {http.request.port}
+        header_up X-Real-IP {http.request.remote.host}
+        # https://github.com/searx/searx-docker/issues/24
+        header_up Connection "close"
+    }
+    
+    log {
+        output file /var/log/caddy/searxng.log
+        format json
+    }
 }
-
-import /etc/caddy/addons/*.conf
-
-# # SearXNG
-# {$SEARXNG_HOSTNAME} {
-#     encode zstd gzip
-    
-#     @api {
-#         path /config
-#         path /healthz
-#         path /stats/errors
-#         path /stats/checker
-#     }
-#     @search {
-#         path /search
-#     }
-#     @imageproxy {
-#         path /image_proxy
-#     }
-#     @static {
-#         path /static/*
-#     }
-    
-#     header {
-#         # CSP (https://content-security-policy.com)
-#         Content-Security-Policy "upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://github.com/searxng/searxng/issues/new; font-src 'self'; frame-ancestors 'self'; base-uri 'self'; connect-src 'self' https://overpass-api.de; img-src * data:; frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.dailymotion.com https://www.deezer.com https://www.mixcloud.com https://w.soundcloud.com https://embed.spotify.com;"
-#         # Disable some browser features
-#         Permissions-Policy "accelerometer=(),camera=(),geolocation=(),gyroscope=(),magnetometer=(),microphone=(),payment=(),usb=()"
-#         # Set referrer policy
-#         Referrer-Policy "no-referrer"
-#         # Force clients to use HTTPS
-#         Strict-Transport-Security "max-age=31536000"
-#         # Prevent MIME type sniffing from the declared Content-Type
-#         X-Content-Type-Options "nosniff"
-#         # X-Robots-Tag (comment to allow site indexing)
-#         X-Robots-Tag "noindex, noarchive, nofollow"
-#         # Remove "Server" header
-#         -Server
-#     }
-    
-#     header @api {
-#         Access-Control-Allow-Methods "GET, OPTIONS"
-#         Access-Control-Allow-Origin "*"
-#     }
-    
-#     route {
-#         # Cache policy
-#         header Cache-Control "max-age=0, no-store"
-#         header @search Cache-Control "max-age=5, private"
-#         header @imageproxy Cache-Control "max-age=604800, public"
-#         header @static Cache-Control "max-age=31536000, public, immutable"
-#     }
-    
-#     # SearXNG (uWSGI)
-#     reverse_proxy searxng:8080 {
-#         header_up X-Forwarded-Port {http.request.port}
-#         header_up X-Real-IP {http.request.remote.host}
-#         # https://github.com/searx/searx-docker/issues/24
-#         header_up Connection "close"
-#     }
-# }
