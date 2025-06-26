@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Enhanced Final Report Script for n8n-installer + Workspace Integration
+# Displays comprehensive access information for all deployed services
+
 set -e
 
 # Source the utilities file
@@ -17,7 +20,6 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # Load environment variables from .env file
-# Use set -a to export all variables read from the file
 set -a
 source "$ENV_FILE"
 set +a
@@ -25,13 +27,10 @@ set +a
 # Function to check if a profile is active
 is_profile_active() {
     local profile_to_check="$1"
-    # COMPOSE_PROFILES is sourced from .env and will be available here
     if [ -z "$COMPOSE_PROFILES" ]; then
         return 1 # Not active if COMPOSE_PROFILES is empty or not set
     fi
     # Check if the profile_to_check is in the comma-separated list
-    # Adding commas at the beginning and end of both strings handles edge cases
-    # (e.g., single profile, profile being a substring of another)
     if [[ ",$COMPOSE_PROFILES," == *",$profile_to_check,"* ]]; then
         return 0 # Active
     else
@@ -39,286 +38,628 @@ is_profile_active() {
     fi
 }
 
-# --- Service Access Credentials ---
+# Function to check if Zed is installed
+check_zed_installation() {
+    if command -v zed &> /dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
 
-# Display credentials, checking if variables exist
-echo
-log_info "Service Access Credentials. Save this information securely!"
-# Display credentials, checking if variables exist
+# Function to get service status
+get_service_status() {
+    local service_name="$1"
+    local status=$(docker ps --filter "name=$service_name" --format "{{.Status}}" 2>/dev/null || echo "Not found")
+    if [[ "$status" == *"Up"* ]]; then
+        echo "🟢 Running"
+    elif [[ "$status" == "Not found" ]]; then
+        echo "⚫ Not deployed"
+    else
+        echo "🔴 Stopped"
+    fi
+}
 
+# Function to test service connectivity
+test_service_connectivity() {
+    local service_url="$1"
+    local service_name="$2"
+    
+    if curl -s --connect-timeout 5 --max-time 10 "$service_url" > /dev/null 2>&1; then
+        echo "✅ Accessible"
+    else
+        echo "⚠️  Checking..."
+    fi
+}
+
+# Function to display enhanced banner
+show_enhanced_banner() {
+    echo ""
+    echo "="*100
+    echo "🎉 ENHANCED n8n-INSTALLER + WORKSPACE-IN-A-BOX DEPLOYMENT COMPLETE!"
+    echo "="*100
+    echo ""
+    echo "🚀 Your unified AI development and knowledge management workspace is ready!"
+    echo ""
+    echo "Key Features Deployed:"
+    echo "  🧠 AI Automation Platform (n8n, Flowise, Open WebUI)"
+    echo "  📝 Knowledge Management Suite (AppFlowy, Affine)" 
+    echo "  🐳 Container Management (Portainer)"
+    echo "  ⚡ Native Development Environment (Zed Editor)"
+    echo "  🗄️ Unified Database Architecture (Shared PostgreSQL)"
+    echo "  🌐 Domain-based Routing (Caddy Reverse Proxy)"
+    echo ""
+    echo "="*100
+}
+
+# Display the enhanced banner
+show_enhanced_banner
+
+# --- Core Service Access Information ---
+echo ""
+log_info "CORE SERVICE ACCESS CREDENTIALS"
+echo "Save this information securely for future reference!"
+echo ""
+
+# Core n8n service
 if is_profile_active "n8n"; then
-  echo
-  echo "================================= n8n ================================="
-  echo
-  echo "Host: ${N8N_HOSTNAME:-<hostname_not_set>}"
+  echo "================================= n8n Workflow Automation ================================="
+  echo ""
+  echo "🌐 Access URL: ${N8N_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "n8n")"
+  if [ -n "$N8N_HOSTNAME" ]; then
+      echo "🔗 Connectivity: $(test_service_connectivity "https://$N8N_HOSTNAME" "n8n")"
+  fi
+  echo "📊 Workers: ${N8N_WORKER_COUNT:-1} parallel execution worker(s)"
+  echo "🗄️ Database: Shared PostgreSQL (n8n_db)"
+  echo "💾 Cache: Shared Redis"
+  echo ""
+  echo "💡 Quick Actions:"
+  echo "   - Import workflows: Set RUN_N8N_IMPORT=true in .env and restart"
+  echo "   - Scale workers: Update N8N_WORKER_COUNT in .env and restart"
+  echo "   - View logs: docker logs n8n"
+  echo "   - Access queue: Redis at shared-redis:6379"
 fi
 
-if is_profile_active "open-webui"; then
-  echo
-  echo "================================= WebUI ==============================="
-  echo
-  echo "Host: ${WEBUI_HOSTNAME:-<hostname_not_set>}"
+# Knowledge Management Services
+knowledge_services_active=false
+if is_profile_active "appflowy" || is_profile_active "affine"; then
+    knowledge_services_active=true
+    echo ""
+    echo "============================= KNOWLEDGE MANAGEMENT SUITE ============================="
+fi
+
+if is_profile_active "appflowy"; then
+  echo ""
+  echo "📝 AppFlowy - Knowledge Management & Notion Alternative"
+  echo "────────────────────────────────────────────────────────"
+  echo "🌐 Web Interface: https://${APPFLOWY_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "appflowy-web")"
+  if [ -n "$APPFLOWY_HOSTNAME" ]; then
+      echo "🔗 Connectivity: $(test_service_connectivity "https://$APPFLOWY_HOSTNAME" "AppFlowy")"
+  fi
+  echo "👤 Admin Password: ${APPFLOWY_ADMIN_PASSWORD:-<not_set_in_env>}"
+  echo "🚫 Signup Disabled: ${APPFLOWY_DISABLE_SIGNUP:-false}"
+  echo ""
+  echo "🏗️ AppFlowy Architecture:"
+  echo "   🌐 Web Interface: appflowy-web:3000"
+  echo "   ⚙️  Backend API: appflowy-cloud:8000"
+  echo "   🔐 Authentication: appflowy-gotrue:9999"
+  echo "   🗄️ File Storage: appflowy-minio:9000"
+  echo "   💾 Database: Shared PostgreSQL (appflowy_db)"
+  echo ""
+  echo "📱 Mobile Apps:"
+  echo "   🍎 iOS: Available on App Store (connect to your instance)"
+  echo "   🤖 Android: Available on Google Play (connect to your instance)"
+  echo ""
+  if [[ -n "${APPFLOWY_SMTP_HOST}" ]]; then
+    echo "📧 Email Configuration:"
+    echo "   📬 SMTP Host: ${APPFLOWY_SMTP_HOST}"
+    echo "   🔌 SMTP Port: ${APPFLOWY_SMTP_PORT:-587}"
+    echo "   👤 SMTP User: ${APPFLOWY_SMTP_USER:-<not_set>}"
+    echo ""
+  fi
+  echo "🔧 Management Commands:"
+  echo "   📋 View logs: docker logs appflowy-web"
+  echo "   🔄 Restart service: docker restart appflowy-web appflowy-cloud"
+  echo "   💾 Database access: PostgreSQL appflowy_db"
+  echo "   🗂️ File storage: MinIO bucket 'appflowy'"
+fi
+
+if is_profile_active "affine"; then
+  echo ""
+  echo "✨ Affine - Collaborative Workspace & Block-based Editor"
+  echo "─────────────────────────────────────────────────────────"
+  echo "🌐 Web Interface: https://${AFFINE_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "affine")"
+  if [ -n "$AFFINE_HOSTNAME" ]; then
+      echo "🔗 Connectivity: $(test_service_connectivity "https://$AFFINE_HOSTNAME" "Affine")"
+  fi
+  echo "👤 Admin Email: ${AFFINE_ADMIN_EMAIL:-<not_set_in_env>}"
+  echo "🔑 Admin Password: ${AFFINE_ADMIN_PASSWORD:-<not_set_in_env>}"
+  echo ""
+  echo "🏗️ Affine Architecture:"
+  echo "   🌐 GraphQL API: affine:3010"
+  echo "   💾 Database: Shared PostgreSQL (affine_db)"
+  echo "   🗄️ Redis Cache: shared-redis:6379"
+  echo "   📁 Storage: Docker volumes (affine_storage, affine_config)"
+  echo ""
+  echo "🚀 Advanced Features:"
+  echo "   📊 GraphQL Endpoint: https://${AFFINE_HOSTNAME}/graphql"
+  echo "   🎨 Block-based Editor: Real-time collaborative editing"
+  echo "   📋 Project Management: Kanban boards and databases"
+  echo "   🎨 Whiteboard: Miro-like collaborative whiteboard"
+  echo ""
+  if [[ -n "${AFFINE_SMTP_HOST}" ]]; then
+    echo "📧 Email Configuration:"
+    echo "   📬 SMTP Host: ${AFFINE_SMTP_HOST}"
+    echo "   🔌 SMTP Port: ${AFFINE_SMTP_PORT:-587}"
+    echo "   👤 SMTP User: ${AFFINE_SMTP_USER:-<not_set>}"
+    echo ""
+  fi
+  echo "🔧 Management Commands:"
+  echo "   📋 View logs: docker logs affine"
+  echo "   🔄 Restart service: docker restart affine"
+  echo "   💾 Database access: PostgreSQL affine_db"
+  echo "   🗃️ Redis access: shared-redis:6379"
+fi
+
+# Container Management
+if is_profile_active "portainer"; then
+  echo ""
+  echo "========================== CONTAINER MANAGEMENT INTERFACE =========================="
+  echo ""
+  echo "🐳 Portainer - Docker Container Management"
+  echo "──────────────────────────────────────────"
+  echo "🌐 Web Interface: https://${PORTAINER_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "portainer")"
+  if [ -n "$PORTAINER_HOSTNAME" ]; then
+      echo "🔗 Connectivity: $(test_service_connectivity "https://$PORTAINER_HOSTNAME" "Portainer")"
+  fi
+  echo ""
+  echo "🎛️ Portainer Features:"
+  echo "   📊 Container monitoring and management"
+  echo "   📈 Resource usage statistics"
+  echo "   🔄 Service scaling and updates"
+  echo "   📋 Log viewing and analysis"
+  echo "   🌐 Network and volume management"
+  echo ""
+  echo "🔧 Management Commands:"
+  echo "   📋 View logs: docker logs portainer"
+  echo "   🔄 Restart service: docker restart portainer"
+  echo "   💾 Data location: Docker volume portainer_data"
+fi
+
+# AI Services
+if is_profile_active "flowise" || is_profile_active "open-webui"; then
+  echo ""
+  echo "================================ AI SERVICE INTERFACES ================================"
 fi
 
 if is_profile_active "flowise"; then
-  echo
-  echo "================================= Flowise ============================="
-  echo
-  echo "Host: ${FLOWISE_HOSTNAME:-<hostname_not_set>}"
-  echo "User: ${FLOWISE_USERNAME:-<not_set_in_env>}"
-  echo "Password: ${FLOWISE_PASSWORD:-<not_set_in_env>}"
+  echo ""
+  echo "🤖 Flowise - No-code AI Agent Builder"
+  echo "─────────────────────────────────────"
+  echo "🌐 Access URL: ${FLOWISE_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "flowise")"
+  echo "👤 Username: ${FLOWISE_USERNAME:-<not_set_in_env>}"
+  echo "🔑 Password: ${FLOWISE_PASSWORD:-<not_set_in_env>}"
+  echo ""
+  echo "🔗 Integration Points:"
+  echo "   🧠 n8n workflows via HTTP requests"
+  echo "   🗄️ Vector databases (Qdrant, Weaviate)"
+  echo "   🤖 Ollama for local LLM inference"
+fi
+
+if is_profile_active "open-webui"; then
+  echo ""
+  echo "💬 Open WebUI - ChatGPT-like Interface"
+  echo "──────────────────────────────────────"
+  echo "🌐 Access URL: ${WEBUI_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "open-webui")"
+  echo ""
+  echo "🔗 LLM Connections:"
+  if is_profile_active "cpu" || is_profile_active "gpu-nvidia" || is_profile_active "gpu-amd"; then
+      echo "   🤖 Ollama: http://ollama:11434 (Local models)"
+  fi
+  echo "   🌐 OpenAI API: Configure with API key"
+  echo "   🏢 Anthropic Claude: Configure with API key"
+fi
+
+# Infrastructure Services
+infrastructure_active=false
+if is_profile_active "supabase" || is_profile_active "monitoring" || is_profile_active "langfuse"; then
+    infrastructure_active=true
+    echo ""
+    echo "============================== INFRASTRUCTURE SERVICES =============================="
 fi
 
 if is_profile_active "supabase"; then
-  echo
-  echo "================================= Supabase ============================"
-  echo
-  echo "External Host (via Caddy): ${SUPABASE_HOSTNAME:-<hostname_not_set>}"
-  echo "Studio User: ${DASHBOARD_USERNAME:-<not_set_in_env>}"
-  echo "Studio Password: ${DASHBOARD_PASSWORD:-<not_set_in_env>}"
-  echo
-  echo "Internal API Gateway: http://kong:8000"
-  echo "Service Role Secret: ${SERVICE_ROLE_KEY:-<not_set_in_env>}"
+  echo ""
+  echo "🗄️ Supabase - Backend as a Service"
+  echo "───────────────────────────────────"
+  echo "🌐 Dashboard URL: ${SUPABASE_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "kong")"
+  echo "👤 Studio User: ${DASHBOARD_USERNAME:-<not_set_in_env>}"
+  echo "🔑 Studio Password: ${DASHBOARD_PASSWORD:-<not_set_in_env>}"
+  echo ""
+  echo "🔑 API Credentials:"
+  echo "   🔓 Anon Key: ${ANON_KEY:-<not_set_in_env>}"
+  echo "   🔐 Service Role Key: ${SERVICE_ROLE_KEY:-<not_set_in_env>}"
+  echo "   🌐 API Gateway: http://kong:8000"
 fi
 
 if is_profile_active "langfuse"; then
-  echo
-  echo "================================= Langfuse ============================"
-  echo
-  echo "Host: ${LANGFUSE_HOSTNAME:-<hostname_not_set>}"
-  echo "User: ${LANGFUSE_INIT_USER_EMAIL:-<not_set_in_env>}"
-  echo "Password: ${LANGFUSE_INIT_USER_PASSWORD:-<not_set_in_env>}"
+  echo ""
+  echo "📈 Langfuse - AI Observability Platform"
+  echo "───────────────────────────────────────"
+  echo "🌐 Access URL: ${LANGFUSE_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "langfuse-web")"
+  echo "👤 User Email: ${LANGFUSE_INIT_USER_EMAIL:-<not_set_in_env>}"
+  echo "🔑 Password: ${LANGFUSE_INIT_USER_PASSWORD:-<not_set_in_env>}"
+  echo ""
+  echo "🔑 Project API Keys:"
+  echo "   🔓 Public Key: ${LANGFUSE_INIT_PROJECT_PUBLIC_KEY:-<not_set_in_env>}"
+  echo "   🔐 Secret Key: ${LANGFUSE_INIT_PROJECT_SECRET_KEY:-<not_set_in_env>}"
 fi
 
 if is_profile_active "monitoring"; then
-  echo
-  echo "================================= Grafana ============================="
-  echo
-  echo "Host: ${GRAFANA_HOSTNAME:-<hostname_not_set>}"
-  echo "User: admin"
-  echo "Password: ${GRAFANA_ADMIN_PASSWORD:-<not_set_in_env>}"
-  echo
-  echo "================================= Prometheus =========================="
-  echo
-  echo "Host: ${PROMETHEUS_HOSTNAME:-<hostname_not_set>}"
-  echo "User: ${PROMETHEUS_USERNAME:-<not_set_in_env>}"
-  echo "Password: ${PROMETHEUS_PASSWORD:-<not_set_in_env>}"
+  echo ""
+  echo "📊 Monitoring Suite - Grafana & Prometheus"
+  echo "──────────────────────────────────────────"
+  echo "🌐 Grafana Dashboard: ${GRAFANA_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "grafana")"
+  echo "👤 Admin User: admin"
+  echo "🔑 Admin Password: ${GRAFANA_ADMIN_PASSWORD:-<not_set_in_env>}"
+  echo ""
+  echo "📈 Prometheus Metrics: ${PROMETHEUS_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "prometheus")"
+  echo "👤 Auth User: ${PROMETHEUS_USERNAME:-<not_set_in_env>}"
+  echo "🔑 Auth Password: ${PROMETHEUS_PASSWORD:-<not_set_in_env>}"
 fi
 
-if is_profile_active "searxng"; then
-  echo
-  echo "================================= Searxng ============================="
-  echo
-  echo "Host: ${SEARXNG_HOSTNAME:-<hostname_not_set>}"
-  echo "User: ${SEARXNG_USERNAME:-<not_set_in_env>}"
-  echo "Password: ${SEARXNG_PASSWORD:-<not_set_in_env>}"
+# Vector Databases
+vector_dbs_active=false
+if is_profile_active "qdrant" || is_profile_active "weaviate"; then
+    vector_dbs_active=true
+    echo ""
+    echo "=============================== VECTOR DATABASES ==============================="
 fi
 
 if is_profile_active "qdrant"; then
-  echo
-  echo "================================= Qdrant =============================="
-  echo
-  echo "Host: https://${QDRANT_HOSTNAME:-<hostname_not_set>}"
-  echo "API Key: ${QDRANT_API_KEY:-<not_set_in_env>}"
-  echo "Internal REST API Access (e.g., from backend): http://qdrant:6333"
-fi
-
-if is_profile_active "crawl4ai"; then
-  echo
-  echo "================================= Crawl4AI ============================"
-  echo
-  echo "Internal Access (e.g., from n8n): http://crawl4ai:11235"
-  echo "(Note: Not exposed externally via Caddy by default)"
-fi
-
-if is_profile_active "appflowy"; then
-  echo
-  echo "================================= AppFlowy ============================"
-  echo
-  echo "Host: https://${APPFLOWY_HOSTNAME:-<hostname_not_set>}"
-  echo "Admin Password: ${APPFLOWY_ADMIN_PASSWORD:-<not_set_in_env>}"
-  echo "Disable Signup: ${APPFLOWY_DISABLE_SIGNUP:-false}"
-  echo
-  echo "AppFlowy Cloud Configuration:"
-  echo "  Internal API: http://appflowy-cloud:8000"
-  echo "  Internal Auth Service: http://appflowy-gotrue:9999"
-  echo "  Internal MinIO: http://appflowy-minio:9000"
-  echo "  MinIO Credentials: ${APPFLOWY_MINIO_USER:-minioadmin} / ${APPFLOWY_MINIO_PASSWORD:-<not_set_in_env>}"
-  echo
-  echo "Database Access:"
-  echo "  PostgreSQL Host: appflowy-postgres:5432"
-  echo "  Database: ${APPFLOWY_POSTGRES_DB:-appflowy}"
-  echo "  Username: ${APPFLOWY_POSTGRES_USER:-appflowy}"
-  echo "  Password: ${APPFLOWY_POSTGRES_PASSWORD:-<not_set_in_env>}"
-  echo
-  if [[ -n "${APPFLOWY_SMTP_HOST}" ]]; then
-    echo "SMTP Configuration:"
-    echo "  Host: ${APPFLOWY_SMTP_HOST}"
-    echo "  Port: ${APPFLOWY_SMTP_PORT:-587}"
-    echo "  User: ${APPFLOWY_SMTP_USER:-<not_set>}"
-  fi
-fi
-
-if is_profile_active "affine"; then
-  echo
-  echo "================================= Affine ==============================="
-  echo
-  echo "Host: https://${AFFINE_HOSTNAME:-<hostname_not_set>}"
-  echo "Admin Email: ${AFFINE_ADMIN_EMAIL:-<not_set_in_env>}"
-  echo "Admin Password: ${AFFINE_ADMIN_PASSWORD:-<not_set_in_env>}"
-  echo
-  echo "Affine Configuration:"
-  echo "  Internal GraphQL API: http://affine:3010"
-  echo "  Internal Redis: affine-redis:6379"
-  echo
-  echo "Database Access:"
-  echo "  PostgreSQL Host: affine-postgres:5432"
-  echo "  Database: ${AFFINE_POSTGRES_DB:-affine}"
-  echo "  Username: ${AFFINE_POSTGRES_USER:-affine}"
-  echo "  Password: ${AFFINE_POSTGRES_PASSWORD:-<not_set_in_env>}"
-  echo
-  if [[ -n "${AFFINE_SMTP_HOST}" ]]; then
-    echo "SMTP Configuration:"
-    echo "  Host: ${AFFINE_SMTP_HOST}"
-    echo "  Port: ${AFFINE_SMTP_PORT:-587}"
-    echo "  User: ${AFFINE_SMTP_USER:-<not_set>}"
-  fi
-fi
-
-if is_profile_active "n8n" || is_profile_active "langfuse"; then
-  echo
-  echo "================================= Redis (Valkey) ======================"
-  echo
-  echo "Internal Host: ${REDIS_HOST:-redis}"
-  echo "Internal Port: ${REDIS_PORT:-6379}"
-  echo "Password: ${REDIS_AUTH:-LOCALONLYREDIS} (Note: Default if not set in .env)"
-  echo "(Note: Primarily for internal service communication, not exposed externally by default)"
-fi
-
-if is_profile_active "letta"; then
-  echo
-  echo "================================= Letta ================================"
-  echo
-  echo "Host: ${LETTA_HOSTNAME:-<hostname_not_set>}"
-  echo "Authorization: Bearer ${LETTA_SERVER_PASSWORD}"
-fi
-
-if is_profile_active "cpu" || is_profile_active "gpu-nvidia" || is_profile_active "gpu-amd"; then
-  echo
-  echo "================================= Ollama =============================="
-  echo
-  echo "Internal Access (e.g., from n8n, Open WebUI): http://ollama:11434"
-  echo "(Note: Ollama runs with the selected profile: cpu, gpu-nvidia, or gpu-amd)"
+  echo ""
+  echo "📊 Qdrant - High-Performance Vector Database"
+  echo "────────────────────────────────────────────"
+  echo "🌐 Dashboard: https://${QDRANT_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "qdrant")"
+  echo "🔑 API Key: ${QDRANT_API_KEY:-<not_set_in_env>}"
+  echo "🌐 Internal API: http://qdrant:6333"
 fi
 
 if is_profile_active "weaviate"; then
-  echo
-  echo "================================= Weaviate ============================"
-  echo
-  echo "Host: ${WEAVIATE_HOSTNAME:-<hostname_not_set>}"
-  echo "Admin User (for Weaviate RBAC): ${WEAVIATE_USERNAME:-<not_set_in_env>}"
-  echo "Weaviate API Key: ${WEAVIATE_API_KEY:-<not_set_in_env>}"
+  echo ""
+  echo "🧠 Weaviate - AI-Native Vector Database"
+  echo "───────────────────────────────────────"
+  echo "🌐 Access URL: https://${WEAVIATE_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "weaviate")"
+  echo "👤 Admin User: ${WEAVIATE_USERNAME:-<not_set_in_env>}"
+  echo "🔑 API Key: ${WEAVIATE_API_KEY:-<not_set_in_env>}"
+fi
+
+# Additional Services
+if is_profile_active "searxng" || is_profile_active "neo4j" || is_profile_active "letta"; then
+    echo ""
+    echo "============================== ADDITIONAL SERVICES =============================="
+fi
+
+if is_profile_active "searxng"; then
+  echo ""
+  echo "🔍 SearXNG - Private Metasearch Engine"
+  echo "──────────────────────────────────────"
+  echo "🌐 Access URL: ${SEARXNG_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "searxng")"
+  echo "👤 Auth User: ${SEARXNG_USERNAME:-<not_set_in_env>}"
+  echo "🔑 Auth Password: ${SEARXNG_PASSWORD:-<not_set_in_env>}"
 fi
 
 if is_profile_active "neo4j"; then
-  echo
-  echo "================================= Neo4j =================================="
-  echo
-  echo "Web UI Host: https://${NEO4J_HOSTNAME:-<hostname_not_set>}"
-  echo "Bolt Port (for drivers): 7687 (e.g., neo4j://\\${NEO4J_HOSTNAME:-<hostname_not_set>}:7687)"
-  echo "User (for Web UI & API): ${NEO4J_AUTH_USERNAME:-<not_set_in_env>}"
-  echo "Password (for Web UI & API): ${NEO4J_AUTH_PASSWORD:-<not_set_in_env>}"
-  echo
-  echo "HTTP API Access (e.g., for N8N):"
-  echo "  Authentication: Basic (use User/Password above)"
-  echo "  Cypher API Endpoint (POST): https://\\${NEO4J_HOSTNAME:-<hostname_not_set>}/db/neo4j/tx/commit"
-  echo "  Authorization Header Value (for 'Authorization: Basic <value>'): \$(echo -n \"${NEO4J_AUTH_USERNAME:-neo4j}:${NEO4J_AUTH_PASSWORD}\" | base64)"
+  echo ""
+  echo "🕸️ Neo4j - Graph Database"
+  echo "──────────────────────────"
+  echo "🌐 Web Interface: https://${NEO4J_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "neo4j")"
+  echo "👤 Username: ${NEO4J_AUTH_USERNAME:-<not_set_in_env>}"
+  echo "🔑 Password: ${NEO4J_AUTH_PASSWORD:-<not_set_in_env>}"
+  echo "🔌 Bolt Port: 7687 (neo4j://${NEO4J_HOSTNAME:-localhost}:7687)"
 fi
 
-# Standalone PostgreSQL (used by n8n, Langfuse, etc.)
-# Check if n8n or langfuse is active, as they use this PostgreSQL instance.
-# The Supabase section already details its own internal Postgres.
-if is_profile_active "n8n" || is_profile_active "langfuse"; then
-  # Check if Supabase is NOT active, to avoid confusion with Supabase's Postgres if both are present
-  # However, the main POSTGRES_PASSWORD is used by this standalone instance.
-  # Supabase has its own environment variables for its internal Postgres if configured differently,
-  # but the current docker-compose.yml uses the main POSTGRES_PASSWORD for langfuse's postgres dependency too.
-  # For clarity, we will label this distinctly.
-  echo
-  echo "==================== Standalone PostgreSQL (for n8n, Langfuse, etc.) ====================="
-  echo
-  echo "Host: ${POSTGRES_HOST:-postgres}"
-  echo "Port: ${POSTGRES_PORT:-5432}"
-  echo "Database: ${POSTGRES_DB:-postgres}" # This is typically 'postgres' or 'n8n' for n8n, and 'langfuse' for langfuse, but refers to the service.
-  echo "User: ${POSTGRES_USER:-postgres}"
-  echo "Password: ${POSTGRES_PASSWORD:-<not_set_in_env>}"
-  echo "(Note: This is the PostgreSQL instance used by services like n8n and Langfuse.)"
-  echo "(It is separate from Supabase's internal PostgreSQL if Supabase is also enabled.)"
-  if is_profile_active "appflowy" || is_profile_active "affine"; then
-    echo "(AppFlowy and Affine use their own separate PostgreSQL instances.)"
-  fi
+if is_profile_active "letta"; then
+  echo ""
+  echo "🤖 Letta - Agent Server & SDK"
+  echo "─────────────────────────────"
+  echo "🌐 Access URL: ${LETTA_HOSTNAME:-<hostname_not_set>}"
+  echo "🔧 Status: $(get_service_status "letta")"
+  echo "🔑 Bearer Token: ${LETTA_SERVER_PASSWORD:-<not_set_in_env>}"
 fi
 
-echo
-echo "======================================================================="
-echo
-
-# --- Additional Information for AppFlowy and Affine ---
-if is_profile_active "appflowy" || is_profile_active "affine"; then
-  echo
-  echo "=========================== Knowledge Management Tips =========================="
-  if is_profile_active "appflowy"; then
-    echo
-    echo "AppFlowy Usage Tips:"
-    echo "• AppFlowy supports real-time collaboration with multiple users"
-    echo "• Use the mobile apps by connecting to your self-hosted instance"
-    echo "• Configure SMTP for user invitations and notifications"
-    echo "• The MinIO storage handles all file uploads and document assets"
-    echo "• API access available at: https://${APPFLOWY_HOSTNAME}/api"
+# Ollama Local LLMs
+if is_profile_active "cpu" || is_profile_active "gpu-nvidia" || is_profile_active "gpu-amd"; then
+  echo ""
+  echo "=============================== LOCAL LLM INFERENCE ==============================="
+  echo ""
+  echo "🤖 Ollama - Local Large Language Models"
+  echo "───────────────────────────────────────"
+  
+  # Determine which profile is active
+  if is_profile_active "cpu"; then
+      echo "⚙️  Hardware Profile: CPU (Compatible with all systems)"
+      echo "🔧 Status: $(get_service_status "ollama-cpu")"
+  elif is_profile_active "gpu-nvidia"; then
+      echo "🚀 Hardware Profile: NVIDIA GPU (CUDA acceleration)"
+      echo "🔧 Status: $(get_service_status "ollama-gpu")"
+  elif is_profile_active "gpu-amd"; then
+      echo "🔥 Hardware Profile: AMD GPU (ROCm acceleration)"
+      echo "🔧 Status: $(get_service_status "ollama-gpu-amd")"
   fi
   
-  if is_profile_active "affine"; then
-    echo
-    echo "Affine Usage Tips:"
-    echo "• Affine provides block-based editing similar to Notion"
-    echo "• Supports collaborative editing with real-time synchronization"
-    echo "• Configure SMTP for user invitations and password resets"
-    echo "• All data is stored locally in your PostgreSQL instance"
-    echo "• GraphQL API available at: https://${AFFINE_HOSTNAME}/graphql"
-  fi
-  
-  if is_profile_active "appflowy" && is_profile_active "affine"; then
-    echo
-    echo "Running Both AppFlowy and Affine:"
-    echo "• Both services use separate databases and storage"
-    echo "• No conflicts between the two knowledge management systems"
-    echo "• Choose the interface that better fits your workflow"
-    echo "• Both support markdown import/export for data portability"
-  fi
-  echo
-  echo "==============================================================================="
+  echo "🌐 Internal API: http://ollama:11434"
+  echo ""
+  echo "🧠 Pre-installed Models:"
+  echo "   📚 qwen2.5:7b-instruct-q4_K_M - General instruction following"
+  echo "   🔍 nomic-embed-text - Text embedding model"
+  echo ""
+  echo "💡 Model Management:"
+  echo "   📥 Pull model: docker exec ollama ollama pull <model_name>"
+  echo "   📋 List models: docker exec ollama ollama list"
+  echo "   🗑️ Remove model: docker exec ollama ollama rm <model_name>"
 fi
 
-# --- Update Script Info (Placeholder) ---
-log_info "To update the services, run the 'update.sh' script: bash ./scripts/update.sh"
-
-echo
-echo "======================================================================"
-echo
-echo "Next Steps:"
-echo "1. Review the credentials above and store them safely."
-echo "2. Access the services via their respective URLs (check \`docker compose ps\` if needed)."
-echo "3. Configure services as needed (e.g., first-run setup for n8n)."
+# Shared Infrastructure Details
+echo ""
+echo "========================== SHARED INFRASTRUCTURE DETAILS =========================="
+echo ""
+echo "🗄️ Shared PostgreSQL Database"
+echo "─────────────────────────────"
+echo "🌐 Host: shared-postgres:5432"
+echo "🔧 Status: $(get_service_status "shared-postgres")"
+echo "👤 Username: postgres"
+echo "🔑 Password: ${POSTGRES_PASSWORD:-<not_set_in_env>}"
+echo ""
+echo "📊 Database Breakdown:"
+if is_profile_active "n8n"; then
+    echo "   🧠 n8n_db - n8n workflows and executions"
+fi
 if is_profile_active "appflowy"; then
-  echo "4. AppFlowy: Create your first workspace and configure team settings."
+    echo "   📝 appflowy_db - AppFlowy workspace data"
 fi
 if is_profile_active "affine"; then
-  echo "4. Affine: Sign in with the admin credentials and create your first workspace."
+    echo "   ✨ affine_db - Affine collaborative data"
 fi
-echo
-echo "======================================================================"
-echo
-log_info "Thank you for using this installer setup!"
-echo
+if is_profile_active "langfuse"; then
+    echo "   📈 langfuse_db - AI observability data"
+fi
+if is_profile_active "supabase"; then
+    echo "   🗄️ supabase_db - Supabase backend data"
+fi
+echo ""
+echo "💾 Shared Redis Cache"
+echo "────────────────────"
+echo "🌐 Host: shared-redis:6379"
+echo "🔧 Status: $(get_service_status "shared-redis")"
+echo "🔑 Auth: ${REDIS_AUTH:-LOCALONLYREDIS}"
+echo ""
+echo "🎯 Usage Breakdown:"
+if is_profile_active "n8n"; then
+    echo "   🧠 n8n queue management and workflow caching"
+fi
+if is_profile_active "appflowy"; then
+    echo "   📝 AppFlowy session management"
+fi
+if is_profile_active "affine"; then
+    echo "   ✨ Affine real-time collaboration"
+fi
+if is_profile_active "langfuse"; then
+    echo "   📈 Langfuse analytics caching"
+fi
+
+# Development Environment
+echo ""
+echo "=========================== DEVELOPMENT ENVIRONMENT ==========================="
+echo ""
+echo "🎨 Native Development Setup"
+echo "──────────────────────────"
+
+if check_zed_installation; then
+    echo "⚡ Zed Editor: ✅ Installed and ready"
+    echo "🚀 Launch Command: zed"
+    echo "📁 Projects Directory: ~/Projects/"
+    echo "🔧 Config Location: ~/.config/zed/"
+    echo ""
+    echo "🛠️ Pre-configured Language Support:"
+    echo "   📘 TypeScript/JavaScript - Full IntelliSense"
+    echo "   🐍 Python - Black, pylint, mypy integration"
+    echo "   🦀 Rust - rust-analyzer with clippy"
+    echo "   📄 JSON/YAML - Schema validation"
+    echo "   🐳 Dockerfile - Syntax highlighting"
+    echo ""
+    echo "🚀 Quick Start Commands:"
+    echo "   📂 Open projects: zed ~/Projects/"
+    echo "   ⚡ Current directory: zed ."
+    echo "   🔧 Development setup: ~/setup-dev-session.sh"
+else
+    echo "⚡ Zed Editor: ❌ Not installed"
+    echo "💡 Install manually: bash scripts/install_zed_native.sh"
+fi
+
+echo ""
+echo "📁 Project Structure:"
+echo "   🧠 ~/Projects/n8n-workflows/     - n8n automation workflows"
+echo "   🤖 ~/Projects/ai-experiments/    - AI model experiments"
+echo "   🐳 ~/Projects/docker-configs/    - Docker configurations"
+echo "   📜 ~/Projects/scripts/           - Utility scripts"
+echo "   📚 ~/Projects/knowledge-base/    - Documentation and notes"
+
+# Network and Domain Configuration
+echo ""
+echo "============================= NETWORK CONFIGURATION ============================="
+echo ""
+echo "🌐 Domain and Routing"
+echo "─────────────────────"
+echo "🏠 Primary Domain: ${USER_DOMAIN_NAME:-localhost}"
+echo "🔄 Reverse Proxy: Caddy (automatic HTTPS)"
+echo "🔧 Status: $(get_service_status "caddy")"
+
+if [ "$USER_DOMAIN_NAME" != "localhost" ] && [ -n "$USER_DOMAIN_NAME" ]; then
+    echo "🌍 Production Mode: HTTPS with Let's Encrypt"
+    echo "📧 SSL Contact: ${LETSENCRYPT_EMAIL:-<not_set>}"
+else
+    echo "🏠 Development Mode: HTTP localhost access"
+fi
+
+echo ""
+echo "🔗 Service URL Pattern:"
+if [ "$USER_DOMAIN_NAME" != "localhost" ] && [ -n "$USER_DOMAIN_NAME" ]; then
+    echo "   Format: https://[service].${USER_DOMAIN_NAME}"
+else
+    echo "   Format: http://localhost:[port]"
+fi
+
+# Integration and Workflow Information
+if [ "$knowledge_services_active" = true ]; then
+    echo ""
+    echo "========================== KNOWLEDGE MANAGEMENT INTEGRATION =========================="
+    echo ""
+    echo "🔗 Service Integration Possibilities"
+    echo "───────────────────────────────────"
+    echo ""
+    echo "🧠 n8n ↔️ Knowledge Management:"
+    echo "   📝 Automated content creation in AppFlowy/Affine"
+    echo "   📊 Data synchronization between services"
+    echo "   🔔 Notification workflows for document updates"
+    echo "   📈 Analytics and reporting automation"
+    echo ""
+    echo "🗄️ Shared Database Benefits:"
+    echo "   ⚡ Optimized performance with connection pooling"
+    echo "   🔄 Cross-service data relationships"
+    echo "   💾 Unified backup and recovery"
+    echo "   📊 Consolidated monitoring and analytics"
+    echo ""
+    echo "💡 Workflow Ideas:"
+    echo "   📧 Email → AppFlowy page creation"
+    echo "   📊 Daily reports → Affine dashboard"
+    echo "   🔔 Team notifications → Knowledge base updates"
+    echo "   🤖 AI content generation → Document automation"
+fi
+
+# Backup and Maintenance
+echo ""
+echo "============================== BACKUP & MAINTENANCE =============================="
+echo ""
+echo "💾 Data Persistence"
+echo "──────────────────"
+echo "🗄️ Database: Docker volume 'shared_postgres_data'"
+echo "💾 Redis: Docker volume 'valkey-data'"
+echo "📁 File Storage:"
+if is_profile_active "appflowy"; then
+    echo "   📝 AppFlowy: volumes 'appflowy_minio_data'"
+fi
+if is_profile_active "affine"; then
+    echo "   ✨ Affine: volumes 'affine_storage', 'affine_config'"
+fi
+if is_profile_active "portainer"; then
+    echo "   🐳 Portainer: volume 'portainer_data'"
+fi
+
+echo ""
+echo "🔧 Maintenance Commands"
+echo "──────────────────────"
+echo "   📊 Service status: docker ps"
+echo "   📋 Service logs: docker logs <service_name>"
+echo "   🔄 Restart service: docker restart <service_name>"
+echo "   🛑 Stop all: docker-compose -p localai down"
+echo "   🚀 Start all: python start_services.py"
+echo "   📦 Update services: bash ./scripts/update.sh"
+echo ""
+echo "💾 Backup Commands:"
+echo "   🗄️ Database backup: docker exec shared-postgres pg_dumpall -U postgres > backup.sql"
+echo "   📁 Volume backup: docker run --rm -v shared_postgres_data:/data -v \$(pwd):/backup alpine tar czf /backup/postgres-backup.tar.gz -C /data ."
+
+# Security Information
+echo ""
+echo "================================= SECURITY NOTES ================================="
+echo ""
+echo "🔐 Security Configuration"
+echo "────────────────────────"
+echo "🔒 Database: Internal network only (not exposed)"
+echo "🔒 Redis: Internal network only (not exposed)"
+echo "🌐 Web Services: HTTPS with Caddy reverse proxy"
+echo "🔑 Passwords: Generated securely and stored in .env"
+echo ""
+echo "⚠️ Important Security Reminders:"
+echo "   🔐 Change default passwords after first login"
+echo "   📧 Configure SMTP for password reset functionality"
+echo "   🔄 Regularly update services with: bash ./scripts/update.sh"
+echo "   💾 Backup .env file securely (contains all credentials)"
+echo "   🌐 Use strong domain SSL certificates in production"
+
+# Final Status Summary
+echo ""
+echo "============================== DEPLOYMENT SUMMARY =============================="
+echo ""
+
+# Count active services
+active_services=0
+total_services=16  # Approximate total available services
+
+for service in "n8n" "flowise" "open-webui" "appflowy" "affine" "portainer" "supabase" "qdrant" "weaviate" "neo4j" "monitoring" "langfuse" "searxng" "crawl4ai" "letta"; do
+    if is_profile_active "$service"; then
+        ((active_services++))
+    fi
+done
+
+# Check Ollama variants
+if is_profile_active "cpu" || is_profile_active "gpu-nvidia" || is_profile_active "gpu-amd"; then
+    ((active_services++))
+fi
+
+echo "📊 Services Deployed: $active_services active services"
+echo "🗄️ Database: Shared PostgreSQL with optimized schemas"
+echo "💾 Cache: Shared Redis for optimal performance"
+echo "🌐 Proxy: Caddy with automatic HTTPS"
+
+if check_zed_installation; then
+    echo "🎨 Development: Zed editor ready for native development"
+else
+    echo "🎨 Development: Zed editor not installed (optional)"
+fi
+
+echo ""
+echo "🎉 SUCCESS! Your enhanced workspace is ready for:"
+echo "   🧠 AI workflow automation with n8n"
+if [ "$knowledge_services_active" = true ]; then
+    echo "   📝 Knowledge management and collaboration"
+fi
+if is_profile_active "portainer"; then
+    echo "   🐳 Container management and monitoring"
+fi
+echo "   ⚡ High-performance native development"
+echo ""
+
+# Final Tips
+echo "💡 NEXT STEPS:"
+echo "1. 🔐 Change default passwords on first login"
+echo "2. 📧 Configure SMTP settings for email features (optional)"
+echo "3. 🧠 Import n8n workflows: Set RUN_N8N_IMPORT=true and restart"
+if check_zed_installation; then
+    echo "4. 🎨 Start developing: Run 'zed ~/Projects/' to open your workspace"
+else
+    echo "4. 🎨 Install Zed editor: bash scripts/install_zed_native.sh"
+fi
+echo "5. 📚 Explore the knowledge management tools for documentation"
+echo "6. 🤖 Set up your first AI automation workflows"
+echo ""
+
+echo "🚀 Happy automating and developing with your enhanced workspace!"
+echo "="*100
 
 exit 0
