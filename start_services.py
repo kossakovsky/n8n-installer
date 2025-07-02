@@ -14,6 +14,7 @@ import time
 import argparse
 import platform
 import sys
+import yaml
 from dotenv import dotenv_values
 
 def is_supabase_enabled():
@@ -21,6 +22,22 @@ def is_supabase_enabled():
     env_values = dotenv_values(".env")
     compose_profiles = env_values.get("COMPOSE_PROFILES", "")
     return "supabase" in compose_profiles.split(',')
+
+def get_all_profiles(compose_file):
+    """Get all profile names from a docker-compose file."""
+    if not os.path.exists(compose_file):
+        return []
+    
+    with open(compose_file, 'r') as f:
+        compose_config = yaml.safe_load(f)
+
+    profiles = set()
+    if 'services' in compose_config:
+        for service_name, service_config in compose_config.get('services', {}).items():
+            if service_config and 'profiles' in service_config:
+                for profile in service_config['profiles']:
+                    profiles.add(profile)
+    return list(profiles)
 
 def run_command(cmd, cwd=None):
     """Run a shell command and print it."""
@@ -62,14 +79,18 @@ def prepare_supabase_env():
 def stop_existing_containers():
     """Stop and remove existing containers for our unified project ('localai')."""
     print("Stopping and removing existing containers for the unified project 'localai'...")
-    cmd = [
-        "docker", "compose",
-        "-p", "localai",
-        "-f", "docker-compose.yml"
-    ]
-    # Check if the Supabase Docker Compose file exists. If so, include it in the
-    # 'down' command to ensure Supabase services are stopped, even if they've been
-    # disabled in the .env file since the last run.
+    
+    # Base command
+    cmd = ["docker", "compose", "-p", "localai"]
+
+    # Get all profiles from the main docker-compose.yml to ensure all services can be brought down
+    all_profiles = get_all_profiles("docker-compose.yml")
+    for profile in all_profiles:
+        cmd.extend(["--profile", profile])
+    
+    cmd.extend(["-f", "docker-compose.yml"])
+
+    # Check if the Supabase Docker Compose file exists. If so, include it in the 'down' command.
     supabase_compose_path = os.path.join("supabase", "docker", "docker-compose.yml")
     if os.path.exists(supabase_compose_path):
         cmd.extend(["-f", supabase_compose_path])
