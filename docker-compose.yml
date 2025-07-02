@@ -40,6 +40,9 @@ x-n8n: &service-n8n
     N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE: true
     NODE_FUNCTION_ALLOW_BUILTIN: "*"
     NODE_FUNCTION_ALLOW_EXTERNAL: cheerio,axios,moment,lodash
+    LANGCHAIN_ENDPOINT: ${LANGCHAIN_ENDPOINT}
+    LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2}
+    LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY}
 
 x-ollama: &service-ollama
   image: ollama/ollama:latest
