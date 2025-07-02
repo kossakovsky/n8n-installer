@@ -67,8 +67,13 @@ def stop_existing_containers():
         "-p", "localai",
         "-f", "docker-compose.yml"
     ]
-    if is_supabase_enabled():
-        cmd.extend(["-f", "supabase/docker/docker-compose.yml"])
+    # Check if the Supabase Docker Compose file exists. If so, include it in the
+    # 'down' command to ensure Supabase services are stopped, even if they've been
+    # disabled in the .env file since the last run.
+    supabase_compose_path = os.path.join("supabase", "docker", "docker-compose.yml")
+    if os.path.exists(supabase_compose_path):
+        cmd.extend(["-f", supabase_compose_path])
+
     cmd.append("down")
     run_command(cmd)
 
