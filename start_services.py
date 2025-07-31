@@ -112,7 +112,7 @@ def start_local_ai():
     """Start the local AI services (using its compose file)."""
     print("Starting local AI services...")
     cmd = ["docker", "compose", "-p", "localai"]
-    cmd.extend(["-f", "docker-compose.yml", "up", "-d"])
+    cmd.extend(["-f", "docker-compose.yml", "up", "-d", "--build"])
     run_command(cmd)
 
 def generate_searxng_secret_key():
