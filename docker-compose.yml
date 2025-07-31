@@ -19,6 +19,7 @@ volumes:
 x-n8n: &service-n8n
   build:
     context: ./n8n
+    pull: true
   environment: &service-n8n-env
     DB_TYPE: postgresdb
     DB_POSTGRESDB_HOST: postgres
