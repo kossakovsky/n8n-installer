@@ -42,6 +42,16 @@ else
     # (apply_update.sh already handles cd to PROJECT_ROOT, so we're good)
 fi
 
+# Update Ubuntu packages before running apply_update
+log_info "Updating system packages..."
+if command -v apt-get &> /dev/null; then
+    sudo apt-get update && sudo apt-get upgrade -y
+    log_info "System packages updated successfully."
+else
+    log_warning "'apt-get' not found. Skipping system package update. This is normal on non-debian systems."
+fi
+
+
 # Execute the rest of the update process using the (potentially updated) apply_update.sh
 bash "$APPLY_UPDATE_SCRIPT"
 
