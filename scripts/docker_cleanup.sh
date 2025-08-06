@@ -1,10 +1,15 @@
 #!/bin/bash
 
+set -e
+
+# Source the utilities file
+source "$(dirname "$0")/utils.sh"
+
 # This script is intended for cleaning up the Docker system.
 # It removes all unused containers, images, networks, and volumes.
 # Use with caution, as this action is irreversible.
 
-echo "Starting Docker cleanup..."
+log_info "Starting Docker cleanup..."
 
 # The 'docker system prune' command removes:
 # - all stopped containers
@@ -19,5 +24,4 @@ echo "Starting Docker cleanup..."
 
 docker system prune -a --volumes -f
 
-echo "Docker cleanup completed successfully."
-
+log_success "Docker cleanup completed successfully."
