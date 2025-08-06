@@ -120,7 +120,12 @@ Integrate Gotenberg, a stateless API for converting documents to PDF, PNG, JPEG,
    - [x] Include service URL in access list
    - [x] Add relevant use cases for n8n integration
 
-6. **Testing and Validation**
+6. **Final Report Script**
+   - [x] Add Gotenberg section to scripts/06_final_report.sh
+   - [x] Include hostname, internal access, and API endpoints
+   - [x] Follow existing service reporting pattern
+
+7. **Testing and Validation**
    - [ ] Test complete installation flow with Gotenberg selected
    - [ ] Verify service accessibility via configured hostname
    - [ ] Test API endpoints and document conversion functionality
@@ -213,6 +218,14 @@ Upon completion of implementation phase:
   - Identified process and technical improvements
   - Created reflection document in memory-bank/reflection/
   - Ready for final testing and validation phase
+
+- **Gotenberg Security Configuration Update**: ✅ COMPLETED
+  - Removed external access configuration (Caddy reverse proxy)
+  - Removed GOTENBERG_HOSTNAME from .env.example and docker-compose.yml
+  - Updated README.md to reflect internal-only access
+  - Modified final report script to show only internal access
+  - Gotenberg now accessible only within Docker network at http://gotenberg:3000
+  - Enhanced security by limiting access to Docker internal network only
 
 ## Available for Development
 

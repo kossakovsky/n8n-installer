@@ -47,10 +47,11 @@ The integration follows the established pattern for optional services in the n8n
    - Included use cases for n8n integration
 
 ## Key Implementation Considerations
-- **Security**: Relies on network isolation and reverse proxy for security
+- **Security**: Internal-only service, no external access, secured by Docker network isolation
 - **Resource Usage**: Minimal resource requirements but may spike during PDF rendering
-- **n8n Integration**: Accessible via HTTP requests in n8n workflows
+- **n8n Integration**: Accessible via HTTP requests in n8n workflows using internal Docker network
 - **API Usage**: Standard REST API with endpoints for different conversion types
+- **Network Access**: Available only within Docker network at http://gotenberg:3000
 
 ## API Usage with n8n
 When integrated with n8n, Gotenberg provides document conversion capabilities accessible via these endpoints:
