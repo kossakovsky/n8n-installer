@@ -207,6 +207,7 @@ services:
       - PROMETHEUS_HOSTNAME=${PROMETHEUS_HOSTNAME}
       - GRAFANA_HOSTNAME=${GRAFANA_HOSTNAME}
       - LETTA_HOSTNAME=${LETTA_HOSTNAME}
+      - GOTENBERG_HOSTNAME=${GOTENBERG_HOSTNAME}
       - PROMETHEUS_USERNAME=${PROMETHEUS_USERNAME}
       - PROMETHEUS_PASSWORD_HASH=${PROMETHEUS_PASSWORD_HASH}
       - SEARXNG_USERNAME=${SEARXNG_USERNAME}
@@ -510,6 +511,19 @@ services:
         limits:
           cpus: "1.0"
           memory: 4G # Increased based on documentation recommendation
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    container_name: gotenberg
+    profiles: ["gotenberg"]
+    restart: unless-stopped
+    environment:
+      - DISABLE_GOOGLE_CHROME=false
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   letta:
     image: letta/letta:latest

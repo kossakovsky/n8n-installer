@@ -36,6 +36,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Caddy**](https://caddyserver.com/) - A powerful web server that automatically handles HTTPS/TLS for your custom domains, keeping your connections secure.
 
+✅ [**Gotenberg**](https://gotenberg.dev/) - A stateless API for converting HTML, Markdown, Word, Excel, and other documents to PDF, PNG, or JPEG, ideal for automating document processing in n8n workflows.
+
 ✅ [**Langfuse**](https://langfuse.com/) - An open-source platform to help you observe and understand how your AI agents are performing, making it easier to debug and improve them.
 
 ✅ [**Crawl4ai**](https://github.com/Alfresco/crawl4ai) - A flexible web crawler designed for AI, enabling you to extract data from websites for your projects.
@@ -124,6 +126,7 @@ After successful installation, your services are up and running! Here's how to g
     - **Weaviate:** `weaviate.yourdomain.com`
     - **Neo4j:** `neo4j.yourdomain.com`
     - **Grafana:** `grafana.yourdomain.com`
+    - **Gotenberg:** `gotenberg.yourdomain.com`
     - **SearXNG:** `searxng.yourdomain.com`
     - **Prometheus:** `prometheus.yourdomain.com` (Typically used as a data source for Grafana)
 

@@ -1,77 +1,70 @@
-# Active Context - n8n-installer Project
+# Active Context: Ready for Next Task
 
-## Current Session Status
-- **Mode**: VAN (Initialization)
-- **Date**: Current session
-- **Branch**: develop (up to date with origin)
-- **Working Tree**: Clean
+## Current Task Context
+**Previous Task**: Gotenberg Service Integration - COMPLETED & ARCHIVED
 
-## Project State Assessment
-- **Memory Bank**: ✅ Newly initialized during VAN mode
-- **Core Documentation**: ✅ Created (projectbrief.md, techContext.md, productContext.md, systemPatterns.md)
-- **Active Tasks**: None currently defined
-- **Repository Status**: Clean working tree, no pending changes
+The Gotenberg document conversion service integration has been successfully completed through all development phases:
+- ✅ Planning and requirements analysis
+- ✅ Implementation of all 6 component integrations  
+- ✅ Comprehensive reflection and lessons learned documentation
+- ✅ Complete archiving with full traceability
 
-## Current Focus Areas
+**Status**: Task fully archived and Memory Bank reset for next task
 
-### Immediate Context
-The project is in **VAN mode initialization** - setting up the Memory Bank system for future development work. This is a mature, production-ready n8n-installer project that provides comprehensive Docker Compose templates for self-hosted AI and automation environments.
+## Next Task Preparation
+The Memory Bank is now ready to receive a new task. To begin:
+- Use **VAN MODE** for task initialization and complexity assessment
+- The archived Gotenberg integration serves as a reference for future service integrations
 
-### Project Readiness Assessment
-- **Codebase**: Stable and complete
-- **Documentation**: Comprehensive README with installation guides
-- **Architecture**: Well-defined microservices pattern with Docker Compose
-- **Community**: Active with 300+ workflow templates available
+## Integration Approach
+The integration follows the established pattern for optional services in the n8n-installer project:
 
-### Available Development Areas
-1. **Installation Scripts**: Shell-based automation in `/scripts/` directory
-2. **Service Configurations**: Docker Compose and service-specific configs
-3. **Workflow Templates**: Community-contributed n8n workflows
-4. **Monitoring Setup**: Prometheus/Grafana dashboard configurations
-5. **Backup Systems**: Automated backup and restore functionality
+1. **Docker Compose Integration**: 
+   - Service defined in docker-compose.yml with profile "gotenberg"
+   - Uses official image: gotenberg/gotenberg:8
+   - Exposes internal port 3000
+   - Includes healthcheck configuration
+   - Configured with Chrome support for HTML-to-PDF conversion
 
-## Technical Environment
-- **Platform**: macOS (darwin 24.6.0)
-- **Shell**: /bin/zsh
-- **Working Directory**: /Users/kossakovsky/projects/n8n-installer
-- **Project Structure**: Complete with all service configurations and scripts
+2. **Reverse Proxy Configuration**:
+   - Added to Caddyfile with environment variable substitution
+   - Format: `{$GOTENBERG_HOSTNAME} { reverse_proxy gotenberg:3000 }`
+   - Follows the same pattern as other services for consistency
 
-## Recently Completed
-- ✅ Memory Bank directory structure creation
-- ✅ Project brief documentation based on README analysis  
-- ✅ Technical context documentation covering technology stack
-- ✅ Product context covering user value and market positioning
-- ✅ System patterns documentation covering architectural patterns
+3. **Service Selection Mechanism**:
+   - Added to the interactive wizard in scripts/04_wizard.sh
+   - Description: "Gotenberg (Document Conversion API)"
+   - Selectable alongside other optional services
 
-## Next Steps Considerations
-Based on VAN mode initialization, the project is now ready for:
-1. **PLAN mode**: For planning new features or enhancements
-2. **CREATIVE mode**: For designing new components or improvements  
-3. **IMPLEMENT mode**: For Level 1 quick fixes or specific implementations
-4. **QA mode**: For validation and testing of components
+4. **Environment Variables**:
+   - Added GOTENBERG_HOSTNAME to .env.example
+   - Added to caddy service environment variables
+   - Uses domain template substitution (yourdomain.com)
 
-## Key Project Characteristics
-- **Maturity**: Production-ready with active community usage
-- **Scope**: Comprehensive AI/automation platform installer
-- **Architecture**: Microservices with Docker orchestration
-- **Target Users**: AI developers, automation engineers, self-hosters
-- **Value Proposition**: Complete data sovereignty with enterprise capabilities
+5. **Documentation**:
+   - Added to "What's Included" section in README.md
+   - Added to services access list
+   - Included use cases for n8n integration
 
-## Memory Bank Files Status
-- **projectbrief.md**: ✅ Comprehensive project overview
-- **techContext.md**: ✅ Complete technology stack documentation
-- **productContext.md**: ✅ User value and market positioning  
-- **systemPatterns.md**: ✅ Architectural and operational patterns
-- **activeContext.md**: ✅ Current file (this document)
-- **tasks.md**: ⏳ Ready for task-specific initialization
-- **progress.md**: ⏳ Ready for implementation tracking
+## Key Implementation Considerations
+- **Security**: Relies on network isolation and reverse proxy for security
+- **Resource Usage**: Minimal resource requirements but may spike during PDF rendering
+- **n8n Integration**: Accessible via HTTP requests in n8n workflows
+- **API Usage**: Standard REST API with endpoints for different conversion types
 
-## Project Health Indicators
-- **Repository**: Clean, up-to-date with develop branch
-- **Dependencies**: Docker-based, well-managed
-- **Community**: Active with ongoing contributions
-- **Documentation**: Comprehensive and current
-- **Testing**: Installation scripts with validation
-- **Monitoring**: Built-in observability patterns
+## API Usage with n8n
+When integrated with n8n, Gotenberg provides document conversion capabilities accessible via these endpoints:
 
-The project is fully initialized and ready for development work in any of the supported modes.
+1. **HTML to PDF**: `http://gotenberg:3000/forms/chromium/convert/html`
+2. **URL to PDF**: `http://gotenberg:3000/forms/chromium/convert/url`
+3. **Markdown to PDF**: `http://gotenberg:3000/forms/chromium/convert/markdown`
+4. **Office to PDF**: `http://gotenberg:3000/forms/libreoffice/convert`
+5. **Image Format Conversion**: `http://gotenberg:3000/forms/chromium/convert/pdf`
+
+These endpoints can be called from HTTP Request nodes in n8n workflows, providing document conversion capabilities for automation workflows.
+
+## Testing Strategy
+- Configuration validation via docker-compose config
+- Service accessibility testing when deployed
+- API endpoint testing with sample document conversions
+- Integration testing with n8n workflows

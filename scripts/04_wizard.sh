@@ -62,6 +62,7 @@ base_services_data=(
     "searxng" "SearXNG (Private Metasearch Engine)"
     "crawl4ai" "Crawl4ai (Web Crawler for AI)"
     "letta" "Letta (Agent Server & SDK)"
+    "gotenberg" "Gotenberg (Document Conversion API)"
     "ollama" "Ollama (Local LLM Runner - select hardware in next step)"
 )
 
