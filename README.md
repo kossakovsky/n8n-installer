@@ -168,6 +168,16 @@ This script will:
 4.  Ask if you want to re-run the n8n workflow import (useful if you skipped this during the initial installation or want to refresh the community workflows).
 5.  Restart all services with the new updates.
 
+## Cleaning up Docker
+
+If you need to free up disk space, you can run the Docker cleanup script. This script removes all unused Docker containers, images, and volumes.
+
+```bash
+sudo bash ./scripts/docker_cleanup.sh
+```
+
+This can be useful for removing old images and freeing up space, but be aware that it will remove all unused data.
+
 ## Important Links
 
 - Based on a project by [coleam00](https://github.com/coleam00/local-ai-packaged)
