@@ -1,0 +1,229 @@
+---
+description: Visual process map for REFLECT mode (Task Reflection)
+globs: "**/reflect*/**", "**/review*/**", "**/retrospect*/**"
+alwaysApply: false
+---
+
+# REFLECT MODE: TASK REVIEW PROCESS MAP
+
+> **TL;DR:** This visual map guides the REFLECT mode process, focusing on structured review of the implementation, documenting lessons learned, and preparing insights for future reference.
+
+## 🧭 REFLECT MODE PROCESS FLOW
+
+```mermaid
+graph TD
+    Start["START REFLECT MODE"] --> ReadTasks["Read tasks.md<br>and progress.md"]
+    
+    %% Initial Assessment
+    ReadTasks --> VerifyImplement{"Implementation<br>Complete?"}
+    VerifyImplement -->|"No"| ReturnImplement["Return to<br>IMPLEMENT Mode"]
+    VerifyImplement -->|"Yes"| AssessLevel{"Determine<br>Complexity Level"}
+    
+    %% Level-Based Reflection
+    AssessLevel -->|"Level 1"| L1Reflect["LEVEL 1 REFLECTION<br>Level1/reflection-basic.md"]
+    AssessLevel -->|"Level 2"| L2Reflect["LEVEL 2 REFLECTION<br>Level2/reflection-standard.md"]
+    AssessLevel -->|"Level 3"| L3Reflect["LEVEL 3 REFLECTION<br>Level3/reflection-comprehensive.md"]
+    AssessLevel -->|"Level 4"| L4Reflect["LEVEL 4 REFLECTION<br>Level4/reflection-advanced.md"]
+    
+    %% Level 1 Reflection (Quick)
+    L1Reflect --> L1Review["Review<br>Bug Fix"]
+    L1Review --> L1Document["Document<br>Solution"]
+    L1Document --> L1Update["Update<br>tasks.md"]
+    
+    %% Level 2 Reflection (Standard)
+    L2Reflect --> L2Review["Review<br>Enhancement"]
+    L2Review --> L2WWW["Document<br>What Went Well"]
+    L2WWW --> L2Challenges["Document<br>Challenges"]
+    L2Challenges --> L2Lessons["Document<br>Lessons Learned"]
+    L2Lessons --> L2Update["Update<br>tasks.md"]
+    
+    %% Level 3-4 Reflection (Comprehensive)
+    L3Reflect & L4Reflect --> L34Review["Review Implementation<br>& Creative Phases"]
+    L34Review --> L34Plan["Compare Against<br>Original Plan"]
+    L34Plan --> L34WWW["Document<br>What Went Well"]
+    L34WWW --> L34Challenges["Document<br>Challenges"]
+    L34Challenges --> L34Lessons["Document<br>Lessons Learned"]
+    L34Lessons --> L34ImproveProcess["Document Process<br>Improvements"]
+    L34ImproveProcess --> L34Update["Update<br>tasks.md"]
+    
+    %% Completion & Transition
+    L1Update & L2Update & L34Update --> CreateReflection["Create<br>reflection.md"]
+    CreateReflection --> UpdateSystem["Update System<br>Documentation"]
+    UpdateSystem --> Transition["NEXT MODE:<br>ARCHIVE MODE"]
+```
+
+## 📋 REFLECTION STRUCTURE
+
+The reflection should follow this structured format:
+
+```mermaid
+graph TD
+    subgraph "Reflection Document Structure"
+        Header["# TASK REFLECTION: [Task Name]"]
+        Summary["## SUMMARY<br>Brief summary of completed task"]
+        WWW["## WHAT WENT WELL<br>Successful aspects of implementation"]
+        Challenges["## CHALLENGES<br>Difficulties encountered during implementation"]
+        Lessons["## LESSONS LEARNED<br>Key insights gained from the experience"]
+        ProcessImp["## PROCESS IMPROVEMENTS<br>How to improve for future tasks"]
+        TechImp["## TECHNICAL IMPROVEMENTS<br>Better approaches for similar tasks"]
+        NextSteps["## NEXT STEPS<br>Follow-up actions or future work"]
+    end
+    
+    Header --> Summary --> WWW --> Challenges --> Lessons --> ProcessImp --> TechImp --> NextSteps
+```
+
+## 📊 REQUIRED FILE STATE VERIFICATION
+
+Before reflection can begin, verify file state:
+
+```mermaid
+graph TD
+    Start["File State<br>Verification"] --> CheckTasks{"tasks.md has<br>implementation<br>complete?"}
+    
+    CheckTasks -->|"No"| ErrorImplement["ERROR:<br>Return to IMPLEMENT Mode"]
+    CheckTasks -->|"Yes"| CheckProgress{"progress.md<br>has implementation<br>details?"}
+    
+    CheckProgress -->|"No"| ErrorProgress["ERROR:<br>Update progress.md first"]
+    CheckProgress -->|"Yes"| ReadyReflect["Ready for<br>Reflection"]
+```
+
+## 🔍 IMPLEMENTATION REVIEW APPROACH
+
+```mermaid
+graph TD
+    subgraph "Implementation Review"
+        Original["Review Original<br>Requirements"]
+        Plan["Compare Against<br>Implementation Plan"]
+        Actual["Assess Actual<br>Implementation"]
+        Creative["Review Creative<br>Phase Decisions"]
+        Changes["Identify Deviations<br>from Plan"]
+        Results["Evaluate<br>Results"]
+    end
+    
+    Original --> Plan --> Actual
+    Plan --> Creative --> Changes
+    Actual --> Results
+    Changes --> Results
+```
+
+## 📝 REFLECTION DOCUMENT TEMPLATES
+
+### Level 1 (Basic) Reflection
+```
+# Bug Fix Reflection: [Bug Name]
+
+## Summary
+[Brief description of the bug and solution]
+
+## Implementation
+[Description of the fix implemented]
+
+## Testing
+[Description of testing performed]
+
+## Additional Notes
+[Any other relevant information]
+```
+
+### Levels 2-4 (Comprehensive) Reflection
+```
+# Task Reflection: [Task Name]
+
+## Summary
+[Brief summary of the task and what was achieved]
+
+## What Went Well
+- [Success point 1]
+- [Success point 2]
+- [Success point 3]
+
+## Challenges
+- [Challenge 1]: [How it was addressed]
+- [Challenge 2]: [How it was addressed]
+- [Challenge 3]: [How it was addressed]
+
+## Lessons Learned
+- [Lesson 1]
+- [Lesson 2]
+- [Lesson 3]
+
+## Process Improvements
+- [Process improvement 1]
+- [Process improvement 2]
+
+## Technical Improvements
+- [Technical improvement 1]
+- [Technical improvement 2]
+
+## Next Steps
+- [Follow-up task 1]
+- [Follow-up task 2]
+```
+
+## 📊 REFLECTION QUALITY METRICS
+
+```mermaid
+graph TD
+    subgraph "Reflection Quality Metrics"
+        Specific["Specific<br>Not general or vague"]
+        Actionable["Actionable<br>Provides clear direction"]
+        Honest["Honest<br>Acknowledges successes and failures"]
+        Forward["Forward-Looking<br>Focuses on future improvement"]
+        Evidence["Evidence-Based<br>Based on concrete examples"]
+    end
+```
+
+## 📋 TASKS.MD UPDATE FORMAT
+
+During reflection, update tasks.md with:
+
+```
+## Status
+- [x] Initialization complete
+- [x] Planning complete
+[For Level 3-4:]
+- [x] Creative phases complete
+- [x] Implementation complete
+- [x] Reflection complete
+- [ ] Archiving
+
+## Reflection Highlights
+- **What Went Well**: [Key successes]
+- **Challenges**: [Key challenges]
+- **Lessons Learned**: [Key lessons]
+- **Next Steps**: [Follow-up actions]
+```
+
+## 📊 REFLECTION VERIFICATION CHECKLIST
+
+```
+✓ REFLECTION VERIFICATION
+- Implementation thoroughly reviewed? [YES/NO]
+- What Went Well section completed? [YES/NO]
+- Challenges section completed? [YES/NO]
+- Lessons Learned section completed? [YES/NO]
+- Process Improvements identified? [YES/NO]
+- Technical Improvements identified? [YES/NO]
+- Next Steps documented? [YES/NO]
+- reflection.md created? [YES/NO]
+- tasks.md updated with reflection status? [YES/NO]
+
+→ If all YES: Reflection complete - ready for ARCHIVE mode
+→ If any NO: Complete missing reflection elements
+```
+
+## 🔄 MODE TRANSITION NOTIFICATION
+
+When reflection is complete, notify user with:
+
+```
+## REFLECTION COMPLETE
+
+✅ Implementation thoroughly reviewed
+✅ Reflection document created
+✅ Lessons learned documented
+✅ Process improvements identified
+✅ tasks.md updated with reflection status
+
+→ NEXT RECOMMENDED MODE: ARCHIVE MODE
+``` 
