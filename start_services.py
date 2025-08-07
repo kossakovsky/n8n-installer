@@ -108,6 +108,95 @@ def start_supabase():
         "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d"
     ])
 
+def is_dify_enabled():
+    """Check if 'dify' is in COMPOSE_PROFILES in .env file."""
+    env_values = dotenv_values(".env")
+    compose_profiles = env_values.get("COMPOSE_PROFILES", "")
+    return "dify" in compose_profiles.split(',')
+
+def clone_dify_repo():
+    """Clone the Dify repository using sparse checkout if not already present."""
+    if not is_dify_enabled():
+        print("Dify is not enabled, skipping clone.")
+        return
+    if not os.path.exists("dify"):
+        print("Cloning the Dify repository...")
+        run_command([
+            "git", "clone", "--filter=blob:none", "--no-checkout",
+            "https://github.com/langgenius/dify.git"
+        ])
+        os.chdir("dify")
+        run_command(["git", "sparse-checkout", "init", "--cone"])
+        run_command(["git", "sparse-checkout", "set", "docker"])
+        run_command(["git", "checkout", "main"])
+        os.chdir("..")
+    else:
+        print("Dify repository already exists, updating...")
+        os.chdir("dify")
+        run_command(["git", "pull"])
+        os.chdir("..")
+
+def prepare_dify_env():
+    """Prepare Dify environment configuration with proper variable mapping."""
+    if not is_dify_enabled():
+        print("Dify is not enabled, skipping environment preparation.")
+        return
+    if not os.path.exists("dify/docker"):
+        print("Error: dify/docker directory not found. Please ensure Dify repository is cloned properly.")
+        return
+    
+    print("Preparing Dify environment configuration...")
+    
+    # Read main .env file
+    env_values = dotenv_values(".env")
+    
+    # Create Dify-specific .env with proper variable mapping
+    dify_env_content = f"""# Dify Environment Configuration
+# Generated from n8n-installer main .env
+
+# Core Dify Configuration
+SECRET_KEY={env_values.get("DIFY_SECRET_KEY", "")}
+MODE=api
+
+# Database Configuration (using shared PostgreSQL)
+DB_USERNAME={env_values.get("DIFY_DB_USERNAME", "postgres")}
+DB_PASSWORD={env_values.get("DIFY_DB_PASSWORD", env_values.get("POSTGRES_PASSWORD", ""))}
+DB_HOST={env_values.get("DIFY_DB_HOST", "postgres")}
+DB_PORT={env_values.get("DIFY_DB_PORT", "5432")}
+DB_DATABASE={env_values.get("DIFY_DB_DATABASE", "dify")}
+
+# Redis Configuration (using shared Redis)
+REDIS_HOST={env_values.get("DIFY_REDIS_HOST", "redis")}
+REDIS_PORT={env_values.get("DIFY_REDIS_PORT", "6379")}
+REDIS_DB={env_values.get("DIFY_REDIS_DB", "0")}
+
+# Celery Configuration
+CELERY_BROKER_URL={env_values.get("DIFY_CELERY_BROKER_URL", "redis://redis:6379/1")}
+
+# Basic Configuration
+DEBUG=false
+FLASK_DEBUG=false
+LOG_LEVEL=INFO
+MIGRATION_ENABLED=true
+"""
+    
+    try:
+        with open("dify/docker/.env", "w") as f:
+            f.write(dify_env_content)
+        print("Created Dify .env configuration with proper variable mapping")
+    except Exception as e:
+        print(f"Error creating Dify .env configuration: {e}")
+
+def start_dify():
+    """Start the Dify services (using its compose file)."""
+    if not is_dify_enabled():
+        print("Dify is not enabled, skipping start.")
+        return
+    print("Starting Dify services...")
+    run_command([
+        "docker", "compose", "-p", "localai", "-f", "dify/docker/docker-compose.yml", "up", "-d"
+    ])
+
 def start_local_ai():
     """Start the local AI services (using its compose file)."""
     print("Starting local AI services...")
@@ -264,9 +353,14 @@ def check_and_fix_docker_compose_for_searxng():
         print(f"Error checking/modifying docker-compose.yml for SearXNG: {e}")
 
 def main():
+    # Clone and prepare repositories
     if is_supabase_enabled():
         clone_supabase_repo()
         prepare_supabase_env()
+    
+    if is_dify_enabled():
+        clone_dify_repo()
+        prepare_dify_env()
     
     # Generate SearXNG secret key and check docker-compose.yml
     generate_searxng_secret_key()
@@ -277,10 +371,16 @@ def main():
     # Start Supabase first
     if is_supabase_enabled():
         start_supabase()
-    
         # Give Supabase some time to initialize
         print("Waiting for Supabase to initialize...")
         time.sleep(10)
+    
+    # Start Dify services
+    if is_dify_enabled():
+        start_dify()
+        # Give Dify some time to initialize
+        print("Waiting for Dify to initialize...")
+        time.sleep(15)
     
     # Then start the local AI services
     start_local_ai()

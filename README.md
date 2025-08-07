@@ -30,6 +30,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Flowise**](https://flowiseai.com/) - A no-code/low-code AI agent builder that complements n8n perfectly, allowing you to create sophisticated AI applications with ease.
 
+✅ [**Dify**](https://dify.ai/) - An open-source AI application development platform that provides comprehensive LLMOps capabilities, including workflow management, prompt engineering, RAG pipelines, and AI agent orchestration. Perfect for building production-ready AI applications.
+
 ✅ [**Qdrant**](https://qdrant.tech/) - A high-performance open-source vector store, specialized for AI. While Supabase also offers vector capabilities, Qdrant is included for its speed, making it ideal for demanding AI tasks.
 
 ✅ [**SearXNG**](https://searxng.org/) - A free, open-source internet metasearch engine. It aggregates results from numerous search services without tracking or profiling you, ensuring your privacy.
@@ -120,6 +122,7 @@ After successful installation, your services are up and running! Here's how to g
     - **n8n:** `n8n.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report. You may be prompted to change this password on first login.)
     - **Open WebUI:** `webui.yourdomain.com`
     - **Flowise:** `flowise.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report.)
+    - **Dify:** `dify.yourdomain.com` (AI application development platform with comprehensive LLMOps capabilities)
     - **Supabase (Dashboard):** `supabase.yourdomain.com`
     - **Langfuse:** `langfuse.yourdomain.com`
     - **Letta:** `letta.yourdomain.com`

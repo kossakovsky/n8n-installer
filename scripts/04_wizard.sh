@@ -51,6 +51,7 @@ current_profiles_for_matching=",$CURRENT_PROFILES_VALUE,"
 # Base service definitions (tag, description)
 base_services_data=(
     "n8n" "n8n, n8n-worker, n8n-import (Workflow Automation)"
+    "dify" "Dify (AI Application Development Platform with LLMOps)"
     "flowise" "Flowise (AI Agent Builder)"
     "monitoring" "Monitoring Suite (Prometheus, Grafana, cAdvisor, Node-Exporter)"
     "langfuse" "Langfuse Suite (AI Observability - includes Clickhouse, Minio)"

@@ -49,6 +49,8 @@ declare -A VARS_TO_GENERATE=(
     ["QDRANT_API_KEY"]="secret:48" # API Key for Qdrant service
     ["NEO4J_AUTH_PASSWORD"]="password:32" # Added Neo4j password
     ["NEO4J_AUTH_USERNAME"]="fixed:neo4j" # Added Neo4j username
+    # Dify environment variables
+    ["DIFY_SECRET_KEY"]="secret:64" # Dify application secret key (maps to SECRET_KEY in Dify)
 )
 
 # Initialize existing_env_vars and attempt to read .env if it exists
@@ -366,6 +368,7 @@ generated_values["SEARXNG_USERNAME"]="$USER_EMAIL"
 generated_values["LANGFUSE_INIT_USER_EMAIL"]="$USER_EMAIL"
 generated_values["N8N_WORKER_COUNT"]="$N8N_WORKER_COUNT"
 generated_values["WEAVIATE_USERNAME"]="$USER_EMAIL" # Set Weaviate username for Caddy
+
 if [[ -n "$OPENAI_API_KEY" ]]; then
     generated_values["OPENAI_API_KEY"]="$OPENAI_API_KEY"
 fi

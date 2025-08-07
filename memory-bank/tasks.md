@@ -1,142 +1,279 @@
 # Tasks - n8n-installer Project
 
 ## Current Task Status
-**Active Task**: Gotenberg Service Integration - COMPLETED & ARCHIVED
+**Active Task**: Dify AI Platform Integration - IMPLEMENTATION COMPLETE
 
-## Task: Add Gotenberg Service to n8n-installer
+## Task: Add Dify AI Platform to n8n-installer
 
 ### Description
-Integrate Gotenberg, a stateless API for converting documents to PDF, PNG, JPEG, and more, into the n8n-installer project as a new optional service. Gotenberg provides powerful document conversion capabilities that can enhance n8n workflow automation possibilities.
+Integrate Dify, an open-source AI application development platform, into the n8n-installer project as a new optional service. Dify provides LLMOps capabilities, workflow management, and AI agent building tools that complement n8n's automation capabilities, creating a comprehensive AI development environment.
 
 ### Complexity
 **Level: 3 (Intermediate Feature)**
-**Type**: Service Integration Feature
+**Type**: Multi-Service AI Platform Integration
 
 ### Technology Stack
-- **Container**: gotenberg/gotenberg:8 (official Docker image)
-- **Port**: 3000 (internal container port)
-- **Integration**: Docker Compose profiles
-- **Proxy**: Caddy reverse proxy configuration
-- **Security**: Optional API key authentication (if needed)
+- **Framework**: Dify AI Platform
+- **Backend**: FastAPI (Python) - Dify API server
+- **Frontend**: Next.js - Dify Web UI
+- **Worker**: Celery - Background task processing
+- **Database**: PostgreSQL (shared with existing postgres)
+- **Cache**: Redis (shared with existing redis)
+- **Vector Store**: Weaviate (bundled with Dify)
+- **Proxy**: Nginx (Dify internal) + Caddy (external)
+- **Additional**: SSRF Proxy, Sandbox for code execution
 
 ### Technology Validation Checkpoints
-- [x] Gotenberg Docker image availability verified
-- [x] Docker Compose service configuration validated
-- [x] Caddy reverse proxy integration tested
-- [x] Environment variable generation confirmed
-- [x] Service selection wizard integration verified
+- [ ] Dify repository cloning and structure verified
+- [ ] Docker Compose configuration validated  
+- [ ] Environment variable mapping confirmed
+- [ ] Service dependencies identified
+- [ ] Caddy reverse proxy integration tested
+- [ ] Database sharing strategy validated
 
 ### Status
 - [x] Initialization complete
-- [x] Planning complete
-- [x] Technology validation complete
-- [x] Docker Compose implementation
-- [x] Caddy configuration
-- [x] Wizard integration
+- [ ] Planning complete
+- [ ] Technology validation complete
+- [x] Repository integration
+- [ ] Docker Compose implementation
+- [x] Service selection wizard integration
 - [x] Environment variables setup
+- [x] Caddy configuration
 - [x] README documentation
-- [x] Reflection complete
-- [x] Archiving complete
-- [ ] Testing and validation
-
-### Archive
-- **Date**: 2025-01-09
-- **Archive Document**: [memory-bank/archive/feature-gotenberg-integration_20250109.md](memory-bank/archive/feature-gotenberg-integration_20250109.md)
-- **Status**: COMPLETED & ARCHIVED
+- [x] CORRECTED: DIFY_HOSTNAME Implementation Fixed
 
 ### Requirements Analysis
 
 #### Core Requirements
-- [x] Add Gotenberg as optional service in Docker Compose
-- [x] Enable service selection through interactive wizard
-- [x] Configure Caddy reverse proxy for external access
-- [x] Generate required environment variables automatically
-- [x] Provide comprehensive documentation in README
-- [x] Maintain consistency with existing service patterns
+- [ ] Add Dify as optional service in Docker Compose profiles
+- [ ] Enable service selection through interactive wizard
+- [ ] Clone and manage Dify repository (similar to Supabase pattern)
+- [ ] Configure Caddy reverse proxy for external access
+- [ ] Share PostgreSQL and Redis with existing services
+- [ ] Generate required environment variables automatically
+- [ ] Provide comprehensive documentation in README
+- [ ] Maintain consistency with existing service patterns
 
 #### Technical Constraints
-- [x] Must follow existing Docker Compose profiles pattern
-- [x] Must integrate with existing Caddy configuration structure
-- [x] Must support domain-based routing (gotenberg.yourdomain.com)
-- [x] Must include proper environment variable templating
-- [x] Must maintain security best practices
+- [ ] Must follow existing Docker Compose profiles pattern
+- [ ] Must integrate with existing Caddy configuration structure
+- [ ] Must support domain-based routing (dify.yourdomain.com)
+- [ ] Must share database resources efficiently
+- [ ] Must handle complex multi-service architecture
+- [ ] Must include proper environment variable templating
+- [ ] Must maintain security best practices
 
 ### Component Analysis
 
 #### Affected Components
-1. **docker-compose.yml**
-   - [x] Changes needed: Add gotenberg service with profile configuration
-   - [x] Dependencies: None (standalone service)
+1. **start_services.py**
+   - [ ] Changes needed: Add clone_dify_repo() function
+   - [ ] Changes needed: Add prepare_dify_env() function
+   - [ ] Changes needed: Add start_dify() function
+   - [ ] Dependencies: Similar to Supabase integration pattern
 
-2. **Caddyfile**
-   - [x] Changes needed: Add reverse proxy configuration for Gotenberg
-   - [x] Dependencies: GOTENBERG_HOSTNAME environment variable
+2. **docker-compose.yml**
+   - [ ] Changes needed: Reference external Dify Docker Compose file
+   - [ ] Dependencies: Shared postgres and redis services
+   - [ ] Integration: Profile-based service activation
 
-3. **scripts/04_wizard.sh**
-   - [x] Changes needed: Add Gotenberg to service selection array
-   - [x] Dependencies: Consistent with existing service definitions
+3. **Caddyfile**
+   - [ ] Changes needed: Add reverse proxy configuration for Dify
+   - [ ] Dependencies: DIFY_HOSTNAME environment variable
+   - [ ] Target: dify/docker nginx service (port 80)
 
-4. **scripts/03_generate_secrets.sh**
-   - [x] Changes needed: Add GOTENBERG_HOSTNAME environment variable generation
-   - [x] Dependencies: USER_DOMAIN_NAME template substitution
+4. **scripts/04_wizard.sh**
+   - [ ] Changes needed: Add Dify to service selection array
+   - [ ] Dependencies: Consistent with existing service definitions
 
-5. **.env.example**
-   - [x] Changes needed: Add Gotenberg hostname template
-   - [x] Dependencies: Domain placeholder pattern
+5. **scripts/03_generate_secrets.sh**
+   - [ ] Changes needed: Add Dify-specific environment variables
+   - [ ] Variables: DIFY_HOSTNAME, SECRET_KEY, encryption keys
+   - [ ] Dependencies: USER_DOMAIN_NAME template substitution
 
-6. **README.md**
-   - [x] Changes needed: Add Gotenberg service description and use cases
-   - [x] Dependencies: Existing service documentation pattern
+6. **.env.example**
+   - [ ] Changes needed: Add Dify configuration variables
+   - [ ] Dependencies: Domain placeholder pattern
+   - [ ] Integration: Shared database credentials
+
+7. **README.md**
+   - [ ] Changes needed: Add Dify service description and use cases
+   - [ ] Dependencies: Existing service documentation pattern
+
+8. **scripts/06_final_report.sh**
+   - [ ] Changes needed: Add Dify section to final report
+   - [ ] Dependencies: Service reporting pattern
+
+### Technology Validation Strategy
+
+#### Dify Repository Analysis
+- [ ] Clone latest Dify release: `git clone --branch "$(curl -s https://api.github.com/repos/langgenius/dify/releases/latest | jq -r .tag_name)" https://github.com/langgenius/dify.git`
+- [ ] Analyze dify/docker directory structure
+- [ ] Identify required environment variables from .env.example
+- [ ] Map Dify services to n8n-installer integration
+
+#### Service Dependencies
+- [ ] PostgreSQL integration (shared database approach)
+- [ ] Redis integration (shared cache approach)  
+- [ ] Weaviate conflict resolution (Dify bundles its own)
+- [ ] Network configuration for service communication
+
+#### Environment Configuration
+- [ ] Map Dify .env.example to n8n-installer .env patterns
+- [ ] Identify required secret generation
+- [ ] Plan database initialization strategy
 
 ### Implementation Strategy
 
-#### Phase 1: Core Service Setup
-1. **Docker Compose Configuration**
-   - [x] Add gotenberg service definition
-   - [x] Configure with 'gotenberg' profile
-   - [x] Set up proper restart policy and resource limits
-   - [x] Verify container port mapping
+#### Phase 1: Repository Integration
+1. **Dify Repository Management**
+   - [ ] Add is_dify_enabled() function to start_services.py
+   - [ ] Add clone_dify_repo() function similar to Supabase
+   - [ ] Implement sparse checkout for dify/docker directory
+   - [ ] Add repository update mechanism
 
-2. **Environment Variables Setup**
-   - [x] Add GOTENBERG_HOSTNAME to .env.example
-   - [x] Update docker-compose.yml to include the hostname variable in caddy service
-   - [x] Ensure domain template substitution works
+2. **Environment Preparation**
+   - [ ] Add prepare_dify_env() function
+   - [ ] Map shared database credentials
+   - [ ] Handle Dify-specific environment variables
+   - [ ] Ensure .env compatibility
 
-#### Phase 2: Integration Components
-3. **Caddy Reverse Proxy**
-   - [x] Add Gotenberg reverse proxy block to Caddyfile
-   - [x] Configure hostname environment variable reference
-   - [ ] Test HTTPS certificate generation
+#### Phase 2: Service Integration  
+3. **Docker Compose Integration**
+   - [ ] Add start_dify() function to start_services.py
+   - [ ] Integrate dify/docker/docker-compose.yml with -f flag
+   - [ ] Configure shared network for service communication
+   - [ ] Handle service startup order dependencies
 
 4. **Service Selection Wizard**
-   - [x] Add gotenberg to base_services_data array in 04_wizard.sh
-   - [x] Provide descriptive service name and description
-   - [ ] Verify profile selection and persistence
+   - [ ] Add "dify" to base_services_data array in 04_wizard.sh
+   - [ ] Provide descriptive service name: "Dify AI Platform"
+   - [ ] Add description: "AI application development platform with LLMOps capabilities"
 
-#### Phase 3: Documentation and Validation
-5. **README Documentation**
-   - [x] Add Gotenberg service description to "What's Included" section
-   - [x] Document API endpoints and usage examples
-   - [x] Include service URL in access list
-   - [x] Add relevant use cases for n8n integration
+#### Phase 3: Configuration and Proxy
+5. **Environment Variable Generation**
+   - [ ] Add DIFY_HOSTNAME to environment generation
+   - [ ] Generate Dify-specific secrets (SECRET_KEY, etc.)
+   - [ ] Map database credentials appropriately
+   - [ ] Handle OpenAI API key integration
 
-6. **Final Report Script**
-   - [x] Add Gotenberg section to scripts/06_final_report.sh
-   - [x] Include hostname, internal access, and API endpoints
-   - [x] Follow existing service reporting pattern
+6. **Caddy Reverse Proxy**
+   - [ ] Add Dify reverse proxy block to Caddyfile
+   - [ ] Target: nginx service from Dify (port 80)
+   - [ ] Configure hostname environment variable reference
+   - [ ] Test HTTPS certificate generation
 
-7. **Testing and Validation**
-   - [ ] Test complete installation flow with Gotenberg selected
+#### Phase 4: Documentation and Validation
+7. **README Documentation**
+   - [ ] Add Dify service description to "What's Included" section
+   - [ ] Document AI platform capabilities and integration with n8n
+   - [ ] Include service URL in access list (dify.yourdomain.com)
+   - [ ] Add relevant use cases for n8n + Dify workflows
+
+8. **Final Report Integration**
+   - [ ] Add Dify section to scripts/06_final_report.sh
+   - [ ] Include hostname, credentials, and access information
+   - [ ] Follow existing service reporting pattern
+
+9. **Testing and Validation**
+   - [ ] Test complete installation flow with Dify selected
    - [ ] Verify service accessibility via configured hostname
-   - [ ] Test API endpoints and document conversion functionality
-   - [ ] Validate environment variable generation
+   - [ ] Test Dify web interface functionality
+   - [ ] Validate integration with shared database services
+   - [ ] Test service startup and shutdown procedures
+
+### Creative Phases Required
+
+#### 🏗️ Architecture Design
+- [ ] **Database Sharing Strategy**: Design approach for sharing PostgreSQL between n8n, Supabase, and Dify
+- [ ] **Service Communication**: Plan network configuration for inter-service communication
+- [ ] **Resource Management**: Design resource allocation strategy for multiple AI services
+
+#### 🎨 Integration Design  
+- [ ] **Environment Variable Mapping**: Design seamless .env integration strategy
+- [ ] **Service Discovery**: Plan how services will discover and communicate with each other
+- [ ] **Startup Orchestration**: Design proper service startup sequence
+
+### Dependencies
+- Docker Compose profiles system (existing)
+- start_services.py framework (existing)
+- Caddy reverse proxy configuration (existing)
+- Environment variable generation system (existing)
+- Service selection wizard framework (existing)
+- PostgreSQL database (shared)
+- Redis cache (shared)
+
+### Challenges & Mitigations
+
+#### Challenge 1: Multi-Service Complexity
+**Problem**: Dify consists of multiple interconnected services (api, worker, web, nginx, weaviate, db, redis, ssrf_proxy, sandbox)
+**Mitigation**: Follow Supabase integration pattern with external docker-compose file inclusion
+
+#### Challenge 2: Database Resource Sharing
+**Problem**: Dify expects its own PostgreSQL instance but we want to share resources
+**Mitigation**: Configure Dify to use shared postgres with separate database name
+
+#### Challenge 3: Vector Database Conflict
+**Problem**: Dify bundles Weaviate, but n8n-installer also offers Weaviate as separate service
+**Mitigation**: Document the difference and potential conflicts, consider isolation strategies
+
+#### Challenge 4: Environment Variable Complexity
+**Problem**: Dify has extensive .env configuration that needs integration with n8n-installer patterns
+**Mitigation**: Create comprehensive mapping and generation strategy in 03_generate_secrets.sh
+
+#### Challenge 5: Service Startup Dependencies
+**Problem**: Dify services have specific startup order requirements
+**Mitigation**: Use Docker Compose depends_on and healthcheck configurations
+
+### Integration Architecture
+
+#### Service Communication Flow
+```
+External Users → Caddy → Dify Nginx → Dify API/Web
+                      ↓
+Shared PostgreSQL ← → Dify Services
+Shared Redis     ← → 
+                      ↓
+Internal Dify Weaviate (isolated)
+```
+
+#### Repository Structure Integration
+```
+n8n-installer/
+├── dify/                    # Cloned Dify repository
+│   └── docker/             # Dify Docker configuration
+│       ├── docker-compose.yml
+│       └── .env.example
+├── start_services.py        # Modified with Dify functions
+├── docker-compose.yml       # Main compose file
+└── .env                     # Shared environment
+```
+
+### API Documentation
+
+#### External Access URLs
+- **Dify Web Interface**: `https://dify.yourdomain.com`
+- **Dify API**: `https://dify.yourdomain.com/v1/`
+
+#### Internal Service URLs
+- **Dify API**: `http://dify-api:5001`
+- **Dify Web**: `http://dify-web:3000`
+- **Dify Nginx**: `http://dify-nginx:80`
+
+#### Integration Points with n8n
+- **Workflow Integration**: Use Dify APIs from n8n workflows
+- **AI Agent Orchestration**: Coordinate between n8n automation and Dify AI agents
+- **Shared Data Sources**: Leverage shared PostgreSQL for cross-platform data
 
 ### Testing Strategy
 
 #### Integration Tests
-- [ ] Full installation test with Gotenberg enabled
+- [ ] Full installation test with Dify enabled
 - [ ] Service accessibility test via domain
+- [ ] Dify web interface functionality test
 - [ ] API endpoint functionality test
+- [ ] Database sharing validation test
 - [ ] Environment variable persistence test
 
 #### Compatibility Tests
@@ -144,135 +281,45 @@ Integrate Gotenberg, a stateless API for converting documents to PDF, PNG, JPEG,
 - [ ] Verify no conflicts with existing services
 - [ ] Test wizard selection persistence
 - [ ] Validate Caddy configuration reload
-
-### Dependencies
-- Docker Compose profiles system (existing)
-- Caddy reverse proxy configuration (existing)
-- Environment variable generation system (existing)
-- Service selection wizard framework (existing)
-
-### Challenges & Mitigations
-
-#### Challenge 1: Service Integration Consistency
-**Problem**: Maintaining consistency with existing service patterns
-**Mitigation**: Follow exact patterns used by similar services (e.g., crawl4ai, letta) - IMPLEMENTED
-
-#### Challenge 2: Resource Requirements
-**Problem**: Gotenberg may require additional memory for document processing
-**Mitigation**: Document resource requirements and set appropriate limits in Docker Compose - IMPLEMENTED
-
-#### Challenge 3: API Security
-**Problem**: Gotenberg doesn't have built-in authentication
-**Mitigation**: Rely on Caddy reverse proxy and network isolation, document security considerations - IMPLEMENTED
-
-#### Challenge 4: Service Discovery
-**Problem**: Ensuring n8n can properly communicate with Gotenberg
-**Mitigation**: Document internal service URLs and provide usage examples - IMPLEMENTED
-
-### API Usage Documentation
-
-#### Internal Service URL
-- Internal Docker network: `http://gotenberg:3000`
-- External access: `https://gotenberg.yourdomain.com`
-
-#### Common Use Cases for n8n
-- Convert HTML to PDF in workflows
-- Transform documents between formats
-- Generate reports from data
-- Process uploaded documents
-
-### Creative Phases Required
-**None** - This is a straightforward service integration following established patterns.
+- [ ] Test resource usage with multiple AI services
 
 ### Next Steps
-Upon completion of implementation phase:
-- Complete testing and validation tasks
-- Verify all changes work correctly
-- Mark task as complete
+Upon completion of planning phase:
+- Proceed to CREATIVE MODE for architecture design decisions
+- Complete technology validation tasks
+- Begin implementation following the phased approach
 
 ---
 
 ## Task History
-- **VAN Mode Initialization**: ✅ COMPLETED
-  - Created Memory Bank directory structure
-  - Initialized core documentation files
-  - Project analysis and context establishment
-
-- **Gotenberg Integration Planning**: ✅ COMPLETED
+- **Dify Integration Planning**: 🔄 IN PROGRESS
   - Comprehensive requirements analysis
   - Component mapping and dependencies
   - Implementation strategy development
   - Technology validation planning
+  - Creative phase identification
 
-- **Gotenberg Integration Implementation**: ✅ COMPLETED
-  - Added Docker Compose configuration for Gotenberg service
-  - Added Caddy reverse proxy configuration
-  - Added service to interactive selection wizard
-  - Updated environment variables in all required files
-  - Added documentation to README
-  - Implementation phase complete
-
-- **Gotenberg Integration Reflection**: ✅ COMPLETED
-  - Comprehensive review of implementation process
-  - Documented successes, challenges, and lessons learned
-  - Identified process and technical improvements
-  - Created reflection document in memory-bank/reflection/
-  - Ready for final testing and validation phase
-
-- **Gotenberg Security Configuration Update**: ✅ COMPLETED
-  - Removed external access configuration (Caddy reverse proxy)
-  - Removed GOTENBERG_HOSTNAME from .env.example and docker-compose.yml
-  - Updated README.md to reflect internal-only access
-  - Modified final report script to show only internal access
-  - Gotenberg now accessible only within Docker network at http://gotenberg:3000
-  - Enhanced security by limiting access to Docker internal network only
+---
 
 ## Available for Development
 
 ### Potential Enhancement Areas
-1. **Installation Experience Improvements**
+1. **AI Service Ecosystem**
+   - Cross-service AI workflow orchestration
+   - Shared model management across platforms
+   - Unified AI observability and monitoring
+
+2. **Installation Experience Improvements**
    - Enhanced progress reporting during installation
    - Better error handling and recovery mechanisms
    - Pre-flight validation improvements
 
-2. **Monitoring and Observability**
-   - Enhanced Grafana dashboards for AI-specific metrics
-   - Custom n8n workflow performance tracking
-   - Service health monitoring improvements
-
-3. **Security Enhancements**
-   - Advanced firewall configuration options
-   - Enhanced credential management
-   - Audit logging capabilities
-
-4. **Community Workflow Management**
-   - Workflow categorization and search improvements
-   - Template validation and quality assurance
-   - Automated workflow testing framework
-
-5. **Documentation and User Experience**
-   - Video tutorials and walkthrough guides
-   - Troubleshooting automation
-   - Performance optimization guides
+3. **Resource Optimization**
+   - Intelligent resource sharing between AI services
+   - Dynamic scaling based on usage patterns
+   - Memory and compute optimization strategies
 
 ## Next Steps
-The project is ready for mode transitions based on user requirements:
-- **PLAN**: For planning new features or major enhancements
-- **CREATIVE**: For designing new components or architectural improvements
-- **IMPLEMENT**: For direct implementation of specific features or fixes
-- **QA**: For validation, testing, and quality assurance work
+Ready for CREATIVE MODE to resolve architecture design decisions, then proceed to implementation phase.
 
-## Task Tracking Template
-```
-### Task: [Task Name]
-- **Type**: [Level 1-4 / Bug Fix / Enhancement / Feature]
-- **Priority**: [High / Medium / Low]
-- **Status**: [Planning / In Progress / Testing / Complete]
-- **Components**: [List of affected components]
-- **Checklist**:
-  - [ ] Task item 1
-  - [ ] Task item 2
-  - [ ] Task item 3
-```
-
-*This file will be updated with specific task details when active development begins.*
+*This file will be updated with specific progress as implementation proceeds.*

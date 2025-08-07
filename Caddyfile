@@ -20,6 +20,11 @@
     reverse_proxy flowise:3001
 }
 
+# Dify
+{$DIFY_HOSTNAME} {
+    reverse_proxy dify-nginx:80
+}
+
 # Langfuse
 {$LANGFUSE_HOSTNAME} {
     reverse_proxy langfuse-web:3000

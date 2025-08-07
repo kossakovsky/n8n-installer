@@ -69,6 +69,19 @@ if is_profile_active "flowise"; then
   echo "Password: ${FLOWISE_PASSWORD:-<not_set_in_env>}"
 fi
 
+if is_profile_active "dify"; then
+  echo
+  echo "================================= Dify ================================="
+  echo
+  echo "Host: ${DIFY_HOSTNAME:-<hostname_not_set>}"
+  echo "Description: AI Application Development Platform with LLMOps"
+  echo
+  echo "API Access:"
+  echo "  - Web Interface: https://${DIFY_HOSTNAME:-<hostname_not_set>}"
+  echo "  - API Endpoint: https://${DIFY_HOSTNAME:-<hostname_not_set>}/v1"
+  echo "  - Internal API: http://dify-api:5001"
+fi
+
 if is_profile_active "supabase"; then
   echo
   echo "================================= Supabase ============================"
