@@ -142,7 +142,7 @@ def clone_dify_repo():
         os.chdir("..")
 
 def prepare_dify_env():
-    """Prepare Dify environment configuration with proper variable mapping."""
+    """Prepare Dify environment configuration by copying .env.example and adding secret key."""
     if not is_dify_enabled():
         print("Dify is not enabled, skipping environment preparation.")
         return
@@ -155,42 +155,60 @@ def prepare_dify_env():
     # Read main .env file
     env_values = dotenv_values(".env")
     
-    # Create Dify-specific .env with proper variable mapping
-    dify_env_content = f"""# Dify Environment Configuration
+    # Define paths
+    dify_env_example_path = os.path.join("dify", "docker", ".env.example")
+    dify_env_path = os.path.join("dify", "docker", ".env")
+    
+    try:
+        # Copy .env.example to .env if .env.example exists
+        if os.path.exists(dify_env_example_path):
+            print("Copying Dify .env.example to .env...")
+            shutil.copyfile(dify_env_example_path, dify_env_path)
+            
+            # Read the copied .env file
+            with open(dify_env_path, "r") as f:
+                dify_env_content = f.read()
+            
+            # Get the secret key from main .env
+            secret_key = env_values.get("DIFY_SECRET_KEY", "")
+            
+            if secret_key:
+                # Replace SECRET_KEY if it exists, otherwise append it
+                if "SECRET_KEY=" in dify_env_content:
+                    # Find the SECRET_KEY line and replace it
+                    lines = dify_env_content.split('\n')
+                    for i, line in enumerate(lines):
+                        if line.strip().startswith("SECRET_KEY="):
+                            lines[i] = f"SECRET_KEY={secret_key}"
+                            break
+                    dify_env_content = '\n'.join(lines)
+                else:
+                    # Append SECRET_KEY at the end
+                    dify_env_content += f"\n# Added by n8n-installer\nSECRET_KEY={secret_key}\n"
+                
+                # Write the updated content back
+                with open(dify_env_path, "w") as f:
+                    f.write(dify_env_content)
+                
+                print("Successfully copied Dify .env.example and added SECRET_KEY")
+            else:
+                print("Warning: DIFY_SECRET_KEY not found in main .env file")
+        else:
+            # Fallback: create basic .env if .env.example doesn't exist
+            print("Warning: Dify .env.example not found, creating basic .env configuration...")
+            secret_key = env_values.get("DIFY_SECRET_KEY", "")
+            dify_env_content = f"""# Dify Environment Configuration
 # Generated from n8n-installer main .env
 
 # Core Dify Configuration
-SECRET_KEY={env_values.get("DIFY_SECRET_KEY", "")}
-MODE=api
-
-# Database Configuration (using shared PostgreSQL)
-DB_USERNAME={env_values.get("DIFY_DB_USERNAME", "postgres")}
-DB_PASSWORD={env_values.get("DIFY_DB_PASSWORD", env_values.get("POSTGRES_PASSWORD", ""))}
-DB_HOST={env_values.get("DIFY_DB_HOST", "postgres")}
-DB_PORT={env_values.get("DIFY_DB_PORT", "5432")}
-DB_DATABASE={env_values.get("DIFY_DB_DATABASE", "dify")}
-
-# Redis Configuration (using shared Redis)
-REDIS_HOST={env_values.get("DIFY_REDIS_HOST", "redis")}
-REDIS_PORT={env_values.get("DIFY_REDIS_PORT", "6379")}
-REDIS_DB={env_values.get("DIFY_REDIS_DB", "0")}
-
-# Celery Configuration
-CELERY_BROKER_URL={env_values.get("DIFY_CELERY_BROKER_URL", "redis://redis:6379/1")}
-
-# Basic Configuration
-DEBUG=false
-FLASK_DEBUG=false
-LOG_LEVEL=INFO
-MIGRATION_ENABLED=true
+SECRET_KEY={secret_key}
 """
-    
-    try:
-        with open("dify/docker/.env", "w") as f:
-            f.write(dify_env_content)
-        print("Created Dify .env configuration with proper variable mapping")
+            with open(dify_env_path, "w") as f:
+                f.write(dify_env_content)
+            print("Created basic Dify .env configuration")
+            
     except Exception as e:
-        print(f"Error creating Dify .env configuration: {e}")
+        print(f"Error preparing Dify .env configuration: {e}")
 
 def start_dify():
     """Start the Dify services (using its compose file)."""
