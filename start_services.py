@@ -423,7 +423,7 @@ def main():
         start_dify()
         # Give Dify some time to initialize
         print("Waiting for Dify to initialize...")
-        time.sleep(15)
+        time.sleep(10)
     
     # Then start the local AI services
     start_local_ai()

@@ -48,12 +48,19 @@ log_success "Service selection updated."
 # Pull latest versions of selected containers based on updated .env
 log_info "Pulling latest versions of selected containers..."
 COMPOSE_FILES_FOR_PULL=("-f" "$PROJECT_ROOT/docker-compose.yml")
-SUPABASE_DOCKER_DIR="$PROJECT_ROOT/supabase/docker"
-SUPABASE_COMPOSE_FILE_PATH="$SUPABASE_DOCKER_DIR/docker-compose.yml"
 
 # Check if Supabase directory and its docker-compose.yml exist
+SUPABASE_DOCKER_DIR="$PROJECT_ROOT/supabase/docker"
+SUPABASE_COMPOSE_FILE_PATH="$SUPABASE_DOCKER_DIR/docker-compose.yml"
 if [ -d "$SUPABASE_DOCKER_DIR" ] && [ -f "$SUPABASE_COMPOSE_FILE_PATH" ]; then
     COMPOSE_FILES_FOR_PULL+=("-f" "$SUPABASE_COMPOSE_FILE_PATH")
+fi
+
+# Check if Dify directory and its docker-compose.yaml exist
+DIFY_DOCKER_DIR="$PROJECT_ROOT/dify/docker"
+DIFY_COMPOSE_FILE_PATH="$DIFY_DOCKER_DIR/docker-compose.yaml"
+if [ -d "$DIFY_DOCKER_DIR" ] && [ -f "$DIFY_COMPOSE_FILE_PATH" ]; then
+    COMPOSE_FILES_FOR_PULL+=("-f" "$DIFY_COMPOSE_FILE_PATH")
 fi
 
 # Use the project name "localai" for consistency.
