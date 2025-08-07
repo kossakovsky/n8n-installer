@@ -94,6 +94,11 @@ def stop_existing_containers():
     supabase_compose_path = os.path.join("supabase", "docker", "docker-compose.yml")
     if os.path.exists(supabase_compose_path):
         cmd.extend(["-f", supabase_compose_path])
+    
+    # Check if the Dify Docker Compose file exists. If so, include it in the 'down' command.
+    dify_compose_path = os.path.join("dify", "docker", "docker-compose.yaml")
+    if os.path.exists(dify_compose_path):
+        cmd.extend(["-f", dify_compose_path])
 
     cmd.append("down")
     run_command(cmd)
@@ -194,7 +199,7 @@ def start_dify():
         return
     print("Starting Dify services...")
     run_command([
-        "docker", "compose", "-p", "localai", "-f", "dify/docker/docker-compose.yml", "up", "-d"
+        "docker", "compose", "-p", "localai", "-f", "dify/docker/docker-compose.yaml", "up", "-d"
     ])
 
 def start_local_ai():
