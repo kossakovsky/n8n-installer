@@ -8,4 +8,5 @@ searxng/uwsgi*
 shared-backup/
 shared/
 supabase/
+dify/
 volumes/
