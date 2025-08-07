@@ -171,6 +171,7 @@ def prepare_dify_env():
             
             # Get the secret key from main .env
             secret_key = env_values.get("DIFY_SECRET_KEY", "")
+            dify_nginx_port = env_values.get("DIFY_NGINX_PORT", "8080")
             
             if secret_key:
                 # Replace SECRET_KEY if it exists, otherwise append it
@@ -186,26 +187,45 @@ def prepare_dify_env():
                     # Append SECRET_KEY at the end
                     dify_env_content += f"\n# Added by n8n-installer\nSECRET_KEY={secret_key}\n"
                 
+                # Change NGINX_PORT to prevent port 80 conflict
+                if "NGINX_PORT=" in dify_env_content:
+                    # Find the NGINX_PORT line and replace it
+                    lines = dify_env_content.split('\n')
+                    for i, line in enumerate(lines):
+                        if line.strip().startswith("NGINX_PORT="):
+                            lines[i] = f"NGINX_PORT={dify_nginx_port}"
+                            print(f"Changed Dify NGINX_PORT from 80 to {dify_nginx_port} to prevent port conflict")
+                            break
+                    dify_env_content = '\n'.join(lines)
+                else:
+                    # Append NGINX_PORT configuration
+                    dify_env_content += f"\n# Port configuration to prevent conflicts (added by n8n-installer)\nNGINX_PORT={dify_nginx_port}\n"
+                    print(f"Added Dify NGINX_PORT={dify_nginx_port} to prevent port 80 conflict")
+                
                 # Write the updated content back
                 with open(dify_env_path, "w") as f:
                     f.write(dify_env_content)
                 
-                print("Successfully copied Dify .env.example and added SECRET_KEY")
+                print("Successfully copied Dify .env.example and added SECRET_KEY and port configuration")
             else:
                 print("Warning: DIFY_SECRET_KEY not found in main .env file")
         else:
             # Fallback: create basic .env if .env.example doesn't exist
             print("Warning: Dify .env.example not found, creating basic .env configuration...")
             secret_key = env_values.get("DIFY_SECRET_KEY", "")
+            dify_nginx_port = env_values.get("DIFY_NGINX_PORT", "8080")
             dify_env_content = f"""# Dify Environment Configuration
 # Generated from n8n-installer main .env
 
 # Core Dify Configuration
 SECRET_KEY={secret_key}
+
+# Port configuration to prevent conflicts (added by n8n-installer)
+NGINX_PORT={dify_nginx_port}
 """
             with open(dify_env_path, "w") as f:
                 f.write(dify_env_content)
-            print("Created basic Dify .env configuration")
+            print(f"Created basic Dify .env configuration with NGINX_PORT={dify_nginx_port}")
             
     except Exception as e:
         print(f"Error preparing Dify .env configuration: {e}")
