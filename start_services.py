@@ -132,7 +132,8 @@ def clone_dify_repo():
         ])
         os.chdir("dify")
         run_command(["git", "sparse-checkout", "init", "--cone"])
-        run_command(["git", "sparse-checkout", "set", "docker"])
+        # Include docker directory and root .env.example for preparing both docker and root envs
+        run_command(["git", "sparse-checkout", "set", "docker", ".env.example"])
         run_command(["git", "checkout", "main"])
         os.chdir("..")
     else:
@@ -141,94 +142,87 @@ def clone_dify_repo():
         run_command(["git", "pull"])
         os.chdir("..")
 
-def prepare_dify_env():
-    """Prepare Dify environment configuration by copying .env.example and adding secret key."""
-    if not is_dify_enabled():
-        print("Dify is not enabled, skipping environment preparation.")
+def prepare_dify_env_file(target_directory: str, env_values: dict) -> None:
+    """Prepare a Dify .env in the given directory.
+
+    Behavior:
+    - Copies ".env.example" to ".env" if present, otherwise creates a minimal ".env".
+    - Injects SECRET_KEY from the root .env if available.
+    - Sets or appends NGINX_PORT using DIFY_NGINX_PORT (default 8080).
+    """
+    if not os.path.exists(target_directory):
+        print(f"Warning: {target_directory} directory not found. Skipping.")
         return
-    if not os.path.exists("dify/docker"):
-        print("Error: dify/docker directory not found. Please ensure Dify repository is cloned properly.")
-        return
-    
-    print("Preparing Dify environment configuration...")
-    
-    # Read main .env file
-    env_values = dotenv_values(".env")
-    
-    # Define paths
-    dify_env_example_path = os.path.join("dify", "docker", ".env.example")
-    dify_env_path = os.path.join("dify", "docker", ".env")
-    
+
+    env_example_path = os.path.join(target_directory, ".env.example")
+    env_path = os.path.join(target_directory, ".env")
+
+    secret_key = env_values.get("DIFY_SECRET_KEY", "")
+    dify_nginx_port = env_values.get("DIFY_NGINX_PORT", "8080")
+
     try:
-        # Copy .env.example to .env if .env.example exists
-        if os.path.exists(dify_env_example_path):
-            print("Copying Dify .env.example to .env...")
-            shutil.copyfile(dify_env_example_path, dify_env_path)
-            
-            # Read the copied .env file
-            with open(dify_env_path, "r") as f:
-                dify_env_content = f.read()
-            
-            # Get the secret key from main .env
-            secret_key = env_values.get("DIFY_SECRET_KEY", "")
-            dify_nginx_port = env_values.get("DIFY_NGINX_PORT", "8080")
-            
+        if os.path.exists(env_example_path):
+            print(f"Copying {env_example_path} to {env_path}...")
+            shutil.copyfile(env_example_path, env_path)
+
+            with open(env_path, "r") as f:
+                env_content = f.read()
+
             if secret_key:
-                # Replace SECRET_KEY if it exists, otherwise append it
-                if "SECRET_KEY=" in dify_env_content:
-                    # Find the SECRET_KEY line and replace it
-                    lines = dify_env_content.split('\n')
+                if "SECRET_KEY=" in env_content:
+                    lines = env_content.split('\n')
                     for i, line in enumerate(lines):
                         if line.strip().startswith("SECRET_KEY="):
                             lines[i] = f"SECRET_KEY={secret_key}"
                             break
-                    dify_env_content = '\n'.join(lines)
+                    env_content = '\n'.join(lines)
                 else:
-                    # Append SECRET_KEY at the end
-                    dify_env_content += f"\n# Added by n8n-installer\nSECRET_KEY={secret_key}\n"
-                
-                # Change NGINX_PORT to prevent port 80 conflict
-                if "NGINX_PORT=" in dify_env_content:
-                    # Find the NGINX_PORT line and replace it
-                    lines = dify_env_content.split('\n')
-                    for i, line in enumerate(lines):
-                        if line.strip().startswith("NGINX_PORT="):
-                            lines[i] = f"NGINX_PORT={dify_nginx_port}"
-                            print(f"Changed Dify NGINX_PORT from 80 to {dify_nginx_port} to prevent port conflict")
-                            break
-                    dify_env_content = '\n'.join(lines)
-                else:
-                    # Append NGINX_PORT configuration
-                    dify_env_content += f"\n# Port configuration to prevent conflicts (added by n8n-installer)\nNGINX_PORT={dify_nginx_port}\n"
-                    print(f"Added Dify NGINX_PORT={dify_nginx_port} to prevent port 80 conflict")
-                
-                # Write the updated content back
-                with open(dify_env_path, "w") as f:
-                    f.write(dify_env_content)
-                
-                print("Successfully copied Dify .env.example and added SECRET_KEY and port configuration")
+                    env_content += f"\n# Added by n8n-installer\nSECRET_KEY={secret_key}\n"
             else:
                 print("Warning: DIFY_SECRET_KEY not found in main .env file")
+
+            if "NGINX_PORT=" in env_content:
+                lines = env_content.split('\n')
+                for i, line in enumerate(lines):
+                    if line.strip().startswith("NGINX_PORT="):
+                        lines[i] = f"NGINX_PORT={dify_nginx_port}"
+                        print(f"Set NGINX_PORT={dify_nginx_port} to prevent port conflict")
+                        break
+                env_content = '\n'.join(lines)
+            else:
+                env_content += f"\n# Port configuration to prevent conflicts (added by n8n-installer)\nNGINX_PORT={dify_nginx_port}\n"
+                print(f"Added NGINX_PORT={dify_nginx_port} to prevent port 80 conflict")
+
+            with open(env_path, "w") as f:
+                f.write(env_content)
+            print(f"Prepared {env_path}")
         else:
-            # Fallback: create basic .env if .env.example doesn't exist
-            print("Warning: Dify .env.example not found, creating basic .env configuration...")
-            secret_key = env_values.get("DIFY_SECRET_KEY", "")
-            dify_nginx_port = env_values.get("DIFY_NGINX_PORT", "8080")
-            dify_env_content = f"""# Dify Environment Configuration
-# Generated from n8n-installer main .env
-
-# Core Dify Configuration
-SECRET_KEY={secret_key}
-
-# Port configuration to prevent conflicts (added by n8n-installer)
-NGINX_PORT={dify_nginx_port}
-"""
-            with open(dify_env_path, "w") as f:
-                f.write(dify_env_content)
-            print(f"Created basic Dify .env configuration with NGINX_PORT={dify_nginx_port}")
-            
+            print(f"Warning: {env_example_path} not found, creating basic .env at {env_path}...")
+            minimal_env = (
+                "# Dify Environment Configuration\n"
+                "# Generated from n8n-installer main .env\n\n"
+                "# Core Dify Configuration\n"
+                f"SECRET_KEY={secret_key}\n\n"
+                "# Port configuration to prevent conflicts (added by n8n-installer)\n"
+                f"NGINX_PORT={dify_nginx_port}\n"
+            )
+            with open(env_path, "w") as f:
+                f.write(minimal_env)
+            print(f"Created basic .env at {env_path} with NGINX_PORT={dify_nginx_port}")
     except Exception as e:
-        print(f"Error preparing Dify .env configuration: {e}")
+        print(f"Error preparing env in {target_directory}: {e}")
+
+def prepare_dify_env():
+    """Prepare Dify environment in both docker and root directories."""
+    if not is_dify_enabled():
+        print("Dify is not enabled, skipping environment preparation.")
+        return
+    print("Preparing Dify environment configuration...")
+
+    env_values = dotenv_values(".env")
+
+    prepare_dify_env_file(os.path.join("dify", "docker"), env_values)
+    prepare_dify_env_file(os.path.join("dify"), env_values)
 
 def start_dify():
     """Start the Dify services (using its compose file)."""
