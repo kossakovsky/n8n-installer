@@ -56,6 +56,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Grafana**](https://grafana.com/) - An open-source platform for visualizing monitoring data, helping you understand system performance at a glance.
 
+✅ [**Portainer**](https://www.portainer.io/) - A lightweight, secure web UI to manage your Docker environment (containers, images, volumes, networks) with ease.
+
 ### Included Community Workflows
 
 Get started quickly with a vast library of pre-built automations (optional import during setup)! This collection includes over 300 workflows covering a wide range of use cases:
@@ -131,6 +133,7 @@ After successful installation, your services are up and running! Here's how to g
     - **Grafana:** `grafana.yourdomain.com`
     - **SearXNG:** `searxng.yourdomain.com`
     - **Prometheus:** `prometheus.yourdomain.com` (Typically used as a data source for Grafana)
+    - **Portainer:** `portainer.yourdomain.com` (Protected by Caddy basic auth; on first login, complete Portainer admin setup)
 
 2.  **Explore n8n:**
 
