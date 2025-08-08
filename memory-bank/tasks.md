@@ -385,4 +385,84 @@ Ready to archive the completed Dify integration task and prepare for next develo
 → **Memory Bank is ready for the next task**  
 → **To start a new task, use VAN MODE**
 
-**Final Task Status**: �� SUCCESSFULLY COMPLETED, REFLECTED, AND ARCHIVED
+**Final Task Status**: ✅ SUCCESSFULLY COMPLETED, REFLECTED, AND ARCHIVED
+
+## New Task: Add Portainer Service (Docker Management UI)
+
+### Description
+Integrate Portainer Community Edition as an optional service to manage the local Docker environment through a secure, Caddy-proxied hostname with basic authentication.
+
+### Complexity
+- Level: 2 (Simple Enhancement)
+- Type: Add-on service integration using existing patterns (profiles, Caddy, env generation, wizard, final report)
+
+### Overview of Changes
+- Add Portainer as a new Docker Compose service behind profile `portainer`.
+- Expose via Caddy at `PORTAINER_HOSTNAME`, protected with Caddy `basic_auth`.
+- Generate `PORTAINER_PASSWORD` with bcrypt hash `PORTAINER_PASSWORD_HASH`. Use `PORTAINER_USERNAME` (from user email) for convenience.
+- Add service to wizard for optional selection.
+- Include access details in final report.
+
+### Files to Modify
+- `scripts/03_generate_secrets.sh`
+  - Generate: `PORTAINER_PASSWORD` (random), username from email `PORTAINER_USERNAME`.
+  - Compute bcrypt `PORTAINER_PASSWORD_HASH` via `caddy hash-password`.
+  - Persist hash in `.env` like with Prometheus/SearXNG.
+- `scripts/04_wizard.sh`
+  - Add service option: `portainer` "Portainer (Docker management UI)".
+- `scripts/06_final_report.sh`
+  - Add section for Portainer host, username, and password.
+- `.env.example`
+  - Add variables: `PORTAINER_HOSTNAME`, `PORTAINER_USERNAME`, `PORTAINER_PASSWORD`, `PORTAINER_PASSWORD_HASH`.
+- `Caddyfile`
+  - Add host block for `{$PORTAINER_HOSTNAME}` with `basic_auth` using `PORTAINER_USERNAME`/`PORTAINER_PASSWORD_HASH`, proxy to `portainer:9000`.
+- `docker-compose.yml`
+  - Add `portainer` service (`profiles: ["portainer"]`), volumes: `portainer_data` and `${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock`.
+  - Add `portainer_data` to top-level `volumes`.
+  - Pass Portainer env/host variables into `caddy` service environment: `PORTAINER_HOSTNAME`, `PORTAINER_USERNAME`, `PORTAINER_PASSWORD_HASH`.
+
+### Implementation Steps
+1) `.env.example`
+   - Insert under hostnames: `PORTAINER_HOSTNAME=portainer.yourdomain.com`.
+   - Insert credentials: `PORTAINER_USERNAME=`, `PORTAINER_PASSWORD=`.
+   - Insert hash section end: `PORTAINER_PASSWORD_HASH=`.
+2) `scripts/03_generate_secrets.sh`
+   - Add to `VARS_TO_GENERATE`: `"PORTAINER_PASSWORD"="password:32"`.
+   - Set `generated_values["PORTAINER_USERNAME"]="$USER_EMAIL"`.
+   - Add `found_vars["PORTAINER_USERNAME"]=0`, include in `user_input_vars` and in the post-template append list.
+   - Compute hash with caddy (mirror Prometheus/SearXNG pattern) and `_update_or_add_env_var "PORTAINER_PASSWORD_HASH"`.
+3) `scripts/04_wizard.sh`
+   - Add to `base_services_data`: `"portainer" "Portainer (Docker management UI)"`.
+4) `scripts/06_final_report.sh`
+   - Add a block gated by `is_profile_active "portainer"` printing host, user, password.
+5) `Caddyfile`
+   - Add block for `{$PORTAINER_HOSTNAME}` with `basic_auth { {$PORTAINER_USERNAME} {$PORTAINER_PASSWORD_HASH} }` and `reverse_proxy portainer:9000`.
+6) `docker-compose.yml`
+   - Add `portainer_data:` volume.
+   - Add `portainer` service using `portainer/portainer-ce:latest`, `restart: unless-stopped`, `profiles: ["portainer"]`, volumes mapping `portainer_data:/data` and `${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock`.
+   - Add `PORTAINER_*` variables to the `caddy` service environment section.
+
+### Potential Challenges
+- Portainer first-run setup: even with Caddy `basic_auth`, Portainer will request initial admin setup on first login. This is expected; Caddy auth protects the external URL.
+- Docker socket mount must match host path via `${DOCKER_SOCKET_LOCATION}`.
+
+### Testing Strategy
+- Generate/update `.env` with `03_generate_secrets.sh` and choose `portainer` in `04_wizard.sh`.
+- Start: `docker compose up -d caddy portainer`.
+- Verify `https://PORTAINER_HOSTNAME` prompts for Caddy basic auth, then complete Portainer admin onboarding.
+
+### Next Mode Recommendation
+- Implement Mode (no creative phase required).
+
+### Reflection Status (Portainer)
+- [x] Implementation thoroughly reviewed
+- [x] Successes documented
+- [x] Challenges and solutions analyzed
+- [x] Lessons Learned documented
+- [x] Process/Technical improvements identified
+- [x] reflection-portainer-integration.md created
+- [x] tasks.md updated with reflection status
+
+### Archiving Status (Portainer)
+- [x] Archive document created: `memory-bank/archive/feature-portainer-integration_20250808.md`
+- [x] tasks.md marked COMPLETE for Portainer

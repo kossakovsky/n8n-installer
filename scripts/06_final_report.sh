@@ -127,6 +127,16 @@ if is_profile_active "searxng"; then
   echo "Password: ${SEARXNG_PASSWORD:-<not_set_in_env>}"
 fi
 
+if is_profile_active "portainer"; then
+  echo
+  echo "================================= Portainer ==========================="
+  echo
+  echo "Host: ${PORTAINER_HOSTNAME:-<hostname_not_set>}"
+  echo "User: ${PORTAINER_USERNAME:-<not_set_in_env>}"
+  echo "Password: ${PORTAINER_PASSWORD:-<not_set_in_env>}"
+  echo "(Note: On first login, Portainer will prompt to set up an admin user.)"
+fi
+
 if is_profile_active "qdrant"; then
   echo
   echo "================================= Qdrant =============================="

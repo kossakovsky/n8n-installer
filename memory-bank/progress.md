@@ -1,6 +1,6 @@
 # n8n-installer Project Progress
 
-## Current Task: Add Gotenberg Service to n8n-installer
+## Current Task: —
 
 ### Implementation Progress
 All major components have been implemented successfully:
