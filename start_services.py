@@ -148,7 +148,9 @@ def prepare_dify_env_file(target_directory: str, env_values: dict) -> None:
     Behavior:
     - Copies ".env.example" to ".env" if present, otherwise creates a minimal ".env".
     - Injects SECRET_KEY from the root .env if available.
-    - Sets or appends NGINX_PORT using DIFY_NGINX_PORT (default 8080).
+    - Sets or appends EXPOSE_NGINX_PORT and EXPOSE_NGINX_SSL_PORT using
+      DIFY_EXPOSE_NGINX_PORT (default 8080) and DIFY_EXPOSE_NGINX_SSL_PORT (default 8443).
+      For backward compatibility, DIFY_NGINX_PORT is used as a fallback for EXPOSE_NGINX_PORT.
     """
     if not os.path.exists(target_directory):
         print(f"Warning: {target_directory} directory not found. Skipping.")
@@ -158,7 +160,11 @@ def prepare_dify_env_file(target_directory: str, env_values: dict) -> None:
     env_path = os.path.join(target_directory, ".env")
 
     secret_key = env_values.get("DIFY_SECRET_KEY", "")
-    dify_nginx_port = env_values.get("DIFY_NGINX_PORT", "8080")
+    dify_expose_http_port = env_values.get(
+        "DIFY_EXPOSE_NGINX_PORT",
+        env_values.get("DIFY_NGINX_PORT", "8080")
+    )
+    dify_expose_ssl_port = env_values.get("DIFY_EXPOSE_NGINX_SSL_PORT", "8443")
 
     try:
         if os.path.exists(env_example_path):
@@ -181,17 +187,39 @@ def prepare_dify_env_file(target_directory: str, env_values: dict) -> None:
             else:
                 print("Warning: DIFY_SECRET_KEY not found in main .env file")
 
-            if "NGINX_PORT=" in env_content:
-                lines = env_content.split('\n')
-                for i, line in enumerate(lines):
-                    if line.strip().startswith("NGINX_PORT="):
-                        lines[i] = f"NGINX_PORT={dify_nginx_port}"
-                        print(f"Set NGINX_PORT={dify_nginx_port} to prevent port conflict")
-                        break
-                env_content = '\n'.join(lines)
-            else:
-                env_content += f"\n# Port configuration to prevent conflicts (added by n8n-installer)\nNGINX_PORT={dify_nginx_port}\n"
-                print(f"Added NGINX_PORT={dify_nginx_port} to prevent port 80 conflict")
+            # Ensure EXPOSE_NGINX_PORT and EXPOSE_NGINX_SSL_PORT are set
+            lines = env_content.split('\n')
+            found_http = False
+            found_ssl = False
+            for i, line in enumerate(lines):
+                stripped = line.strip()
+                if stripped.startswith("EXPOSE_NGINX_PORT="):
+                    lines[i] = f"EXPOSE_NGINX_PORT={dify_expose_http_port}"
+                    print(f"Set EXPOSE_NGINX_PORT={dify_expose_http_port} to prevent port conflict")
+                    found_http = True
+                elif stripped.startswith("EXPOSE_NGINX_SSL_PORT="):
+                    lines[i] = f"EXPOSE_NGINX_SSL_PORT={dify_expose_ssl_port}"
+                    print(f"Set EXPOSE_NGINX_SSL_PORT={dify_expose_ssl_port} to prevent port conflict")
+                    found_ssl = True
+
+            env_content = '\n'.join(lines)
+
+            # Append any missing variables with a single comment header
+            missing_lines = []
+            if not found_http:
+                missing_lines.append(f"EXPOSE_NGINX_PORT={dify_expose_http_port}")
+            if not found_ssl:
+                missing_lines.append(f"EXPOSE_NGINX_SSL_PORT={dify_expose_ssl_port}")
+            if missing_lines:
+                env_content += (
+                    "\n# Port configuration to prevent conflicts (added by n8n-installer)\n"
+                    + "\n".join(missing_lines)
+                    + "\n"
+                )
+                if not found_http:
+                    print(f"Added EXPOSE_NGINX_PORT={dify_expose_http_port} to prevent port 80 conflict")
+                if not found_ssl:
+                    print(f"Added EXPOSE_NGINX_SSL_PORT={dify_expose_ssl_port} to prevent port 443 conflict")
 
             with open(env_path, "w") as f:
                 f.write(env_content)
@@ -204,11 +232,12 @@ def prepare_dify_env_file(target_directory: str, env_values: dict) -> None:
                 "# Core Dify Configuration\n"
                 f"SECRET_KEY={secret_key}\n\n"
                 "# Port configuration to prevent conflicts (added by n8n-installer)\n"
-                f"NGINX_PORT={dify_nginx_port}\n"
+                f"EXPOSE_NGINX_PORT={dify_expose_http_port}\n"
+                f"EXPOSE_NGINX_SSL_PORT={dify_expose_ssl_port}\n"
             )
             with open(env_path, "w") as f:
                 f.write(minimal_env)
-            print(f"Created basic .env at {env_path} with NGINX_PORT={dify_nginx_port}")
+            print(f"Created basic .env at {env_path} with EXPOSE_NGINX_PORT={dify_expose_http_port} and EXPOSE_NGINX_SSL_PORT={dify_expose_ssl_port}")
     except Exception as e:
         print(f"Error preparing env in {target_directory}: {e}")
 
