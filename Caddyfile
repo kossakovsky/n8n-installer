@@ -22,7 +22,7 @@
 
 # Dify
 {$DIFY_HOSTNAME} {
-    reverse_proxy dify-nginx:8080
+    reverse_proxy dify-nginx:80
 }
 
 # Langfuse
