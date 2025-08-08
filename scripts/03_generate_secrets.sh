@@ -51,6 +51,7 @@ declare -A VARS_TO_GENERATE=(
     ["NEO4J_AUTH_USERNAME"]="fixed:neo4j" # Added Neo4j username
     # Dify environment variables
     ["DIFY_SECRET_KEY"]="secret:64" # Dify application secret key (maps to SECRET_KEY in Dify)
+    ["COMFYUI_PASSWORD"]="password:32" # Added ComfyUI basic auth password
 )
 
 # Initialize existing_env_vars and attempt to read .env if it exists
@@ -368,6 +369,7 @@ generated_values["SEARXNG_USERNAME"]="$USER_EMAIL"
 generated_values["LANGFUSE_INIT_USER_EMAIL"]="$USER_EMAIL"
 generated_values["N8N_WORKER_COUNT"]="$N8N_WORKER_COUNT"
 generated_values["WEAVIATE_USERNAME"]="$USER_EMAIL" # Set Weaviate username for Caddy
+generated_values["COMFYUI_USERNAME"]="$USER_EMAIL" # Set ComfyUI username for Caddy
 
 if [[ -n "$OPENAI_API_KEY" ]]; then
     generated_values["OPENAI_API_KEY"]="$OPENAI_API_KEY"
@@ -391,6 +393,7 @@ found_vars["LANGFUSE_INIT_USER_EMAIL"]=0
 found_vars["N8N_WORKER_COUNT"]=0
 found_vars["WEAVIATE_USERNAME"]=0
 found_vars["NEO4J_AUTH_USERNAME"]=0
+found_vars["COMFYUI_USERNAME"]=0
 
 # Read template, substitute domain, generate initial values
 while IFS= read -r line || [[ -n "$line" ]]; do
@@ -437,7 +440,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             # This 'else' block is for lines from template not covered by existing values or VARS_TO_GENERATE.
             # Check if it is one of the user input vars - these are handled by found_vars later if not in template.
             is_user_input_var=0 # Reset for each line
-            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME")
+            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME")
             for uivar in "${user_input_vars[@]}"; do
                 if [[ "$varName" == "$uivar" ]]; then
                     is_user_input_var=1
@@ -450,7 +453,6 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                             processed_line="${varName}=\"\""
                         else # template has a default simple value
                             processed_line="${varName}=\"$currentValue\"" # Use template's default, and quote it
-                            # Don't add to generated_values here, let the original logic handle it if needed
                         fi
                     fi
                     break
@@ -520,7 +522,7 @@ if [[ -z "${generated_values[SERVICE_ROLE_KEY]}" ]]; then
 fi
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME"; do
+for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
         # Before appending, check if it's already in TMP_ENV_FILE to avoid duplicates
         if ! grep -q -E "^${var}=" "$TMP_ENV_FILE"; then
@@ -630,6 +632,18 @@ if [[ -z "$FINAL_SEARXNG_HASH" && -n "$SEARXNG_PLAIN_PASS" ]]; then
     fi
 fi
 _update_or_add_env_var "SEARXNG_PASSWORD_HASH" "$FINAL_SEARXNG_HASH"
+
+# --- COMFYUI ---
+COMFYUI_PLAIN_PASS="${generated_values["COMFYUI_PASSWORD"]}"
+FINAL_COMFYUI_HASH="${generated_values[COMFYUI_PASSWORD_HASH]}"
+if [[ -z "$FINAL_COMFYUI_HASH" && -n "$COMFYUI_PLAIN_PASS" ]]; then
+    NEW_HASH=$(_generate_and_get_hash "$COMFYUI_PLAIN_PASS")
+    if [[ -n "$NEW_HASH" ]]; then
+        FINAL_COMFYUI_HASH="$NEW_HASH"
+        generated_values["COMFYUI_PASSWORD_HASH"]="$NEW_HASH"
+    fi
+fi
+_update_or_add_env_var "COMFYUI_PASSWORD_HASH" "$FINAL_COMFYUI_HASH"
 
 
 if [ $? -eq 0 ]; then # This $? reflects the status of the last mv command from the last _update_or_add_env_var call.

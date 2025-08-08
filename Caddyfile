@@ -75,6 +75,9 @@
 
 # ComfyUI
 {$COMFYUI_HOSTNAME} {
+    basic_auth {
+        {$COMFYUI_USERNAME} {$COMFYUI_PASSWORD_HASH}
+    }
     reverse_proxy comfyui:8188
 }
 
