@@ -55,9 +55,6 @@
 
 # Portainer
 {$PORTAINER_HOSTNAME} {
-    basic_auth {
-        {$PORTAINER_USERNAME} {$PORTAINER_PASSWORD_HASH}
-    }
     reverse_proxy portainer:9000
 }
 
