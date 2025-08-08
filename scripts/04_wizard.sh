@@ -101,7 +101,7 @@ done
 
 # Use whiptail to display the checklist
 CHOICES=$(whiptail --title "Service Selection Wizard" --checklist \
-  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 22 78 10 \
+  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 32 90 17 \
   "${services[@]}" \
   3>&1 1>&2 2>&3)
 
