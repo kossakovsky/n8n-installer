@@ -590,7 +590,7 @@ services:
     profiles: ["comfyui"]
     restart: unless-stopped
     environment:
-      - CLI_ARGS=--listen 0.0.0.0
+      - CLI_ARGS=--listen 0.0.0.0 --cpu
     volumes:
       - comfyui_data:/home/runner
     healthcheck:
