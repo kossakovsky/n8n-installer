@@ -23,6 +23,12 @@ def is_supabase_enabled():
     compose_profiles = env_values.get("COMPOSE_PROFILES", "")
     return "supabase" in compose_profiles.split(',')
 
+def is_dify_enabled():
+    """Check if 'dify' is in COMPOSE_PROFILES in .env file."""
+    env_values = dotenv_values(".env")
+    compose_profiles = env_values.get("COMPOSE_PROFILES", "")
+    return "dify" in compose_profiles.split(',')
+
 def get_all_profiles(compose_file):
     """Get all profile names from a docker-compose file."""
     if not os.path.exists(compose_file):
@@ -76,6 +82,88 @@ def prepare_supabase_env():
     print("Copying .env in root to .env in supabase/docker...")
     shutil.copyfile(env_example_path, env_path)
 
+def clone_dify_repo():
+    """Clone the Dify repository using sparse checkout if not already present."""
+    if not is_dify_enabled():
+        print("Dify is not enabled, skipping clone.")
+        return
+    if not os.path.exists("dify"):
+        print("Cloning the Dify repository...")
+        run_command([
+            "git", "clone", "--filter=blob:none", "--no-checkout",
+            "https://github.com/langgenius/dify.git"
+        ])
+        os.chdir("dify")
+        run_command(["git", "sparse-checkout", "init", "--cone"])
+        run_command(["git", "sparse-checkout", "set", "docker"])
+        # Dify's default branch is 'main'
+        run_command(["git", "checkout", "main"])
+        os.chdir("..")
+    else:
+        print("Dify repository already exists, updating...")
+        os.chdir("dify")
+        run_command(["git", "pull"])
+        os.chdir("..")
+
+def prepare_dify_env():
+    """Create dify/docker/.env from env.example and inject selected values from root .env.
+
+    Mapping (strip DIFY_ prefix from root .env):
+      - DIFY_SECRET_KEY -> SECRET_KEY
+      - DIFY_EXPOSE_NGINX_PORT -> EXPOSE_NGINX_PORT
+      - DIFY_EXPOSE_NGINX_SSL_PORT -> EXPOSE_NGINX_SSL_PORT
+    """
+    if not is_dify_enabled():
+        print("Dify is not enabled, skipping env preparation.")
+        return
+
+    dify_docker_dir = os.path.join("dify", "docker")
+    if not os.path.isdir(dify_docker_dir):
+        print(f"Warning: Dify docker directory not found at {dify_docker_dir}. Have you cloned the repo?")
+        return
+
+    # Determine env example file name: prefer 'env.example', fallback to '.env.example'
+    env_example_candidates = [
+        os.path.join(dify_docker_dir, "env.example"),
+        os.path.join(dify_docker_dir, ".env.example"),
+    ]
+    env_example_path = next((p for p in env_example_candidates if os.path.exists(p)), None)
+
+    if env_example_path is None:
+        print(f"Warning: Could not find env.example in {dify_docker_dir}")
+        return
+
+    env_path = os.path.join(dify_docker_dir, ".env")
+
+    print(f"Creating {env_path} from {env_example_path}...")
+    with open(env_example_path, 'r') as f:
+        env_content = f.read()
+
+    # Load values from root .env
+    root_env = dotenv_values(".env")
+    mapping = {
+        "SECRET_KEY": root_env.get("DIFY_SECRET_KEY", ""),
+        "EXPOSE_NGINX_PORT": root_env.get("DIFY_EXPOSE_NGINX_PORT", ""),
+        "EXPOSE_NGINX_SSL_PORT": root_env.get("DIFY_EXPOSE_NGINX_SSL_PORT", ""),
+    }
+
+    # Replace or append variables in env_content
+    lines = env_content.splitlines()
+    replaced_keys = set()
+    for i, line in enumerate(lines):
+        for dest_key, value in mapping.items():
+            if line.startswith(f"{dest_key}=") and value:
+                lines[i] = f"{dest_key}={value}"
+                replaced_keys.add(dest_key)
+
+    # Append any missing keys with values
+    for dest_key, value in mapping.items():
+        if value and dest_key not in replaced_keys:
+            lines.append(f"{dest_key}={value}")
+
+    with open(env_path, 'w') as f:
+        f.write("\n".join(lines) + "\n")
+
 def stop_existing_containers():
     """Stop and remove existing containers for our unified project ('localai')."""
     print("Stopping and removing existing containers for the unified project 'localai'...")
@@ -112,146 +200,6 @@ def start_supabase():
     run_command([
         "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d"
     ])
-
-def is_dify_enabled():
-    """Check if 'dify' is in COMPOSE_PROFILES in .env file."""
-    env_values = dotenv_values(".env")
-    compose_profiles = env_values.get("COMPOSE_PROFILES", "")
-    return "dify" in compose_profiles.split(',')
-
-def clone_dify_repo():
-    """Clone the Dify repository using sparse checkout if not already present."""
-    if not is_dify_enabled():
-        print("Dify is not enabled, skipping clone.")
-        return
-    if not os.path.exists("dify"):
-        print("Cloning the Dify repository...")
-        run_command([
-            "git", "clone", "--filter=blob:none", "--no-checkout",
-            "https://github.com/langgenius/dify.git"
-        ])
-        os.chdir("dify")
-        run_command(["git", "sparse-checkout", "init", "--cone"])
-        # Include docker directory and root .env.example for preparing both docker and root envs
-        run_command(["git", "sparse-checkout", "set", "docker", ".env.example"])
-        run_command(["git", "checkout", "main"])
-        os.chdir("..")
-    else:
-        print("Dify repository already exists, updating...")
-        os.chdir("dify")
-        run_command(["git", "pull"])
-        os.chdir("..")
-
-def prepare_dify_env_file(target_directory: str, env_values: dict) -> None:
-    """Prepare a Dify .env in the given directory.
-
-    Behavior:
-    - Copies ".env.example" to ".env" if present, otherwise creates a minimal ".env".
-    - Injects SECRET_KEY from the root .env if available.
-    - Sets or appends EXPOSE_NGINX_PORT and EXPOSE_NGINX_SSL_PORT using
-      DIFY_EXPOSE_NGINX_PORT (default 8080) and DIFY_EXPOSE_NGINX_SSL_PORT (default 8443).
-      For backward compatibility, DIFY_NGINX_PORT is used as a fallback for EXPOSE_NGINX_PORT.
-    """
-    if not os.path.exists(target_directory):
-        print(f"Warning: {target_directory} directory not found. Skipping.")
-        return
-
-    env_example_path = os.path.join(target_directory, ".env.example")
-    env_path = os.path.join(target_directory, ".env")
-
-    secret_key = env_values.get("DIFY_SECRET_KEY", "")
-    dify_expose_http_port = env_values.get(
-        "DIFY_EXPOSE_NGINX_PORT",
-        env_values.get("DIFY_NGINX_PORT", "8080")
-    )
-    dify_expose_ssl_port = env_values.get("DIFY_EXPOSE_NGINX_SSL_PORT", "8443")
-
-    try:
-        if os.path.exists(env_example_path):
-            print(f"Copying {env_example_path} to {env_path}...")
-            shutil.copyfile(env_example_path, env_path)
-
-            with open(env_path, "r") as f:
-                env_content = f.read()
-
-            if secret_key:
-                if "SECRET_KEY=" in env_content:
-                    lines = env_content.split('\n')
-                    for i, line in enumerate(lines):
-                        if line.strip().startswith("SECRET_KEY="):
-                            lines[i] = f"SECRET_KEY={secret_key}"
-                            break
-                    env_content = '\n'.join(lines)
-                else:
-                    env_content += f"\n# Added by n8n-installer\nSECRET_KEY={secret_key}\n"
-            else:
-                print("Warning: DIFY_SECRET_KEY not found in main .env file")
-
-            # Ensure EXPOSE_NGINX_PORT and EXPOSE_NGINX_SSL_PORT are set
-            lines = env_content.split('\n')
-            found_http = False
-            found_ssl = False
-            for i, line in enumerate(lines):
-                stripped = line.strip()
-                if stripped.startswith("EXPOSE_NGINX_PORT="):
-                    lines[i] = f"EXPOSE_NGINX_PORT={dify_expose_http_port}"
-                    print(f"Set EXPOSE_NGINX_PORT={dify_expose_http_port} to prevent port conflict")
-                    found_http = True
-                elif stripped.startswith("EXPOSE_NGINX_SSL_PORT="):
-                    lines[i] = f"EXPOSE_NGINX_SSL_PORT={dify_expose_ssl_port}"
-                    print(f"Set EXPOSE_NGINX_SSL_PORT={dify_expose_ssl_port} to prevent port conflict")
-                    found_ssl = True
-
-            env_content = '\n'.join(lines)
-
-            # Append any missing variables with a single comment header
-            missing_lines = []
-            if not found_http:
-                missing_lines.append(f"EXPOSE_NGINX_PORT={dify_expose_http_port}")
-            if not found_ssl:
-                missing_lines.append(f"EXPOSE_NGINX_SSL_PORT={dify_expose_ssl_port}")
-            if missing_lines:
-                env_content += (
-                    "\n# Port configuration to prevent conflicts (added by n8n-installer)\n"
-                    + "\n".join(missing_lines)
-                    + "\n"
-                )
-                if not found_http:
-                    print(f"Added EXPOSE_NGINX_PORT={dify_expose_http_port} to prevent port 80 conflict")
-                if not found_ssl:
-                    print(f"Added EXPOSE_NGINX_SSL_PORT={dify_expose_ssl_port} to prevent port 443 conflict")
-
-            with open(env_path, "w") as f:
-                f.write(env_content)
-            print(f"Prepared {env_path}")
-        else:
-            print(f"Warning: {env_example_path} not found, creating basic .env at {env_path}...")
-            minimal_env = (
-                "# Dify Environment Configuration\n"
-                "# Generated from n8n-installer main .env\n\n"
-                "# Core Dify Configuration\n"
-                f"SECRET_KEY={secret_key}\n\n"
-                "# Port configuration to prevent conflicts (added by n8n-installer)\n"
-                f"EXPOSE_NGINX_PORT={dify_expose_http_port}\n"
-                f"EXPOSE_NGINX_SSL_PORT={dify_expose_ssl_port}\n"
-            )
-            with open(env_path, "w") as f:
-                f.write(minimal_env)
-            print(f"Created basic .env at {env_path} with EXPOSE_NGINX_PORT={dify_expose_http_port} and EXPOSE_NGINX_SSL_PORT={dify_expose_ssl_port}")
-    except Exception as e:
-        print(f"Error preparing env in {target_directory}: {e}")
-
-def prepare_dify_env():
-    """Prepare Dify environment in both docker and root directories."""
-    if not is_dify_enabled():
-        print("Dify is not enabled, skipping environment preparation.")
-        return
-    print("Preparing Dify environment configuration...")
-
-    env_values = dotenv_values(".env")
-
-    prepare_dify_env_file(os.path.join("dify", "docker"), env_values)
-    prepare_dify_env_file(os.path.join("dify"), env_values)
 
 def start_dify():
     """Start the Dify services (using its compose file)."""
