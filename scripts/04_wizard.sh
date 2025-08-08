@@ -66,6 +66,7 @@ base_services_data=(
     "open-webui" "Open WebUI (ChatGPT-like Interface)"
     "searxng" "SearXNG (Private Metasearch Engine)"
     "ollama" "Ollama (Local LLM Runner - select hardware in next step)"
+    "comfyui" "ComfyUI (Node-based Stable Diffusion UI)"
 )
 
 services=() # This will be the final array for whiptail

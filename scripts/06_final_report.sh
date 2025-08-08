@@ -135,6 +135,13 @@ if is_profile_active "portainer"; then
   echo "(Note: On first login, Portainer will prompt to set up an admin user.)"
 fi
 
+if is_profile_active "comfyui"; then
+  echo
+  echo "================================= ComfyUI ============================="
+  echo
+  echo "Host: ${COMFYUI_HOSTNAME:-<hostname_not_set>}"
+fi
+
 if is_profile_active "qdrant"; then
   echo
   echo "================================= Qdrant =============================="

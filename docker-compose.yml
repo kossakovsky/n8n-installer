@@ -16,6 +16,7 @@ volumes:
   letta_data:
   weaviate_data:
   portainer_data:
+  comfyui_data:
 
 x-n8n: &service-n8n
   build:
@@ -214,6 +215,7 @@ services:
       - SEARXNG_USERNAME=${SEARXNG_USERNAME}
       - SEARXNG_PASSWORD_HASH=${SEARXNG_PASSWORD_HASH}
       - PORTAINER_HOSTNAME=${PORTAINER_HOSTNAME}
+      - COMFYUI_HOSTNAME=${COMFYUI_HOSTNAME}
     cap_drop:
       - ALL
     cap_add:
@@ -581,3 +583,18 @@ services:
     volumes:
       - portainer_data:/data
       - ${DOCKER_SOCKET_LOCATION:-/var/run/docker.sock}:/var/run/docker.sock
+
+  comfyui:
+    image: yanwk/comfyui-boot:cu124-slim
+    container_name: comfyui
+    profiles: ["comfyui"]
+    restart: unless-stopped
+    environment:
+      - CLI_ARGS=--listen 0.0.0.0
+    volumes:
+      - comfyui_data:/home/runner
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:8188"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

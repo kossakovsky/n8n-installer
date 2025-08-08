@@ -466,3 +466,87 @@ Integrate Portainer Community Edition as an optional service to manage the local
 ### Archiving Status (Portainer)
 - [x] Archive document created: `memory-bank/archive/feature-portainer-integration_20250808.md`
 - [x] tasks.md marked COMPLETE for Portainer
+
+---
+
+## New Task: Add ComfyUI Service (Node-based UI for SD Workflows)
+
+### Description
+Integrate ComfyUI as an optional service in the installer, proxied by Caddy at a configurable hostname. Default to CPU-only for simplicity; allow optional GPU via NVIDIA Container Toolkit if present.
+
+### Complexity
+- Level: 2 (Simple Enhancement)
+- Type: Add-on service via Docker Compose profile + Caddy
+
+### Options Considered (Research)
+- Dockerized ComfyUI service using a maintained community image (e.g., ghcr.io/ai-dock/comfyui or equivalent)
+- Bare-metal Python install managed by scripts (higher maintenance, not aligned with project patterns)
+- Integrate as an extension of AUTOMATIC1111 (not applicable to this project’s stack)
+- Build our own image from source (heavier maintenance)
+
+→ Recommended: Use a maintained ComfyUI Docker image exposing port 8188, mount persistent volumes for models and custom nodes, reverse-proxy with Caddy. GPU support remains optional via compose flags when host supports NVIDIA.
+
+### Technology Stack
+- Image: Maintained ComfyUI Docker image (to be validated during tech gate)
+- Port: 8188 (internal)
+- Reverse proxy: Caddy with HTTPS at `COMFYUI_HOSTNAME`
+- Storage: Named volume `comfyui_data` (models, input, output, custom_nodes)
+- GPU: Optional via NVIDIA toolkit (compose device reservations)
+
+### Files to Modify
+- `.env.example`: add `COMFYUI_HOSTNAME`
+- `docker-compose.yml`: add `comfyui` service with `profiles: ["comfyui"]`, volumes, healthcheck, optional GPU stanza
+- `Caddyfile`: add host block for `{$COMFYUI_HOSTNAME}` → `reverse_proxy comfyui:8188`
+- `scripts/04_wizard.sh`: add `comfyui` option with description
+- `scripts/06_final_report.sh`: add ComfyUI section with URL
+- `scripts/03_generate_secrets.sh`: generate default hostname `COMFYUI_HOSTNAME`
+
+### Implementation Steps
+1) `.env.example`
+   - Add `COMFYUI_HOSTNAME=comfyui.yourdomain.com`
+2) Wizard
+   - Add `comfyui` to selectable services list
+3) docker-compose
+   - Add `comfyui` service (image, port 8188, volumes: `comfyui_data:/data` or image-appropriate paths)
+   - Add `comfyui_data:` to top-level volumes
+   - Optional GPU: add NVIDIA device reservations when available
+4) Caddy
+   - Add site for `{$COMFYUI_HOSTNAME}` with `reverse_proxy comfyui:8188`
+5) Final report
+   - Print ComfyUI URL when profile active
+6) Secrets script
+   - Generate/populate `COMFYUI_HOSTNAME` similar to other hostnames
+
+### Potential Challenges
+- Large model storage footprint; ensure persistent volume and document where to place models
+- GPU optionality: only enable when NVIDIA toolkit exists; keep CPU default to avoid install friction
+- WebSockets: Caddy generally handles WS automatically; verify UI works via proxy
+
+### Technology Validation Checkpoints
+- [ ] Confirm maintained image name and tag
+- [ ] Verify port 8188 and container paths for volumes (models/custom_nodes)
+- [ ] Validate Caddy reverse proxy works (incl. websockets)
+- [ ] Optional: Validate GPU flags on a host with NVIDIA toolkit
+
+### Testing Strategy
+- Start only Caddy + ComfyUI with profile enabled
+- Access `https://COMFYUI_HOSTNAME` and verify UI loads and basic workflow runs
+- Confirm persistence of uploads/outputs in `comfyui_data`
+
+### Next Mode Recommendation
+- Implement Mode (no creative phase required)
+
+### Reflection Status (ComfyUI)
+- [x] Implementation thoroughly reviewed
+- [x] Successes documented
+- [x] Challenges and solutions analyzed
+- [x] Lessons Learned documented
+- [x] Process/Technical improvements identified
+- [x] reflection-comfyui-integration.md created
+- [x] tasks.md updated with reflection status
+
+### Reflection Highlights (ComfyUI)
+- **What Went Well**: Minimal changes following established patterns (profiles, Caddy, wizard, README, final report); compose validated successfully.
+- **Challenges**: Lack of a clearly “official” image; differing volume paths across images; optional GPU support trade-offs.
+- **Lessons Learned**: Default to CPU for broad compatibility; keep image choice abstract to allow swapping; add validation checklist for volumes and websockets.
+- **Improvements**: Consider adding a GPU sub-profile and documenting model storage locations; later evaluate swapping to a more authoritative image with stable volume conventions.

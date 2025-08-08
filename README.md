@@ -30,6 +30,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Flowise**](https://flowiseai.com/) - A no-code/low-code AI agent builder that complements n8n perfectly, allowing you to create sophisticated AI applications with ease.
 
+✅ [**ComfyUI**](https://github.com/comfyanonymous/ComfyUI) - A powerful, node-based UI for Stable Diffusion workflows. Build and run image-generation pipelines visually, with support for custom nodes and extensions.
+
 ✅ [**Dify**](https://dify.ai/) - An open-source AI application development platform that provides comprehensive LLMOps capabilities, including workflow management, prompt engineering, RAG pipelines, and AI agent orchestration. Perfect for building production-ready AI applications.
 
 ✅ [**Qdrant**](https://qdrant.tech/) - A high-performance open-source vector store, specialized for AI. While Supabase also offers vector capabilities, Qdrant is included for its speed, making it ideal for demanding AI tasks.
@@ -134,6 +136,7 @@ After successful installation, your services are up and running! Here's how to g
     - **SearXNG:** `searxng.yourdomain.com`
     - **Prometheus:** `prometheus.yourdomain.com` (Typically used as a data source for Grafana)
     - **Portainer:** `portainer.yourdomain.com` (Protected by Caddy basic auth; on first login, complete Portainer admin setup)
+    - **ComfyUI:** `comfyui.yourdomain.com` (Node-based Stable Diffusion UI)
 
 2.  **Explore n8n:**
 
