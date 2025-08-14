@@ -236,17 +236,13 @@ services:
     command: tunnel run
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-    networks:
-      default:
-        aliases:
-          - cloudflared
     depends_on:
       - caddy
     logging:
       driver: "json-file"
       options:
         max-size: "1m"
-        max-file: "1"      
+        max-file: "1"  
 
   langfuse-worker:
     image: langfuse/langfuse-worker:3
