@@ -153,6 +153,117 @@ After successful installation, your services are up and running! Here's how to g
 
 4.  **Check Monitoring (Optional):**
     - Visit Grafana (`grafana.yourdomain.com`) to see dashboards monitoring your system's performance (data sourced from Prometheus).
+	
+
+## 🔒 Secure Access with Cloudflare Tunnel (Optional)
+
+Cloudflare Tunnel provides zero-trust access to your services without exposing any ports on your server. All traffic is routed through Cloudflare's secure network, providing DDoS protection and hiding your server's IP address.
+
+### Benefits
+- **No exposed ports** - Ports 80/443 can be completely closed
+- **DDoS protection** - Built-in Cloudflare protection
+- **IP hiding** - Your server's real IP is never exposed
+- **Zero-trust security** - Optional Cloudflare Access integration
+- **No public IP required** - Works on private networks
+
+### Setup Instructions
+
+#### 1. Create a Cloudflare Tunnel
+
+1. Go to [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com/)
+2. Navigate to **Access** → **Tunnels**
+3. Click **Create a tunnel**
+4. Choose **Cloudflared** connector
+5. Name your tunnel (e.g., "n8n-installer")
+6. Copy the tunnel token (you'll need this during installation)
+
+#### 2. Configure DNS and Routing
+
+1. In the tunnel configuration, add a public hostname:
+   - **Subdomain**: `*` (wildcard for all services)
+   - **Domain**: Select your domain
+   - **Service**: `http://caddy:80`
+   - **Additional settings**: Leave defaults
+
+2. In Cloudflare DNS:
+   - Add CNAME: `*.yourdomain.com` → `<tunnel-id>.cfargotunnel.com`
+   - Or add individual CNAMEs for each service if wildcard not available
+
+#### 3. Install with Tunnel Support
+
+1. Run the n8n-installer as normal
+2. When prompted for **Cloudflare Tunnel Token**, paste your token
+3. The tunnel service will be automatically enabled
+4. Complete the rest of the installation
+
+#### 4. Secure Your VPS (Recommended)
+
+After confirming services work through the tunnel:
+
+```bash
+# Close web ports (UFW example)
+sudo ufw delete allow 80/tcp
+sudo ufw delete allow 443/tcp
+sudo ufw delete allow 7687/tcp
+sudo ufw reload
+
+# Verify only SSH remains open
+sudo ufw status
+```
+
+### Verifying Tunnel Connection
+
+Check if the tunnel is running:
+```bash
+docker logs cloudflared
+```
+
+You should see:
+```
+INF Connection established connIndex=0
+INF Registered tunnel connection
+```
+
+### Troubleshooting
+
+**Services not accessible:**
+- Verify tunnel status: `docker ps | grep cloudflared`
+- Check tunnel logs: `docker logs cloudflared`
+- Ensure DNS records point to tunnel
+- Verify Caddy is running: `docker ps | grep caddy`
+
+**Tunnel not starting:**
+- Verify token is correct in `.env`
+- Check if token has correct format (long base64 string)
+- Ensure tunnel is active in Cloudflare dashboard
+
+**Mixed mode (tunnel + direct access):**
+- You can run both tunnel and direct access simultaneously
+- Useful for testing before closing firewall ports
+- Simply keep ports 80/443 open until ready to switch
+
+### Disabling Tunnel
+
+To disable Cloudflare Tunnel and return to direct access:
+
+1. Remove from compose profiles:
+   ```bash
+   # Edit .env and remove "cloudflare-tunnel" from COMPOSE_PROFILES
+   nano .env
+   ```
+
+2. Restart services:
+   ```bash
+   docker compose down cloudflared
+   docker compose up -d
+   ```
+
+3. Re-open firewall ports if closed:
+   ```bash
+   sudo ufw allow 80/tcp
+   sudo ufw allow 443/tcp
+   sudo ufw reload
+   ```
 
 ### Using Pre-installed Libraries in n8n's Custom JavaScript
 
