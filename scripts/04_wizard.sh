@@ -55,7 +55,7 @@ base_services_data=(
     "flowise" "Flowise (AI Agent Builder)"
     "monitoring" "Monitoring Suite (Prometheus, Grafana, cAdvisor, Node-Exporter)"
     "portainer" "Portainer (Docker management UI)"
-	"cloudflare-tunnel Cloudflare_Tunnel_(Zero-Trust_Secure_Access) off"
+	"cloudflare-tunnel" "Cloudflare Tunnel (Zero-Trust Secure Access)"
     "langfuse" "Langfuse Suite (AI Observability - includes Clickhouse, Minio)"
     "qdrant" "Qdrant (Vector Database)"
     "supabase" "Supabase (Backend as a Service)"
