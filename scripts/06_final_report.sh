@@ -135,6 +135,17 @@ if is_profile_active "portainer"; then
   echo "(Note: On first login, Portainer will prompt to set up an admin user.)"
 fi
 
+if is_profile_active "ragapp"; then
+  echo
+  echo "================================= RAGApp =============================="
+  echo
+  echo "Host: ${RAGAPP_HOSTNAME:-<hostname_not_set>}"
+  echo "User: ${RAGAPP_USERNAME:-<not_set_in_env>}"
+  echo "Password: ${RAGAPP_PASSWORD:-<not_set_in_env>}"
+  echo "Admin: https://${RAGAPP_HOSTNAME:-<hostname_not_set>}/admin"
+  echo "API Docs: https://${RAGAPP_HOSTNAME:-<hostname_not_set>}/docs"
+fi
+
 if is_profile_active "comfyui"; then
   echo
   echo "================================= ComfyUI ============================="

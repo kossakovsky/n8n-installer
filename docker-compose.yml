@@ -200,6 +200,9 @@ services:
       - WEBUI_HOSTNAME=${WEBUI_HOSTNAME}
       - FLOWISE_HOSTNAME=${FLOWISE_HOSTNAME}
       - DIFY_HOSTNAME=${DIFY_HOSTNAME}
+      - RAGAPP_HOSTNAME=${RAGAPP_HOSTNAME}
+      - RAGAPP_USERNAME=${RAGAPP_USERNAME}
+      - RAGAPP_PASSWORD_HASH=${RAGAPP_PASSWORD_HASH}
       - SUPABASE_HOSTNAME=${SUPABASE_HOSTNAME}
       - SEARXNG_HOSTNAME=${SEARXNG_HOSTNAME}
       - LANGFUSE_HOSTNAME=${LANGFUSE_HOSTNAME}
@@ -576,6 +579,12 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  ragapp:
+    image: ragapp/ragapp:latest
+    container_name: ragapp
+    profiles: ["ragapp"]
+    restart: unless-stopped
 
   portainer:
     image: portainer/portainer-ce:latest

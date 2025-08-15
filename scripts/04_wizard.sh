@@ -63,6 +63,7 @@ base_services_data=(
     "letta" "Letta (Agent Server & SDK)"
     "gotenberg" "Gotenberg (Document Conversion API)"
     "crawl4ai" "Crawl4ai (Web Crawler for AI)"
+    "ragapp" "RAGApp (Open-source RAG UI + API)"
     "open-webui" "Open WebUI (ChatGPT-like Interface)"
     "searxng" "SearXNG (Private Metasearch Engine)"
     "ollama" "Ollama (Local LLM Runner - select hardware in next step)"

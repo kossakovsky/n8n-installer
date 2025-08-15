@@ -25,6 +25,14 @@
     reverse_proxy nginx:80
 }
 
+# RAGApp
+{$RAGAPP_HOSTNAME} {
+    basic_auth {
+        {$RAGAPP_USERNAME} {$RAGAPP_PASSWORD_HASH}
+    }
+    reverse_proxy ragapp:8000
+}
+
 # Langfuse
 {$LANGFUSE_HOSTNAME} {
     reverse_proxy langfuse-web:3000
