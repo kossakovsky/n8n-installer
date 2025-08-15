@@ -305,6 +305,56 @@ volumes:
 
 ---
 
+## 🐍 Internal Utility Service: python-runner (Optional)
+
+**Purpose**: Lightweight internal container to run custom user Python scripts inside the compose network without exposing any ports.
+
+- **Image**: `python:3.11-slim`
+- **Profiles**: `python-runner` (disabled by default; enabled via wizard or `.env`)
+- **Mount**: `./python-runner:/app`
+- **Command**: Installs `requirements.txt` if present, then runs `python /app/main.py`.
+- **Network**: Joins the default compose network (`localai_default`), so it can reach other services by their container names (e.g., `n8n`, `postgres`, `redis`, `qdrant`).
+- **Security/Exposure**: No external ports, no reverse proxy, no domains. Internal-only.
+
+### How to enable (Wizard)
+
+- Run `sudo bash ./scripts/install.sh` (initial) or `sudo bash ./scripts/update.sh` (update) and select **Python Runner** in the wizard.
+
+### How to enable (manually)
+
+Add the profile to `.env` so it is managed by the normal startup flow:
+```bash
+COMPOSE_PROFILES="...,python-runner"
+```
+
+Or start on-demand from the CLI without changing `.env`:
+```bash
+docker compose -p localai --profile python-runner up -d python-runner
+```
+
+### Where to put your code
+
+- Local path: `python-runner/`
+- Entry file: `python-runner/main.py`
+- Optional deps: `python-runner/requirements.txt` (installed automatically on container start)
+
+### Developing and running your script
+
+1) Edit `python-runner/main.py` with your logic. Example: connect to `postgres` using the hostname `postgres` and credentials from `.env`.
+2) Add dependencies to `python-runner/requirements.txt` if needed.
+3) Start or restart the service:
+```bash
+docker compose -p localai --profile python-runner up -d --force-recreate python-runner
+```
+4) View logs:
+```bash
+docker compose -p localai logs -f python-runner
+```
+
+This service is intentionally minimal to avoid conflicts and can be extended by users as needed.
+
+---
+
 ## 🌐 Network Architecture
 
 ### **Caddyfile Configuration**

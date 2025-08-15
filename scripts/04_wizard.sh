@@ -66,6 +66,7 @@ base_services_data=(
     "ragapp" "RAGApp (Open-source RAG UI + API)"
     "open-webui" "Open WebUI (ChatGPT-like Interface)"
     "searxng" "SearXNG (Private Metasearch Engine)"
+    "python-runner" "Python Runner (Run your custom Python code from ./python-runner)"
     "ollama" "Ollama (Local LLM Runner - select hardware in next step)"
     "comfyui" "ComfyUI (Node-based Stable Diffusion UI)"
 )

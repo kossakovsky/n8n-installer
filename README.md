@@ -141,6 +141,13 @@ After successful installation, your services are up and running! Here's how to g
     - **Portainer:** `portainer.yourdomain.com` (Protected by Caddy basic auth; on first login, complete Portainer admin setup)
     - **ComfyUI:** `comfyui.yourdomain.com` (Node-based Stable Diffusion UI)
 
+### Optional Internal Utility: Python Runner
+
+- **What it is**: An internal-only service to run your custom Python code inside the same Docker network as your other services (n8n, Postgres, Qdrant, etc.). No external ports are exposed, and it is not proxied by Caddy.
+- **How to enable**: Select “Python Runner” in the Service Selection Wizard during install/update, or add the profile manually: `COMPOSE_PROFILES=...,python-runner`.
+- **Where to put code**: Place your Python files in `python-runner/`. The default entry point is `python-runner/main.py`.
+- **Dependencies**: Add them to `python-runner/requirements.txt`; they will be installed automatically on container start.
+
 2.  **Explore n8n:**
 
     - Log in to your n8n instance. This is your central hub for workflow automation.

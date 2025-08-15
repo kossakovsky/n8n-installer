@@ -609,3 +609,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  python-runner:
+    image: python:3.11-slim
+    container_name: python-runner
+    profiles: ["python-runner"]
+    restart: unless-stopped
+    working_dir: /app
+    command: /bin/sh -c 'if [ -f /app/requirements.txt ]; then python -m pip install --no-cache-dir -r /app/requirements.txt; fi; python /app/main.py'
+    volumes:
+      - ./python-runner:/app

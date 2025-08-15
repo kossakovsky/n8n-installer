@@ -187,6 +187,17 @@ if is_profile_active "gotenberg"; then
   echo "  Office to PDF: POST /forms/libreoffice/convert"
 fi
 
+if is_profile_active "python-runner"; then
+  echo
+  echo "================================= Python Runner ========================"
+  echo
+  echo "Internal Container DNS: python-runner"
+  echo "Mounted Code Directory: ./python-runner (host) -> /app (container)"
+  echo "Entry File: /app/main.py"
+  echo "(Note: Internal-only service with no exposed ports; view output via logs)"
+  echo "Logs: docker compose -p localai logs -f python-runner"
+fi
+
 if is_profile_active "n8n" || is_profile_active "langfuse"; then
   echo
   echo "================================= Redis (Valkey) ======================"
