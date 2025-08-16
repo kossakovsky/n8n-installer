@@ -17,6 +17,8 @@ volumes:
   weaviate_data:
   portainer_data:
   comfyui_data:
+  wordpress_data:
+  wordpress_db_data:
 
 x-n8n: &service-n8n
   build:
@@ -600,3 +602,37 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+# ──────────────────────────────────────────────────────────────────────────────
+# WordPress stack (optional, enabled via profile "wordpress")
+# ──────────────────────────────────────────────────────────────────────────────
+
+  wordpress-db:
+    image: mariadb:11
+    container_name: wordpress-db
+    restart: unless-stopped
+    profiles: ["wordpress"]
+    environment:
+      MYSQL_DATABASE: ${WORDPRESS_DB_NAME:-wordpress}
+      MYSQL_USER: ${WORDPRESS_DB_USER:-wpuser}
+      MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${WORDPRESS_DB_ROOT_PASSWORD}
+    volumes:
+      - wordpress_db_data:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:6.6-apache
+    container_name: wordpress
+    restart: unless-stopped
+    profiles: ["wordpress"]
+    depends_on:
+      - wordpress-db
+    environment:
+      WORDPRESS_DB_HOST: wordpress-db:3306
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wordpress}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wpuser}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', 'https://${WORDPRESS_DOMAIN}');
+        define('WP_SITEURL', 'https://${WORDPRESS_DOMAIN}');
+    volumes:
+      - wordpress_data:/var/www/html
