@@ -157,3 +157,29 @@ import /etc/caddy/addons/*.conf
         header_up Connection "close"
     }
 }
+# ──────────────────────────────────────────────────────────────────────────────
+# WordPress site (optional)
+# ──────────────────────────────────────────────────────────────────────────────
+www.{env.WORDPRESS_DOMAIN} {
+  redir https://{env.WORDPRESS_DOMAIN}{uri}
+}
+
+{env.WORDPRESS_DOMAIN} {
+  encode zstd gzip
+
+  @acme {
+    path /.well-known/acme-challenge/*
+  }
+  handle @acme {
+    respond "OK" 200
+  }
+
+  reverse_proxy wordpress:80
+
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    X-Frame-Options "SAMEORIGIN"
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "no-referrer-when-downgrade"
+  }
+}
