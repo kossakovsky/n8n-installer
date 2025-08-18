@@ -211,6 +211,14 @@ This can be useful for removing old images and freeing up space, but be aware th
 
 Here are solutions to common issues you might encounter:
 
+### Sites not loading even after following the instructions
+
+- **Symptom:** Your domains/sites do not open or return errors even though you completed all installation steps.
+- **Likely cause:** Your VPS does not have enough resources for the set of services you selected.
+- **What to try:**
+  1. Check current CPU and RAM usage (e.g., with `top`/`htop`, `free -h`, and `docker stats`). If resources are saturated, upgrade the server or reduce the number of running services.
+  2. Try a minimal configuration — start only `n8n` and verify it comes up. If it works in this minimal setup, enable other services gradually while monitoring the load.
+
 ### Temporary "Dangerous Site" Warning in Browser
 
 - **Symptom:** Immediately after deploying the services, your browser (e.g., Chrome) might display a "Dangerous Site" or similar security warning when you try to access your services. This warning typically disappears after some time (e.g., within a few hours or by the next day).
