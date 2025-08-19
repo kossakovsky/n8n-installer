@@ -656,9 +656,9 @@ services:
       - postiz-config:/config/
       - postiz-uploads:/uploads/
     depends_on:
-      postiz-postgres:
+      postgres:
         condition: service_healthy
-      postiz-redis:
+      redis:
         condition: service_healthy
 
   comfyui:
