@@ -17,6 +17,8 @@ volumes:
   weaviate_data:
   portainer_data:
   comfyui_data:
+  postiz-config:
+  postiz-uploads:
 
 x-n8n: &service-n8n
   build:
@@ -221,6 +223,7 @@ services:
       - SEARXNG_USERNAME=${SEARXNG_USERNAME}
       - SEARXNG_PASSWORD_HASH=${SEARXNG_PASSWORD_HASH}
       - PORTAINER_HOSTNAME=${PORTAINER_HOSTNAME}
+      - POSTIZ_HOSTNAME=${POSTIZ_HOSTNAME}
       - COMFYUI_HOSTNAME=${COMFYUI_HOSTNAME}
       - COMFYUI_USERNAME=${COMFYUI_USERNAME}
       - COMFYUI_PASSWORD_HASH=${COMFYUI_PASSWORD_HASH}
@@ -597,6 +600,15 @@ services:
     volumes:
       - portainer_data:/data
       - ${DOCKER_SOCKET_LOCATION:-/var/run/docker.sock}:/var/run/docker.sock
+
+  postiz:
+    image: ghcr.io/gitroomhq/postiz-app:latest
+    container_name: postiz
+    profiles: ["postiz"]
+    restart: unless-stopped
+    volumes:
+      - postiz-config:/config
+      - postiz-uploads:/uploads
 
   comfyui:
     image: yanwk/comfyui-boot:cu124-slim

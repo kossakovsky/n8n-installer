@@ -135,6 +135,14 @@ if is_profile_active "portainer"; then
   echo "(Note: On first login, Portainer will prompt to set up an admin user.)"
 fi
 
+if is_profile_active "postiz"; then
+  echo
+  echo "================================= Postiz =============================="
+  echo
+  echo "Host: ${POSTIZ_HOSTNAME:-<hostname_not_set>}"
+  echo "Note: Configure Postgres/Redis in /config/.env inside the container on first run."
+fi
+
 if is_profile_active "ragapp"; then
   echo
   echo "================================= RAGApp =============================="

@@ -55,6 +55,7 @@ base_services_data=(
     "flowise" "Flowise (AI Agent Builder)"
     "monitoring" "Monitoring Suite (Prometheus, Grafana, cAdvisor, Node-Exporter)"
     "portainer" "Portainer (Docker management UI)"
+    "postiz" "Postiz (Social publishing platform)"
     "langfuse" "Langfuse Suite (AI Observability - includes Clickhouse, Minio)"
     "qdrant" "Qdrant (Vector Database)"
     "supabase" "Supabase (Backend as a Service)"

@@ -63,6 +63,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Portainer**](https://www.portainer.io/) - A lightweight, secure web UI to manage your Docker environment (containers, images, volumes, networks) with ease.
 
+✅ [**Postiz**](https://postiz.com/) - An open-source social media scheduling and publishing platform.
+
 ### Included Community Workflows
 
 Get started quickly with a vast library of pre-built automations (optional import during setup)! This collection includes over 300 workflows covering a wide range of use cases:
@@ -140,6 +142,7 @@ After successful installation, your services are up and running! Here's how to g
     - **Prometheus:** `prometheus.yourdomain.com` (Typically used as a data source for Grafana)
     - **Portainer:** `portainer.yourdomain.com` (Protected by Caddy basic auth; on first login, complete Portainer admin setup)
     - **ComfyUI:** `comfyui.yourdomain.com` (Node-based Stable Diffusion UI)
+    - **Postiz:** `postiz.yourdomain.com`
 
 ### Optional Internal Utility: Python Runner
 

@@ -66,6 +66,11 @@
     reverse_proxy portainer:9000
 }
 
+# Postiz
+{$POSTIZ_HOSTNAME} {
+    reverse_proxy postiz:5000
+}
+
 # Letta
 {$LETTA_HOSTNAME} {
     reverse_proxy letta:8283
