@@ -68,9 +68,6 @@
 
 # Postiz
 {$POSTIZ_HOSTNAME} {
-    basic_auth {
-        {$POSTIZ_USERNAME} {$POSTIZ_PASSWORD_HASH}
-    }
     reverse_proxy postiz:5000
 }
 
