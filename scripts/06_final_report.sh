@@ -140,7 +140,9 @@ if is_profile_active "postiz"; then
   echo "================================= Postiz =============================="
   echo
   echo "Host: ${POSTIZ_HOSTNAME:-<hostname_not_set>}"
-  echo "Note: Configure Postgres/Redis in /config/.env inside the container on first run."
+  echo "Internal Access (from other containers): http://postiz:5000"
+  echo "User: ${POSTIZ_USERNAME:-<not_set_in_env>}"
+  echo "Password: ${POSTIZ_PASSWORD:-<not_set_in_env>}"
 fi
 
 if is_profile_active "ragapp"; then
