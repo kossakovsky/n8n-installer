@@ -615,7 +615,7 @@ services:
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?schema=postiz
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET}
-      - DISABLE_REGISTRATION=true
+      - DISABLE_REGISTRATION=${POSTIZ_DISABLE_REGISTRATION}
       - FRONTEND_URL=${POSTIZ_HOSTNAME:+https://}${POSTIZ_HOSTNAME}
       - NEXT_PUBLIC_BACKEND_URL=${POSTIZ_HOSTNAME:+https://}${POSTIZ_HOSTNAME}
       - BACKEND_INTERNAL_URL=http://postiz:3000
