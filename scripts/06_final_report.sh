@@ -278,7 +278,6 @@ if is_profile_active "cloudflare-tunnel" && [ -n "$CLOUDFLARE_TUNNEL_TOKEN" ]; t
   echo "   └─ IPtables: sudo iptables -D INPUT -p tcp --dport 80 -j ACCEPT"
   echo ""
   echo "   ⚠️  Only close ports AFTER confirming tunnel connectivity!"
-  echo "   Test first: Visit https://${N8N_HOSTNAME} through Cloudflare"
   echo ""
 fi
 

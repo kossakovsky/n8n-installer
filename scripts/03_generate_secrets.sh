@@ -285,7 +285,6 @@ echo "without exposing ports 80/443 on your server."
 echo ""
 echo "To set up:"
 echo "1. Create a tunnel at https://one.dash.cloudflare.com/"
-echo "2. Configure hostname: *.${DOMAIN} → http://caddy:80"
 echo "3. Copy the tunnel token"
 echo ""
 
