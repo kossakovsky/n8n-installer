@@ -135,6 +135,26 @@ if is_profile_active "portainer"; then
   echo "(Note: On first login, Portainer will prompt to set up an admin user.)"
 fi
 
+if is_profile_active "postiz"; then
+  echo
+  echo "================================= Postiz =============================="
+  echo
+  echo "Host: ${POSTIZ_HOSTNAME:-<hostname_not_set>}"
+  echo "Internal Access (e.g., from n8n): http://postiz:5000"
+fi
+
+if is_profile_active "ragapp"; then
+  echo
+  echo "================================= RAGApp =============================="
+  echo
+  echo "Host: ${RAGAPP_HOSTNAME:-<hostname_not_set>}"
+  echo "Internal Access (e.g., from n8n): http://ragapp:8000"
+  echo "User: ${RAGAPP_USERNAME:-<not_set_in_env>}"
+  echo "Password: ${RAGAPP_PASSWORD:-<not_set_in_env>}"
+  echo "Admin: https://${RAGAPP_HOSTNAME:-<hostname_not_set>}/admin"
+  echo "API Docs: https://${RAGAPP_HOSTNAME:-<hostname_not_set>}/docs"
+fi
+
 if is_profile_active "comfyui"; then
   echo
   echo "================================= ComfyUI ============================="
@@ -173,6 +193,17 @@ if is_profile_active "gotenberg"; then
   echo "  URL to PDF: POST /forms/chromium/convert/url"
   echo "  Markdown to PDF: POST /forms/chromium/convert/markdown"
   echo "  Office to PDF: POST /forms/libreoffice/convert"
+fi
+
+if is_profile_active "python-runner"; then
+  echo
+  echo "================================= Python Runner ========================"
+  echo
+  echo "Internal Container DNS: python-runner"
+  echo "Mounted Code Directory: ./python-runner (host) -> /app (container)"
+  echo "Entry File: /app/main.py"
+  echo "(Note: Internal-only service with no exposed ports; view output via logs)"
+  echo "Logs: docker compose -p localai logs -f python-runner"
 fi
 
 if is_profile_active "n8n" || is_profile_active "langfuse"; then

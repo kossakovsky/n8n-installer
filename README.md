@@ -32,6 +32,9 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**ComfyUI**](https://github.com/comfyanonymous/ComfyUI) - A powerful, node-based UI for Stable Diffusion workflows. Build and run image-generation pipelines visually, with support for custom nodes and extensions.
 
+✅ [**RAGApp**](https://github.com/ragapp/ragapp) - Open-source application to build Retrieval-Augmented Generation (RAG) assistants over your data. Provides a web UI for chat and an HTTP API for integration with your workflows.
+
+
 ✅ [**Dify**](https://dify.ai/) - An open-source AI application development platform that provides comprehensive LLMOps capabilities, including workflow management, prompt engineering, RAG pipelines, and AI agent orchestration. Perfect for building production-ready AI applications.
 
 ✅ [**Qdrant**](https://qdrant.tech/) - A high-performance open-source vector store, specialized for AI. While Supabase also offers vector capabilities, Qdrant is included for its speed, making it ideal for demanding AI tasks.
@@ -59,6 +62,8 @@ The installer also makes the following powerful open-source tools **available fo
 ✅ [**Grafana**](https://grafana.com/) - An open-source platform for visualizing monitoring data, helping you understand system performance at a glance.
 
 ✅ [**Portainer**](https://www.portainer.io/) - A lightweight, secure web UI to manage your Docker environment (containers, images, volumes, networks) with ease.
+
+✅ [**Postiz**](https://postiz.com/) - An open-source social media scheduling and publishing platform.
 
 ### Included Community Workflows
 
@@ -137,6 +142,14 @@ After successful installation, your services are up and running! Here's how to g
     - **Prometheus:** `prometheus.yourdomain.com` (Typically used as a data source for Grafana)
     - **Portainer:** `portainer.yourdomain.com` (Protected by Caddy basic auth; on first login, complete Portainer admin setup)
     - **ComfyUI:** `comfyui.yourdomain.com` (Node-based Stable Diffusion UI)
+    - **Postiz:** `postiz.yourdomain.com`
+
+### Optional Internal Utility: Python Runner
+
+- **What it is**: An internal-only service to run your custom Python code inside the same Docker network as your other services (n8n, Postgres, Qdrant, etc.). No external ports are exposed, and it is not proxied by Caddy.
+- **How to enable**: Select “Python Runner” in the Service Selection Wizard during install/update, or add the profile manually: `COMPOSE_PROFILES=...,python-runner`.
+- **Where to put code**: Place your Python files in `python-runner/`. The default entry point is `python-runner/main.py`.
+- **Dependencies**: Add them to `python-runner/requirements.txt`; they will be installed automatically on container start.
 
 2.  **Explore n8n:**
 
@@ -215,6 +228,14 @@ This can be useful for removing old images and freeing up space, but be aware th
 ## Troubleshooting
 
 Here are solutions to common issues you might encounter:
+
+### Sites not loading even after following the instructions
+
+- **Symptom:** Your domains/sites do not open or return errors even though you completed all installation steps.
+- **Likely cause:** Your VPS does not have enough resources for the set of services you selected.
+- **What to try:**
+  1. Check current CPU and RAM usage (e.g., with `top`/`htop`, `free -h`, and `docker stats`). If resources are saturated, upgrade the server or reduce the number of running services.
+  2. Try a minimal configuration — start only `n8n` and verify it comes up. If it works in this minimal setup, enable other services gradually while monitoring the load.
 
 ### Temporary "Dangerous Site" Warning in Browser
 

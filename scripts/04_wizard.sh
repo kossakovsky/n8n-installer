@@ -55,7 +55,7 @@ base_services_data=(
     "flowise" "Flowise (AI Agent Builder)"
     "monitoring" "Monitoring Suite (Prometheus, Grafana, cAdvisor, Node-Exporter)"
     "portainer" "Portainer (Docker management UI)"
-	"cloudflare-tunnel" "Cloudflare Tunnel (Zero-Trust Secure Access)"
+    "cloudflare-tunnel" "Cloudflare Tunnel (Zero-Trust Secure Access)"
     "postiz" "Postiz (Social publishing platform)"
     "langfuse" "Langfuse Suite (AI Observability - includes Clickhouse, Minio)"
     "qdrant" "Qdrant (Vector Database)"
@@ -65,8 +65,10 @@ base_services_data=(
     "letta" "Letta (Agent Server & SDK)"
     "gotenberg" "Gotenberg (Document Conversion API)"
     "crawl4ai" "Crawl4ai (Web Crawler for AI)"
+    "ragapp" "RAGApp (Open-source RAG UI + API)"
     "open-webui" "Open WebUI (ChatGPT-like Interface)"
     "searxng" "SearXNG (Private Metasearch Engine)"
+    "python-runner" "Python Runner (Run your custom Python code from ./python-runner)"
     "ollama" "Ollama (Local LLM Runner - select hardware in next step)"
     "comfyui" "ComfyUI (Node-based Stable Diffusion UI)"
 )
@@ -103,7 +105,7 @@ done
 
 # Use whiptail to display the checklist
 CHOICES=$(whiptail --title "Service Selection Wizard" --checklist \
-  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 32 90 17 \
+  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 32 90 20 \
   "${services[@]}" \
   3>&1 1>&2 2>&3)
 
