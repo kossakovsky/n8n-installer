@@ -235,6 +235,22 @@ services:
       options:
         max-size: "1m"
         max-file: "1"
+        
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    profiles: ["cloudflare-tunnel"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - caddy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"  
 
   langfuse-worker:
     image: langfuse/langfuse-worker:3

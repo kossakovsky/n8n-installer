@@ -166,6 +166,21 @@ After successful installation, your services are up and running! Here's how to g
 
 4.  **Check Monitoring (Optional):**
     - Visit Grafana (`grafana.yourdomain.com`) to see dashboards monitoring your system's performance (data sourced from Prometheus).
+	
+
+## 🔒 Secure Access with Cloudflare Tunnel (Optional)
+
+Cloudflare Tunnel provides zero-trust access to your services without exposing any ports on your server. All traffic is routed through Cloudflare's secure network, providing DDoS protection and hiding your server's IP address.
+
+### Benefits
+- **No exposed ports** - Ports 80/443 can be completely closed
+- **DDoS protection** - Built-in Cloudflare protection
+- **IP hiding** - Your server's real IP is never exposed
+- **Zero-trust security** - Optional Cloudflare Access integration
+- **No public IP required** - Works on private networks
+
+### Setup Instructions see Cloudflare-instructions.md
+
 
 ### Using Pre-installed Libraries in n8n's Custom JavaScript
 
