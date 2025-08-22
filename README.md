@@ -179,7 +179,9 @@ Cloudflare Tunnel provides zero-trust access to your services without exposing a
 - **Zero-trust security** - Optional Cloudflare Access integration
 - **No public IP required** - Works on private networks
 
-### Setup Instructions see Cloudflare-instructions.md
+### Setup Instructions
+
+See the Cloudflare Tunnel guide: [cloudflare-instructions.md](cloudflare-instructions.md)
 
 
 ### Using Pre-installed Libraries in n8n's Custom JavaScript

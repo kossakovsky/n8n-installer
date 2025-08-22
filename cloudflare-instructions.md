@@ -70,11 +70,13 @@ When you create public hostnames in the tunnel configuration, Cloudflare automat
 
 1. Run the n8n-installer as normal:
    ```bash
-   ./install.sh
+   sudo bash ./scripts/install.sh
    ```
 2. When prompted for **Cloudflare Tunnel Token**, paste your token
-3. The tunnel service will be automatically enabled
+3. In the Service Selection Wizard, select **Cloudflare Tunnel** to enable the service
 4. Complete the rest of the installation
+
+Note: Providing the token alone does not auto-enable the tunnel; you must enable the "cloudflare-tunnel" profile in the wizard (or add it to `COMPOSE_PROFILES`).
 
 #### 5. Secure Your VPS (Recommended)
 
@@ -375,10 +377,10 @@ To disable Cloudflare Tunnel and return to Caddy-only access:
    nano .env
    ```
 
-2. Stop the tunnel:
+2. Stop the tunnel and restart services:
    ```bash
-   docker compose --profile cloudflare-tunnel down
-   docker compose up -d
+   docker compose -p localai --profile cloudflare-tunnel down
+   docker compose -p localai up -d
    ```
 
 3. Re-open firewall ports if closed:
