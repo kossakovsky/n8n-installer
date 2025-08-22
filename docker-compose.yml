@@ -244,8 +244,6 @@ services:
     command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-    depends_on:
-      - caddy
     logging:
       driver: "json-file"
       options:

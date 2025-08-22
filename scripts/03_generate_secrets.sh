@@ -296,11 +296,11 @@ if [[ -v existing_env_vars[CLOUDFLARE_TUNNEL_TOKEN] ]]; then
     else
         log_info "Found empty Cloudflare Tunnel Token in .env. You can provide one now or leave empty."
         echo ""
-        read -p "Cloudflare Tunnel Token: " CLOUDFLARE_TUNNEL_TOKEN
+        read -p "Cloudflare Tunnel Token (leave empty to skip): " CLOUDFLARE_TUNNEL_TOKEN
     fi
 else
     echo ""
-    read -p "Cloudflare Tunnel Token: " CLOUDFLARE_TUNNEL_TOKEN
+    read -p "Cloudflare Tunnel Token (leave empty to skip): " CLOUDFLARE_TUNNEL_TOKEN
 fi
 
 if [ -n "$CLOUDFLARE_TUNNEL_TOKEN" ]; then
