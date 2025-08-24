@@ -20,6 +20,21 @@
     reverse_proxy flowise:3001
 }
 
+# OpenHands
+{$OPENHANDS_HOSTNAME} {
+    reverse_proxy openhands:3000
+}
+
+# bolt.diy
+{$BOLT_HOSTNAME} {
+    reverse_proxy bolt:5173
+}
+
+# OpenUI - AI UI Generator
+{$OPENUI_HOSTNAME} {
+    reverse_proxy openui:7878
+}
+
 # Dify
 {$DIFY_HOSTNAME} {
     reverse_proxy nginx:80
@@ -170,3 +185,4 @@ import /etc/caddy/addons/*.conf
         header_up Connection "close"
     }
 }
+

@@ -1,314 +1,542 @@
-# n8n Installer
+# 🚀 AI LaunchKit
 
-**n8n Installer** is an open-source Docker Compose template designed to significantly simplify setting up a comprehensive, self-hosted environment for n8n and Flowise. It bundles essential supporting tools like Open WebUI (as an interface for n8n agents), Supabase (database, vector information storage, authentication), Qdrant (high-performance vector information storage), Langfuse (to observe AI model performance), SearXNG (private metasearch), Grafana/Prometheus (monitoring), Crawl4ai (web crawling), and Caddy (for managed HTTPS). Plus, during setup, you can optionally import over 300 community workflows into your n8n instance!
+<div align="center">
 
-### Why This Setup?
+**Open-Source AI Development Toolkit**  
+*Deploy your complete AI stack in minutes, not weeks*
 
-This installer helps you create your own powerful, private AI workshop. Imagine having a suite of tools at your fingertips to:
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/freddy-schuetz/ai-launchkit?style=social)](https://github.com/freddy-schuetz/ai-launchkit)
+[![Based on](https://img.shields.io/badge/Based%20on-n8n--installer-green)](https://github.com/kossakovsky/n8n-installer)
 
-- Automate repetitive tasks.
-- Build smart assistants tailored to your needs.
-- Analyze information and gain insights.
-- Generate creative content.
+[Installation](#-installation) • [Features](#-whats-included) • [Documentation](#-documentation) • [Support](#-support)
 
-This setup provides a comprehensive suite of cutting-edge services, all pre-configured to work together. Key advantages include:
+</div>
 
-- **Rich Toolset:** Get a curated collection of powerful open-source tools for AI development, automation, and monitoring, all in one place.
-- **Scalable n8n Performance:** n8n runs in `queue` mode by default, leveraging Redis for task management and Postgres for data storage. You can dynamically specify the number of n8n workers during installation, allowing for robust parallel processing of your workflows to handle demanding loads.
-- **Full Control:** All of this is hosted by you, giving you full control over your data, operations, and how resources are allocated.
+---
 
-### What's Included
+## 🎯 What is AI LaunchKit?
 
-✅ [**Self-hosted n8n**](https://n8n.io/) - A low-code platform with over 400 integrations and advanced AI components to automate workflows.
-✅ **Caddy, Postgres, and Redis** - Core services for web proxy, database, and caching, which are always included.
+AI LaunchKit is a comprehensive, self-hosted AI development environment that deploys **20+ pre-configured tools** with a single command. Build AI applications, automate workflows, generate images, and develop with AI assistance - all running on your own infrastructure.
 
-The installer also makes the following powerful open-source tools **available for you to select and deploy** via an interactive wizard during setup:
+Originally forked from [n8n-installer](https://github.com/kossakovsky/n8n-installer), AI LaunchKit has evolved into a complete AI development platform, maintained by [Friedemann Schuetz](https://www.linkedin.com/in/friedemann-schuetz).
 
-✅ [**Supabase**](https://supabase.com/) - An open-source alternative to Firebase, providing database storage, user authentication, and more. It's a popular choice for AI applications.
+### 🎬 Quick Demo
 
-✅ [**Open WebUI**](https://openwebui.com/) - A user-friendly, ChatGPT-like interface to interact privately with your AI models and n8n agents.
+```bash
+# One command to rule them all
+git clone https://github.com/freddy-schuetz/ai-launchkit
+cd ai-launchkit
+sudo bash ./scripts/install.sh
+```
 
-✅ [**Flowise**](https://flowiseai.com/) - A no-code/low-code AI agent builder that complements n8n perfectly, allowing you to create sophisticated AI applications with ease.
+**That's it!** Your AI development stack is ready in ~10-15 minutes.
 
-✅ [**ComfyUI**](https://github.com/comfyanonymous/ComfyUI) - A powerful, node-based UI for Stable Diffusion workflows. Build and run image-generation pipelines visually, with support for custom nodes and extensions.
+---
 
-✅ [**RAGApp**](https://github.com/ragapp/ragapp) - Open-source application to build Retrieval-Augmented Generation (RAG) assistants over your data. Provides a web UI for chat and an HTTP API for integration with your workflows.
+## ✨ What's Included
 
+### 🤖 AI Development Tools
 
-✅ [**Dify**](https://dify.ai/) - An open-source AI application development platform that provides comprehensive LLMOps capabilities, including workflow management, prompt engineering, RAG pipelines, and AI agent orchestration. Perfect for building production-ready AI applications.
+| Tool | Description | Access URL |
+|------|-------------|------------|
+| **[bolt.diy](https://github.com/stackblitz-labs/bolt.diy)** | Build full-stack apps with natural language | `bolt.yourdomain.com` |
+| **[OpenHands](https://github.com/All-Hands-AI/OpenHands)** | Autonomous AI developer assistant | `openhands.yourdomain.com` |
+| **[OpenUI](https://github.com/wandb/openui)** 🧪 | Generate UI components from descriptions | `openui.yourdomain.com` |
+| **[ComfyUI](https://github.com/comfyanonymous/ComfyUI)** | Node-based Stable Diffusion interface | `comfyui.yourdomain.com` |
+| **[Dify](https://dify.ai)** | LLMOps platform for AI applications | `dify.yourdomain.com` |
 
-✅ [**Qdrant**](https://qdrant.tech/) - A high-performance open-source vector store, specialized for AI. While Supabase also offers vector capabilities, Qdrant is included for its speed, making it ideal for demanding AI tasks.
+### 🔧 Automation & Workflow
 
-✅ [**SearXNG**](https://searxng.org/) - A free, open-source internet metasearch engine. It aggregates results from numerous search services without tracking or profiling you, ensuring your privacy.
+| Tool | Description | Access URL |
+|------|-------------|------------|
+| **[n8n](https://n8n.io)** | Workflow automation with 400+ integrations | `n8n.yourdomain.com` |
+| **[Flowise](https://flowiseai.com)** | No-code AI agent builder | `flowise.yourdomain.com` |
+| **[RAGApp](https://github.com/ragapp/ragapp)** | Build RAG assistants over your data | `ragapp.yourdomain.com` |
+| **[Letta](https://docs.letta.com)** | Agent server for LLM backends | `letta.yourdomain.com` |
 
-✅ [**Caddy**](https://caddyserver.com/) - A powerful web server that automatically handles HTTPS/TLS for your custom domains, keeping your connections secure.
+### 💾 Databases & Vector Stores
 
-✅ [**Gotenberg**](https://gotenberg.dev/) - A stateless API for converting HTML, Markdown, Word, Excel, and other documents to PDF, PNG, or JPEG. Available only within the Docker network for internal use by n8n workflows and other services.
+| Tool | Description | Access URL |
+|------|-------------|------------|
+| **[Supabase](https://supabase.com)** | Open-source Firebase alternative | `supabase.yourdomain.com` |
+| **[Qdrant](https://qdrant.tech)** | High-performance vector database | `qdrant.yourdomain.com` |
+| **[Weaviate](https://weaviate.io)** | AI-native vector database | `weaviate.yourdomain.com` |
+| **[Neo4j](https://neo4j.com)** | Graph database for relationships | `neo4j.yourdomain.com` |
+| **PostgreSQL** | Primary relational database | Internal |
+| **Redis** | Caching and queue management | Internal |
 
-✅ [**Langfuse**](https://langfuse.com/) - An open-source platform to help you observe and understand how your AI agents are performing, making it easier to debug and improve them.
+### 🎨 UI & Interfaces
 
-✅ [**Crawl4ai**](https://github.com/Alfresco/crawl4ai) - A flexible web crawler designed for AI, enabling you to extract data from websites for your projects.
+| Tool | Description | Access URL |
+|------|-------------|------------|
+| **[Open WebUI](https://openwebui.com)** | ChatGPT-like interface for your models | `webui.yourdomain.com` |
+| **[Postiz](https://postiz.com)** | Social media scheduling platform | `postiz.yourdomain.com` |
 
-✅ [**Letta**](https://docs.letta.com/) - An open-source agent server and SDK that can be connected to various LLM API backends (OpenAI, Anthropic, Ollama, etc.), enabling you to build and manage AI agents.
+### 🛠️ Infrastructure & Monitoring
 
-✅ [**Weaviate**](https://weaviate.io/) - An open-source AI-native vector database with a focus on scalability and ease of use. It can be used for RAG, hybrid search, and more.
+| Tool | Description | Access URL |
+|------|-------------|------------|
+| **[Caddy](https://caddyserver.com)** | Automatic HTTPS & reverse proxy | Handles all domains |
+| **[Grafana](https://grafana.com)** | Metrics visualization | `grafana.yourdomain.com` |
+| **[Prometheus](https://prometheus.io)** | Monitoring & alerting | `prometheus.yourdomain.com` |
+| **[Portainer](https://portainer.io)** | Docker management UI | `portainer.yourdomain.com` |
+| **[Langfuse](https://langfuse.com)** | AI observability platform | `langfuse.yourdomain.com` |
 
-✅ [**Neo4j**](https://neo4j.com/) - A graph database management system that allows you to model, store, and query data as a network of nodes and relationships.
+### 🔍 Utilities
 
-✅ [**Ollama**](https://ollama.com/) - Run Llama 3, Mistral, Gemma, and other large language models locally.
+| Tool | Description | Access URL |
+|------|-------------|------------|
+| **[SearXNG](https://searxng.org)** | Privacy-respecting metasearch | `searxng.yourdomain.com` |
+| **[Crawl4ai](https://github.com/unclecode/crawl4ai)** | AI-optimized web crawler | Internal API |
+| **[Gotenberg](https://gotenberg.dev)** | Document conversion API | Internal API |
+| **[Ollama](https://ollama.com)** | Run LLMs locally | `ollama.yourdomain.com` |
 
-✅ [**Prometheus**](https://prometheus.io/) - An open-source monitoring and alerting toolkit to keep an eye on system health.
+### 🎬 Media Processing Suite
 
-✅ [**Grafana**](https://grafana.com/) - An open-source platform for visualizing monitoring data, helping you understand system performance at a glance.
+**Pre-installed tools for media manipulation:**
+- **ffmpeg 6.1.2** - Video/audio processing
+- **ImageMagick 7.1.2** - Image manipulation
+- **ExifTool 13.30** - Metadata management
+- **MediaInfo** - Media file analysis
+- **SoX** - Audio processing
+- **Ghostscript** - PDF processing
+- **Python3** with pydub & Pillow
 
-✅ [**Portainer**](https://www.portainer.io/) - A lightweight, secure web UI to manage your Docker environment (containers, images, volumes, networks) with ease.
+---
 
-✅ [**Postiz**](https://postiz.com/) - An open-source social media scheduling and publishing platform.
+## 🚀 Installation
 
-### Included Community Workflows
+### Prerequisites
 
-Get started quickly with a vast library of pre-built automations (optional import during setup)! This collection includes over 300 workflows covering a wide range of use cases:
+1. **Server**: Ubuntu 24.04 LTS (64-bit)
+   - Minimum: 4GB RAM, 2 CPU cores, 30GB disk (n8n + Flowise only)
+   - Recommended: 8GB RAM, 4 CPU cores, 60GB disk (all services)
 
-🚦 **What's inside?**
+2. **Domain**: A registered domain with wildcard DNS
+   ```
+   A *.yourdomain.com -> YOUR_SERVER_IP
+   ```
 
-- **AI Agents & Chatbots:** RAG, LLM, LangChain, Ollama, OpenAI, Claude, Gemini, and more
-- **Gmail & Outlook:** Smart labeling, auto-replies, PDF handling, and email-to-Notion
-- **HR, E-commerce, IT, Security, Research, and more!**
-- **Notion, Airtable, Google Sheets:** Data sync, AI summaries, knowledge bases
-- **PDF, Image, Audio, Video:** Extraction, summarization, captioning, speech-to-text
-- **Slack, Mattermost:** Ticketing, feedback analysis, notifications
-- **Social Media:** LinkedIn, Pinterest, Instagram, Twitter/X, YouTube, TikTok automations
-- **Telegram, WhatsApp, Discord:** Bots, notifications, voice, and image workflows
-- **WordPress, WooCommerce:** AI content, chatbots, auto-tagging
+3. **Access**: SSH access to your server
 
-## Installation
+### Quick Install
 
-### Prerequisites before Installation
+```bash
+# Clone and run the installer
+git clone https://github.com/freddy-schuetz/ai-launchkit
+cd ai-launchkit
+sudo bash ./scripts/install.sh
+```
 
-1.  **Domain Name:** You need a registered domain name (e.g., `yourdomain.com`).
-2.  **DNS Configuration:** Before running the installation script, you **must** configure DNS A-record for your domain, pointing to the public IP address of the server where you'll install this system. Replace `yourdomain.com` with your actual domain:
-    - **Wildcard Record:** `A *.yourdomain.com` -> `YOUR_SERVER_IP`
-3.  **Server:** Minimum server system requirements: Ubuntu 24.04 LTS, 64-bit.
-    - For running **all available services**: at least **8 GB Memory / 4 CPU Cores / 60 GB Disk Space **.
-    - For a minimal setup with only **n8n and Flowise**: **4 GB Memory / 2 CPU Cores / 30 GB Disk Space**.
+### Installation Process
 
-### Running the Installer
+The installer will ask you for:
 
-The recommended way to install is using the provided main installation script.
+1. **Domain name** - Your wildcard domain (e.g., `yourdomain.com`)
+2. **Email address** - For SSL certificates and service logins
+3. **API keys** (optional) - OpenAI, Anthropic, Groq for enhanced AI features
+4. **Community workflows** - Import 300+ n8n templates (optional, 20-30 min)
+5. **Worker count** - Number of n8n workers for parallel processing (1-4)
+6. **Service selection** - Choose which tools to install
 
-1.  Connect to your server via SSH.
-2.  Run the following command:
+**Installation time:** 10-15 minutes (plus optional workflow import)
 
-    ```bash
-    git clone https://github.com/kossakovsky/n8n-installer && cd n8n-installer && sudo bash ./scripts/install.sh
-    ```
+### Post-Installation
 
-This single command automates the entire setup process, including:
+Configure AI model API keys:
+```bash
+# Edit configuration
+nano .env
 
-- Preparing your system (updates, firewall configuration, and basic security enhancements like brute-force protection).
-- Installing Docker and Docker Compose (tools for running applications in isolated environments).
-- Generating a configuration file (`.env`) with necessary secrets and your domain settings.
-- Launching all the services.
+# Add your API keys
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+GROQ_API_KEY=gsk_...
 
-During the installation, the script will prompt you for:
+# Restart services
+docker compose restart
+```
 
-1.  Your **primary domain name** (Required, e.g., `yourdomain.com`). This is the domain for which you've configured the wildcard DNS record.
-2.  Your **email address** (Required, used for service logins like Flowise, Supabase dashboard, Grafana, and for SSL certificate registration with Let's Encrypt).
-3.  An optional **OpenAI API key** (Not required. If provided, it can be used by Supabase AI features and Crawl4ai. Press Enter to skip).
-4.  Whether you want to **import ~300 ready-made n8n community workflows** (y/n, Optional. This can take 20-30 minutes, depending on your server and network speed).
-5.  The **number of n8n workers** you want to run (Required, e.g., 1, 2, 3, 4. This determines how many workflows can be processed in parallel. Defaults to 1 if not specified).
-6.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
+---
 
-Upon successful completion, the script will display a summary report. This report contains the access URLs and credentials for the deployed services. **Save this information in a safe place!**
+## 📚 Documentation
 
-## ⚡️ Quick Start and Usage
+### 🎯 Quick Start Examples
 
-After successful installation, your services are up and running! Here's how to get started:
+#### Build a Web App with AI (bolt.diy)
+```
+1. Open bolt.yourdomain.com
+2. Describe your app: "Create a todo app with dark mode"
+3. Watch AI build it in real-time
+4. Deploy directly or download code
+```
 
-1.  **Access Your Services:**
-    The installation script provided a summary report with all access URLs and credentials. Please refer to that report. The main services will be available at the following addresses (replace `yourdomain.com` with your actual domain):
+#### Create an Automation Workflow (n8n)
+```javascript
+// Example: Process uploaded videos
+// Execute Command Node
+Command: ffmpeg
+Arguments: -i /data/media/input.mp4 -vn -codec:a mp3 /data/media/output.mp3
+```
 
-    - **n8n:** `n8n.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report. You may be prompted to change this password on first login.)
-    - **Open WebUI:** `webui.yourdomain.com`
-    - **Flowise:** `flowise.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report.)
-    - **Dify:** `dify.yourdomain.com` (AI application development platform with comprehensive LLMOps capabilities)
-    - **Supabase (Dashboard):** `supabase.yourdomain.com`
-    - **Langfuse:** `langfuse.yourdomain.com`
-    - **Letta:** `letta.yourdomain.com`
-    - **Weaviate:** `weaviate.yourdomain.com`
-    - **Neo4j:** `neo4j.yourdomain.com`
-    - **Grafana:** `grafana.yourdomain.com`
-    - **SearXNG:** `searxng.yourdomain.com`
-    - **Prometheus:** `prometheus.yourdomain.com` (Typically used as a data source for Grafana)
-    - **Portainer:** `portainer.yourdomain.com` (Protected by Caddy basic auth; on first login, complete Portainer admin setup)
-    - **ComfyUI:** `comfyui.yourdomain.com` (Node-based Stable Diffusion UI)
-    - **Postiz:** `postiz.yourdomain.com`
+#### Generate UI Components (OpenUI)
+```
+1. Open openui.yourdomain.com
+2. Describe: "Modern pricing card with gradient"
+3. Get React/Vue/HTML component instantly
+```
 
-### Optional Internal Utility: Python Runner
+### 📁 File System Access
 
-- **What it is**: An internal-only service to run your custom Python code inside the same Docker network as your other services (n8n, Postgres, Qdrant, etc.). No external ports are exposed, and it is not proxied by Caddy.
-- **How to enable**: Select “Python Runner” in the Service Selection Wizard during install/update, or add the profile manually: `COMPOSE_PROFILES=...,python-runner`.
-- **Where to put code**: Place your Python files in `python-runner/`. The default entry point is `python-runner/main.py`.
-- **Dependencies**: Add them to `python-runner/requirements.txt`; they will be installed automatically on container start.
+- **Shared folder**: `./shared` → `/data/shared` in containers
+- **Media folder**: `./media` → `/data/media` in containers
+- **Temp folder**: `./temp` → `/data/temp` for processing
 
-2.  **Explore n8n:**
+### 🔒 Security Features
 
-    - Log in to your n8n instance. This is your central hub for workflow automation.
-    - If you chose to import the community workflows during installation, you'll find over 300 examples in your "Workflows" section. These are a great way to learn and get ideas.
-    - Start building your first workflow! You have access to over 400 integrations and powerful AI tools.
+- ✅ **Automatic SSL/TLS** via Let's Encrypt
+- ✅ **Firewall configuration** with UFW
+- ✅ **Brute-force protection** via Fail2ban
+- ✅ **Network isolation** between services
+- ✅ **Secure secrets** auto-generated
 
-3.  **Utilize Integrated AI Tools:**
+### 🔄 Maintenance
 
-    - **Connect n8n with Vector Stores:** Use n8n to connect to Qdrant (accessible via its own endpoint if needed, typically `qdrant.yourdomain.com`), Supabase, or Weaviate (`weaviate.yourdomain.com`) to store and retrieve information for your AI tasks like Retrieval Augmented Generation (RAG).
-    - **Build with Flowise:** Access Flowise at `flowise.yourdomain.com` to create AI agents and applications. You can trigger Flowise agents from n8n or vice-versa.
-    - **Interact with Open WebUI:** Use Open WebUI at `webui.yourdomain.com` as a chat interface for your local AI models or n8n agents (e.g., using the n8n_pipe integration if configured).
-    - **Configure LLMs:** If you wish to use large language models (LLMs) from providers like OpenAI, Anthropic, or locally via Ollama (if installed), you can easily configure credentials and connections within n8n nodes or in services like Flowise and Open WebUI.
-
-4.  **Check Monitoring (Optional):**
-    - Visit Grafana (`grafana.yourdomain.com`) to see dashboards monitoring your system's performance (data sourced from Prometheus).
-	
-
-## 🔒 Secure Access with Cloudflare Tunnel (Optional)
-
-Cloudflare Tunnel provides zero-trust access to your services without exposing any ports on your server. All traffic is routed through Cloudflare's secure network, providing DDoS protection and hiding your server's IP address.
-
-### Benefits
-- **No exposed ports** - Ports 80/443 can be completely closed
-- **DDoS protection** - Built-in Cloudflare protection
-- **IP hiding** - Your server's real IP is never exposed
-- **Zero-trust security** - Optional Cloudflare Access integration
-- **No public IP required** - Works on private networks
-
-### Setup Instructions
-
-See the Cloudflare Tunnel guide: [cloudflare-instructions.md](cloudflare-instructions.md)
-
-
-### Using Pre-installed Libraries in n8n's Custom JavaScript
-
-This setup pre-installs useful Node.js libraries for use in n8n's Code nodes, allowing you to write custom JavaScript snippets with enhanced capabilities:
-
-- **`cheerio`**: For parsing and manipulating HTML/XML (e.g., web scraping).
-- **`axios`**: A promise-based HTTP client for making requests to external APIs.
-- **`moment`**: For parsing, validating, manipulating, and displaying dates/times.
-- **`lodash`**: A utility library for common programming tasks (arrays, objects, strings, etc.).
-
-## Upgrading
-
-To update all components (n8n, Open WebUI, etc.) to their latest versions and incorporate the newest changes from this installer project, use the update script from the project root:
-
+**Update all services:**
 ```bash
 sudo bash ./scripts/update.sh
 ```
 
-This script will:
-
-1.  Fetch the latest updates for the installer from the Git repository.
-2.  Temporarily stop the currently running services.
-3.  Download the latest versions of the Docker images for all services.
-4.  Ask if you want to re-run the n8n workflow import (useful if you skipped this during the initial installation or want to refresh the community workflows).
-5.  Restart all services with the new updates.
-
-## Cleaning up Docker
-
-If you need to free up disk space, you can run the Docker cleanup script. This script removes all unused Docker containers, images, and volumes.
-
+**Clean up Docker:**
 ```bash
 sudo bash ./scripts/docker_cleanup.sh
 ```
 
-This can be useful for removing old images and freeing up space, but be aware that it will remove all unused data.
+**Check service status:**
+```bash
+docker ps
+docker stats
+```
 
-## Important Links
+---
 
-- Based on a project by [coleam00](https://github.com/coleam00/local-ai-packaged)
-- [Original Starter Kit](https://github.com/n8n-io/self-hosted-ai-starter-kit) by the n8n team
-- [Community forum](https://thinktank.ottomator.ai/c/local-ai/18) over in the oTTomator Think Tank for discussions and support.
-- [GitHub Kanban board](https://github.com/users/coleam00/projects/2/views/1) for tracking new features and bug fixes.
-- Download an N8N + OpenWebUI integration [directly on the Open WebUI site.](https://openwebui.com/f/coleam/n8n_pipe/) (More instructions may be available on that page).
+## 🌟 Features Highlight
 
-## Troubleshooting
+### 300+ Pre-built Workflows
 
-Here are solutions to common issues you might encounter:
+Optional import includes workflows for:
+- **AI & LLM**: RAG systems, chatbots, agents
+- **Automation**: Email, documents, data sync
+- **Social Media**: Auto-posting, content generation
+- **Business**: CRM, e-commerce, HR processes
+- **Development**: CI/CD, monitoring, testing
 
-### Sites not loading even after following the instructions
+### Enhanced Media Processing
 
-- **Symptom:** Your domains/sites do not open or return errors even though you completed all installation steps.
-- **Likely cause:** Your VPS does not have enough resources for the set of services you selected.
+Complete media manipulation toolkit pre-installed:
+```javascript
+// Video thumbnail generation
+ffmpeg -i video.mp4 -ss 00:00:05 -vframes 1 thumb.jpg
+
+// Batch image resizing
+magick *.jpg -resize 800x600 resized_%d.jpg
+
+// PDF text extraction
+gs -sDEVICE=txtwrite -o output.txt input.pdf
+```
+
+### Production-Ready Features
+
+- **Scalable**: Queue-based architecture with Redis
+- **Parallel Processing**: Multiple n8n workers
+- **Monitoring**: Built-in Grafana dashboards
+- **Container Management**: Portainer UI
+- **Observability**: AI performance tracking with Langfuse
+
+---
+
+## 🤝 Support
+
+### Community
+
+- **Discord**: [Join our community](https://discord.gg/ai-launchkit) *(coming soon)*
+- **Forum**: [oTTomator Think Tank](https://thinktank.ottomator.ai/c/local-ai/18)
+- **Issues**: [GitHub Issues](https://github.com/freddy-schuetz/ai-launchkit/issues)
+
+### Resources
+
+- **Original n8n-installer**: [kossakovsky/n8n-installer](https://github.com/kossakovsky/n8n-installer)
+- **n8n Templates**: [Official Gallery](https://n8n.io/workflows/?categories=AI)
+- **Video Guide**: [AI Starter Kit Walkthrough](https://youtu.be/pOsO40HSbOo)
+
+### Troubleshooting
+
+<details>
+<summary><b>🤖 AI Development Tools Issues</b></summary>
+
+#### bolt.diy Not Loading
+- **Symptom:** bolt.diy shows "blocked request" or doesn't load
+- **Cause:** This is typically a Vite configuration issue with reverse proxy
+- **Solution:** This fork includes a dynamic hostname configuration that automatically resolves this. If you still have issues:
+  1. Check that BOLT_HOSTNAME is set correctly in your .env file
+  2. Restart the service: `docker compose restart bolt`
+  3. Clear browser cache and try again
+
+#### OpenHands Runtime Issues
+- **Symptom:** OpenHands shows "Failed to connect to runtime" after ~125 seconds
+- **Cause:** OpenHands requires Docker Desktop for `host.docker.internal` networking
+- **Solution:** 
+  - On Linux servers without Docker Desktop, this is a known limitation
+  - Consider using bolt.diy as an alternative for AI-assisted development
+  - For full OpenHands functionality, use a system with Docker Desktop installed
+
+#### OpenUI Quality Issues (EXPERIMENTAL)
+- **Symptom:** OpenUI generates poor quality or unusable UI components
+- **Cause:** OpenUI's output quality varies significantly based on the LLM model used
+- **Solution:**
+  - For best results, use Claude 3.5 Sonnet or GPT-4 models
+  - Groq models provide faster generation but may sacrifice quality
+  - Ollama models are supported but may produce inconsistent results
+  - Consider using bolt.diy for more complex UI requirements
+  - Always test generated components thoroughly before production use
+</details>
+
+<details>
+<summary><b>🌐 Services Not Loading</b></summary>
+
+- **Symptom:** Your domains/sites do not open or return errors even though you completed all installation steps
+- **Likely cause:** Your VPS does not have enough resources for the set of services you selected
 - **What to try:**
-  1. Check current CPU and RAM usage (e.g., with `top`/`htop`, `free -h`, and `docker stats`). If resources are saturated, upgrade the server or reduce the number of running services.
-  2. Try a minimal configuration — start only `n8n` and verify it comes up. If it works in this minimal setup, enable other services gradually while monitoring the load.
+  1. Check current CPU and RAM usage:
+     ```bash
+     htop
+     free -h
+     docker stats
+     ```
+  2. If resources are saturated, upgrade the server or reduce the number of running services
+  3. Try a minimal configuration — start only `n8n` and verify it comes up
+  4. If it works in this minimal setup, enable other services gradually while monitoring the load
+</details>
 
-### Temporary "Dangerous Site" Warning in Browser
+<details>
+<summary><b>🔒 SSL Certificate Warnings</b></summary>
 
-- **Symptom:** Immediately after deploying the services, your browser (e.g., Chrome) might display a "Dangerous Site" or similar security warning when you try to access your services. This warning typically disappears after some time (e.g., within a few hours or by the next day).
+- **Symptom:** Browser displays "Dangerous Site" or similar security warning when accessing services
 - **Cause:** This can happen for a couple of reasons:
-  1.  **Brief use of a self-signed certificate:** When Caddy (the web server managing your SSL certificates) starts up for a new domain, it might briefly use a temporary, self-signed certificate while it's in the process of requesting and obtaining a valid SSL certificate from Let's Encrypt.
-  2.  **Delay in applying the new certificate:** There might also be a short delay before the newly obtained certificate from Let's Encrypt is fully applied and recognized by all systems.
-- **Solution:** This is usually a temporary issue and resolves itself. Give it some time. If the warning persists for more than 24 hours, check your Caddy logs for any errors related to certificate acquisition and ensure your DNS settings are correctly pointing your domain to the server's IP address. You can also try clearing your browser's cache or using an incognito/private window to re-check.
+  1. **Brief use of a self-signed certificate:** When Caddy starts up for a new domain, it might briefly use a temporary certificate while requesting one from Let's Encrypt
+  2. **Delay in applying the new certificate:** There might be a short delay before the newly obtained certificate is fully applied
 
-### Supabase Issues
+- **Solution:** 
+  - This is usually temporary and resolves within 1-24 hours
+  - If the warning persists for more than 24 hours:
+    ```bash
+    # Check Caddy logs for certificate errors
+    docker logs caddy | grep -i certificate
+    
+    # Verify DNS settings
+    nslookup *.yourdomain.com
+    
+    # Force certificate renewal
+    docker exec caddy caddy reload --config /etc/caddy/Caddyfile
+    ```
+  - Try clearing browser cache or using incognito/private window
+</details>
 
-- **Supabase Pooler Restarting:** If the `supabase-pooler` component keeps restarting, follow the instructions in [this GitHub issue](https://github.com/supabase/supabase/issues/30210#issuecomment-2456955578).
-- **Supabase Analytics Startup Failure:** If the `supabase-analytics` component fails to start after changing your Postgres password, you might need to reset its data. **Warning: This will delete your Supabase database data. Proceed with extreme caution and ensure you have backups if needed.** The technical step involves deleting the `supabase/docker/volumes/db/data` folder.
-- **Supabase Service Unavailable:** Ensure your Postgres database password does not contain special characters like "@". Other special characters might also cause issues. If services like n8n report they cannot connect to Supabase, and other diagnostics seem fine, this is a common cause.
+<details>
+<summary><b>🗄️ Supabase Issues</b></summary>
 
-### General Issues
+#### Supabase Pooler Restarting
+- **Problem:** The `supabase-pooler` component keeps restarting
+- **Solution:** Follow the instructions in [this GitHub issue](https://github.com/supabase/supabase/issues/30210#issuecomment-2456955578)
 
-- **VPN Conflicts:** Using a VPN might interfere with downloading Docker images. If you encounter issues pulling images, try temporarily disabling your VPN.
-- **Server Requirements:** If you experience unexpected issues, ensure your server meets the minimum hardware and operating system requirements (including version) as specified in the "Prerequisites before Installation" section.
+#### Supabase Analytics Startup Failure
+- **Problem:** The `supabase-analytics` component fails to start after changing Postgres password
+- **Solution:** You might need to reset its data
+  - **⚠️ Warning:** This will delete your Supabase database data!
+  - Ensure you have backups before proceeding
+  - Technical step: Delete the `supabase/docker/volumes/db/data` folder
 
-## 👓 Recommended Reading
+#### Supabase Service Unavailable
+- **Problem:** Services like n8n cannot connect to Supabase
+- **Solution:** 
+  - Ensure your Postgres password doesn't contain special characters like "@"
+  - Check logs: `docker logs supabase-db`
+  - Verify network connectivity: `docker exec n8n ping supabase-db`
+</details>
 
-n8n offers excellent resources for getting started with its AI capabilities:
+<details>
+<summary><b>🎬 Media Processing Not Working</b></summary>
 
-- [AI agents for developers: from theory to practice with n8n](https://blog.n8n.io/ai-agents/)
-- [Tutorial: Build an AI workflow in n8n](https://docs.n8n.io/advanced-ai/intro-tutorial/)
-- [Langchain Concepts in n8n](https://docs.n8n.io/advanced-ai/langchain/langchain-n8n/) (Langchain is a framework n8n uses for some AI features)
-- [Demonstration of key differences between agents and chains](https://docs.n8n.io/advanced-ai/examples/agent-chain-comparison/)
-- [What are vector databases?](https://docs.n8n.io/advanced-ai/examples/understand-vector-databases/) (Explains tools like Supabase and Qdrant in more detail)
+- **Symptom:** Permission denied errors when processing media files
+- **Solution:**
+  ```bash
+  # Check directory permissions
+  ls -la ./media
+  ls -la ./temp
+  
+  # Check from within container
+  docker exec n8n ls -la /data/media
+  docker exec n8n ls -la /data/temp
+  
+  # Fix permissions if needed
+  sudo chown -R 1000:1000 ./media ./temp
+  sudo chmod -R 775 ./media ./temp
+  
+  # Restart n8n
+  docker restart n8n
+  ```
+</details>
 
-## 🎥 Video Walkthrough
+<details>
+<summary><b>🐳 Docker & Network Issues</b></summary>
 
-- [Cole's Guide to the AI Starter Kit](https://youtu.be/pOsO40HSbOo) (Provides a visual guide to a similar setup)
+#### VPN Conflicts
+- **Problem:** Unable to download Docker images
+- **Solution:** Temporarily disable VPN during installation or updates
 
-## 🛍️ More AI Templates
+#### Container Name Conflicts
+- **Symptom:** "Container name already in use" error
+- **Solution:**
+  ```bash
+  # Stop and remove conflicting container
+  docker stop [container-name]
+  docker rm [container-name]
+  
+  # Or remove all stopped containers
+  docker container prune
+  ```
 
-For more AI workflow ideas, visit the [**official n8n AI template gallery**](https://n8n.io/workflows/?categories=AI). From each workflow, select the **Use workflow** button to automatically import it into your n8n instance.
+#### Port Already in Use
+- **Symptom:** "Bind: address already in use" error
+- **Solution:**
+  ```bash
+  # Find what's using the port
+  sudo lsof -i :PORT_NUMBER
+  
+  # Kill the process or change port in .env file
+  ```
+</details>
 
-### Learn AI Key Concepts (Examples from n8n.io)
+<details>
+<summary><b>📊 Performance Issues</b></summary>
 
-- [AI Agent Chat](https://n8n.io/workflows/1954-ai-agent-chat/)
-- [AI chat with any data source (using the n8n workflow tool)](https://n8n.io/workflows/2026-ai-chat-with-any-data-source-using-the-n8n-workflow-tool/)
-- [Chat with OpenAI Assistant (by adding a memory)](https://n8n.io/workflows/2098-chat-with-openai-assistant-by-adding-a-memory/)
-- [Use an open-source LLM (via HuggingFace)](https://n8n.io/workflows/1980-use-an-open-source-llm-via-huggingface/)
-- [Chat with PDF docs using AI (quoting sources)](https://n8n.io/workflows/2165-chat-with-pdf-docs-using-ai-quoting-sources/)
-- [AI agent that can scrape webpages](https://n8n.io/workflows/2006-ai-agent-that-can-scrape-webpages/)
+#### High Memory Usage
+- **Check current usage:**
+  ```bash
+  docker stats --no-stream
+  free -h
+  ```
+- **Solutions:**
+  - Reduce n8n workers in .env file
+  - Disable unused services
+  - Add swap space:
+    ```bash
+    sudo fallocate -l 4G /swapfile
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+    ```
 
-### AI Templates (Examples from n8n.io)
+#### Slow Performance
+- **Check disk I/O:**
+  ```bash
+  iostat -x 1
+  ```
+- **Check Docker logs for errors:**
+  ```bash
+  docker logs n8n --tail 100
+  docker logs postgres --tail 100
+  ```
+</details>
 
-- [Tax Code Assistant](https://n8n.io/workflows/2341-build-a-tax-code-assistant-with-qdrant-mistralai-and-openai/)
-- [Breakdown Documents into Study Notes with MistralAI and Qdrant](https://n8n.io/workflows/2339-breakdown-documents-into-study-notes-using-templating-mistralai-and-qdrant/)
-- [Financial Documents Assistant using Qdrant and MistralAI](https://n8n.io/workflows/2335-build-a-financial-documents-assistant-using-qdrant-and-mistralai/)
-- [Recipe Recommendations with Qdrant and Mistral](https://n8n.io/workflows/2333-recipe-recommendations-with-qdrant-and-mistral/)
+<details>
+<summary><b>⚠️ General Issues</b></summary>
 
-## Tips & Tricks
+#### Server Requirements
+- Ensure your server meets minimum requirements:
+  - Ubuntu 24.04 LTS (64-bit)
+  - Minimum 4GB RAM for basic setup
+  - 30GB+ disk space
+  - Properly configured DNS with wildcard A record
 
-### Accessing Files on the Server
+#### Checking Service Health
+```bash
+# View all running containers
+docker ps
 
-The installer creates a `shared` folder (by default, located in the same directory where you ran the installation script). This folder is accessible by the n8n application.
-When you build automations in n8n that need to read or write files on your server, use the path `/data/shared` inside your n8n workflows. This path in n8n points to the `shared` folder on your server.
+# Check specific service logs
+docker logs [service-name] --tail 50
 
-**n8n components that interact with the server's filesystem:**
+# Restart a specific service
+docker compose restart [service-name]
 
-- [Read/Write Files from Disk](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.filesreadwrite/)
-- [Local File Trigger](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.localfiletrigger/) (To start workflows when files change)
-- [Execute Command](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.executecommand/) (To run command-line tools)
+# Restart everything
+docker compose down && docker compose up -d
+```
 
-## 🙌 Contributors
+#### Getting Help
+If problems persist:
+1. Check existing [GitHub Issues](https://github.com/freddy-schuetz/ai-launchkit/issues)
+2. Search the [Community Forum](https://thinktank.ottomator.ai/c/local-ai/18)
+3. Create a new issue with:
+   - Your server specs
+   - Services selected during installation
+   - Error messages from `docker logs`
+   - Output of `docker ps` and `docker stats`
+</details>
 
-Want to see who has contributed to this project? Check out the [**GitHub Contributors Page**](https://github.com/kossakovsky/n8n-installer/graphs/contributors)!
+---
+
+## 🏗️ Architecture
+
+```mermaid
+graph TD
+    A[Caddy - Reverse Proxy] --> B[n8n - Automation]
+    A --> C[bolt.diy - AI Dev]
+    A --> D[ComfyUI - Image Gen]
+    A --> E[Open WebUI - Chat]
+    A --> F[Other Services]
+    
+    B --> G[PostgreSQL]
+    B --> H[Redis Queue]
+    B --> I[Shared Storage]
+    
+    C --> J[Ollama - Local LLMs]
+    D --> J
+    E --> J
+    
+    K[Grafana] --> L[Prometheus]
+    L --> B
+    L --> G
+    L --> H
+```
+
+---
+
+## 👥 Contributors
+
+Created and maintained by [Friedemann Schuetz](https://www.linkedin.com/in/friedemann-schuetz)
+
+Based on:
+- [n8n-installer](https://github.com/kossakovsky/n8n-installer) by kossakovsky
+- [self-hosted-ai-starter-kit](https://github.com/n8n-io/self-hosted-ai-starter-kit) by n8n team
+- [local-ai-packaged](https://github.com/coleam00/local-ai-packaged) by coleam00
+
+[View all contributors](https://github.com/freddy-schuetz/ai-launchkit/graphs/contributors)
+
+---
 
 ## 📜 License
 
-This project (originally created by the n8n team, with further development by contributors - see "Important Links") is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**Ready to launch your AI projects?**
+
+[⭐ Star this repo](https://github.com/freddy-schuetz/ai-launchkit) • [🐛 Report issues](https://github.com/freddy-schuetz/ai-launchkit/issues) • [🤝 Contribute](https://github.com/freddy-schuetz/ai-launchkit/pulls)
+
+</div>

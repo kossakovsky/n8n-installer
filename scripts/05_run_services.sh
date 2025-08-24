@@ -40,6 +40,18 @@ if [ ! -x "start_services.py" ]; then
   chmod +x "start_services.py"
 fi
 
+# Create media directories with correct permissions BEFORE Docker starts
+log_info "Creating media processing directories..."
+mkdir -p media temp
+# Use SUDO_USER if available (when run with sudo), otherwise current user
+if [ -n "$SUDO_USER" ]; then
+  chown -R $SUDO_USER:$SUDO_USER media temp
+else
+  chown -R $(whoami):$(whoami) media temp
+fi
+chmod 755 media temp
+log_info "Media directories created with correct permissions"
+
 log_info "Launching services using start_services.py..."
 # Execute start_services.py
 ./start_services.py

@@ -69,6 +69,42 @@ if is_profile_active "flowise"; then
   echo "Password: ${FLOWISE_PASSWORD:-<not_set_in_env>}"
 fi
 
+if is_profile_active "openhands"; then
+  echo
+  echo "================================= OpenHands ============================"
+  echo
+  echo "⚠️  WARNING: Requires Docker Desktop - May not work on this server!"
+  echo
+  echo "Host: ${OPENHANDS_HOSTNAME:-<hostname_not_set>}"
+  echo "Description: AI-powered autonomous coding assistant"
+  echo "Note: If runtime connection fails, this is a known Linux limitation"
+  echo "Alternative: Consider using bolt.diy instead"
+  echo "Documentation: https://github.com/All-Hands-AI/OpenHands"
+fi
+
+if is_profile_active "bolt"; then
+  echo
+  echo "================================= bolt.diy ============================="
+  echo
+  echo "Host: ${BOLT_HOSTNAME:-<hostname_not_set>}"
+  echo "Description: AI-powered web development in the browser"
+  echo "Features: Full-stack NodeJS apps, Ollama support, multiple LLM providers"
+  echo "Documentation: https://github.com/stackblitz-labs/bolt.diy"
+fi
+
+if is_profile_active "openui"; then
+  echo
+  echo "================================= OpenUI ==============================="
+  echo
+  echo "⚠️  EXPERIMENTAL: Output quality varies significantly by model"
+  echo
+  echo "Host: ${OPENUI_HOSTNAME:-<hostname_not_set>}"
+  echo "Description: AI-powered UI component generator"
+  echo "Best Models: Claude 4 Sonnet, GPT-4, Groq (for speed)"
+  echo "Note: Can use Ollama but results may be inconsistent"
+  echo "Documentation: https://github.com/wandb/openui"
+fi
+
 if is_profile_active "dify"; then
   echo
   echo "================================= Dify ================================="

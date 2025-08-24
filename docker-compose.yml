@@ -91,6 +91,73 @@ services:
       - ~/.flowise:/root/.flowise
     entrypoint: /bin/sh -c "sleep 3; flowise start"
 
+  # OpenHands - AI Autonomous Developer
+  # ! REQUIRES DOCKER DESKTOP - Won't work on headless Linux servers !
+  # The runtime connection will timeout on Linux without Docker Desktop GUI
+  openhands:
+    image: docker.all-hands.dev/all-hands-ai/openhands:0.54
+    restart: unless-stopped
+    container_name: openhands
+    profiles: ["openhands"]
+    environment:
+      - SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.54-nikolaik
+      - LOG_ALL_EVENTS=true
+      - RUNTIME_INIT_TIMEOUT=300
+      - SANDBOX_RUNTIME_BINDING_ADDRESS=127.0.0.1  # Ändere zu 127.0.0.1
+      - SANDBOX_RUNTIME_HOST=127.0.0.1  # NEU
+    extra_hosts:
+      - "host.docker.internal:172.20.0.1"  # Hardcoded Gateway IP
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.openhands:/.openhands
+      - ./shared:/workspace
+    ports:
+      - "3002:3000"
+
+  bolt:
+    build:
+      context: ./docker/bolt-diy
+      dockerfile: Dockerfile
+    container_name: bolt
+    profiles: ["bolt"]
+    # KEIN command hier!
+    ports:
+      - "3003:5173"
+    environment:
+      - BOLT_HOSTNAME=${BOLT_HOSTNAME}
+      - OLLAMA_API_BASE_URL=http://ollama:11434
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    volumes:
+      - ./bolt-data:/app/data
+      - ./shared:/workspace
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  openui:
+    image: ghcr.io/wandb/openui:latest
+    container_name: openui
+    profiles: ["openui"]
+    restart: unless-stopped
+    ports:
+      - "${OPENUI_PORT:-7878}:7878"
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-xxx}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - OPENAI_COMPATIBLE_ENDPOINT=${OPENAI_COMPATIBLE_ENDPOINT:-}
+    volumes:
+      - ./openui-data:/app/data
+      - ./shared:/workspace
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     restart: unless-stopped
@@ -126,6 +193,8 @@ services:
       - n8n_storage:/home/node/.n8n
       - ./n8n/backup:/backup
       - ./shared:/data/shared
+      - ./media:/data/media      # <-- NEU hinzufügen
+      - ./temp:/data/temp        # <-- NEU hinzufügen
     depends_on:
       n8n-import:
         condition: service_completed_successfully
@@ -138,6 +207,8 @@ services:
     volumes:
       - n8n_storage:/home/node/.n8n
       - ./shared:/data/shared
+      - ./media:/data/media      # <-- NEU hinzufügen
+      - ./temp:/data/temp        # <-- NEU hinzufügen
     depends_on:
       n8n:
         condition: service_started
@@ -205,6 +276,9 @@ services:
       - COMFYUI_USERNAME=${COMFYUI_USERNAME}
       - DIFY_HOSTNAME=${DIFY_HOSTNAME}
       - FLOWISE_HOSTNAME=${FLOWISE_HOSTNAME}
+      - OPENHANDS_HOSTNAME=${OPENHANDS_HOSTNAME}
+      - BOLT_HOSTNAME=${BOLT_HOSTNAME}
+      - OPENUI_HOSTNAME=${OPENUI_HOSTNAME}
       - GRAFANA_HOSTNAME=${GRAFANA_HOSTNAME}
       - LANGFUSE_HOSTNAME=${LANGFUSE_HOSTNAME}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-internal}
@@ -416,7 +490,7 @@ services:
       - SEARXNG_BASE_URL=https://${SEARXNG_HOSTNAME:-localhost}/
       - UWSGI_WORKERS=${SEARXNG_UWSGI_WORKERS:-4}
       - UWSGI_THREADS=${SEARXNG_UWSGI_THREADS:-4}
-    # cap_drop: - ALL  # Temporarily commented out for first run
+    # # # # cap_drop: - ALL  # Temporarily commented out for first run  # Temporarily commented out for first run  # Temporarily commented out for first run  # Temporarily commented out for first run
     cap_add:
       - CHOWN
       - SETGID
