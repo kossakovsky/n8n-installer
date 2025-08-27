@@ -706,7 +706,7 @@ services:
     restart: unless-stopped
     command: /bin/sh -c "set -e; \
       python -m pip install --upgrade pip; \
-      python -m pip install --no-cache-dir paddlex; \
+      python -m pip install --no-cache-dir 'paddlex[ocr]'; \
       python -m paddlex --install serving; \
       exec python -m paddlex --serve --pipeline OCR --device cpu --port 8080"
     healthcheck:
