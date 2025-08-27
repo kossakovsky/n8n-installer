@@ -617,6 +617,7 @@ services:
   postiz:
     image: ghcr.io/gitroomhq/postiz-app:latest
     container_name: postiz
+    profiles: ["postiz"]
     restart: always
     environment:
       BACKEND_INTERNAL_URL: http://postiz:3000
