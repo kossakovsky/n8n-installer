@@ -275,44 +275,6 @@ fi
 # Ensure N8N_WORKER_COUNT is definitely set (should be by logic above)
 N8N_WORKER_COUNT="${N8N_WORKER_COUNT:-1}"
 
-# Cloudflare Tunnel Token (optional)
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "Cloudflare Tunnel Configuration (Optional)"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "Cloudflare Tunnel provides secure zero-trust access to your services"
-echo "without exposing ports 80/443 on your server."
-echo ""
-echo "To set up:"
-echo "1. Create a tunnel at https://one.dash.cloudflare.com/"
-echo "3. Copy the tunnel token"
-echo ""
-
-if [[ -v existing_env_vars[CLOUDFLARE_TUNNEL_TOKEN] ]]; then
-    CLOUDFLARE_TUNNEL_TOKEN="${existing_env_vars[CLOUDFLARE_TUNNEL_TOKEN]}"
-    if [[ -n "$CLOUDFLARE_TUNNEL_TOKEN" ]]; then
-        log_info "Found existing Cloudflare Tunnel Token in .env"
-    else
-        log_info "Found empty Cloudflare Tunnel Token in .env. You can provide one now or leave empty."
-        echo ""
-        read -p "Cloudflare Tunnel Token (leave empty to skip): " CLOUDFLARE_TUNNEL_TOKEN
-    fi
-else
-    echo ""
-    read -p "Cloudflare Tunnel Token (leave empty to skip): " CLOUDFLARE_TUNNEL_TOKEN
-fi
-
-if [ -n "$CLOUDFLARE_TUNNEL_TOKEN" ]; then
-    log_success "Cloudflare Tunnel Token configured"
-    echo ""
-    echo "🔒 After confirming the tunnel works, enhance security by:"
-    echo "   Closing ports 80, 443, and 7687 in your VPS firewall"
-    echo "   Example: sudo ufw delete allow 80/tcp"
-    echo ""
-else
-    log_info "Cloudflare Tunnel skipped - you can enable it later in the service selection wizard"
-fi
 
 log_info "Generating secrets and creating .env file..."
 
@@ -416,10 +378,6 @@ if [[ -n "$OPENAI_API_KEY" ]]; then
     generated_values["OPENAI_API_KEY"]="$OPENAI_API_KEY"
 fi
 
-if [[ -n "$CLOUDFLARE_TUNNEL_TOKEN" ]]; then
-    generated_values["CLOUDFLARE_TUNNEL_TOKEN"]="$CLOUDFLARE_TUNNEL_TOKEN"
-fi
-
 # Create a temporary file for processing
 TMP_ENV_FILE=$(mktemp)
 # Ensure temp file is cleaned up on exit
@@ -434,7 +392,6 @@ found_vars["RUN_N8N_IMPORT"]=0
 found_vars["PROMETHEUS_USERNAME"]=0
 found_vars["SEARXNG_USERNAME"]=0
 found_vars["OPENAI_API_KEY"]=0
-found_vars["CLOUDFLARE_TUNNEL_TOKEN"]=0
 found_vars["LANGFUSE_INIT_USER_EMAIL"]=0
 found_vars["N8N_WORKER_COUNT"]=0
 found_vars["WEAVIATE_USERNAME"]=0
@@ -569,7 +526,7 @@ if [[ -z "${generated_values[SERVICE_ROLE_KEY]}" ]]; then
 fi
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "CLOUDFLARE_TUNNEL_TOKEN"; do
+for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
         # Before appending, check if it's already in TMP_ENV_FILE to avoid duplicates
         if ! grep -q -E "^${var}=" "$TMP_ENV_FILE"; then

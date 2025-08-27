@@ -287,7 +287,7 @@ log_info "To update the services, run the 'update.sh' script: bash ./scripts/upd
 # ============================================
 # Cloudflare Tunnel Security Notice
 # ============================================
-if is_profile_active "cloudflare-tunnel" && [ -n "$CLOUDFLARE_TUNNEL_TOKEN" ]; then
+if is_profile_active "cloudflare-tunnel"; then
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "🔒 CLOUDFLARE TUNNEL SECURITY"
@@ -303,10 +303,6 @@ if is_profile_active "cloudflare-tunnel" && [ -n "$CLOUDFLARE_TUNNEL_TOKEN" ]; t
   echo "   • Port 80 (HTTP)"
   echo "   • Port 443 (HTTPS)" 
   echo "   • Port 7687 (Neo4j Bolt)"
-  echo ""
-  echo "   Example commands:"
-  echo "   └─ UFW:     sudo ufw delete allow 80/tcp && sudo ufw delete allow 443/tcp"
-  echo "   └─ IPtables: sudo iptables -D INPUT -p tcp --dport 80 -j ACCEPT"
   echo ""
   echo "   ⚠️  Only close ports AFTER confirming tunnel connectivity!"
   echo ""

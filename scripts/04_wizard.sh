@@ -228,6 +228,46 @@ if [ ! -f "$ENV_FILE" ]; then
     touch "$ENV_FILE"
 fi
 
+# If Cloudflare Tunnel is selected, prompt for the token and write to .env
+cloudflare_selected=0
+for profile in "${selected_profiles[@]}"; do
+    if [ "$profile" == "cloudflare-tunnel" ]; then
+        cloudflare_selected=1
+        break
+    fi
+done
+
+if [ $cloudflare_selected -eq 1 ]; then
+    existing_cf_token=""
+    if grep -q "^CLOUDFLARE_TUNNEL_TOKEN=" "$ENV_FILE"; then
+        existing_cf_token=$(grep "^CLOUDFLARE_TUNNEL_TOKEN=" "$ENV_FILE" | cut -d'=' -f2- | sed 's/^\"//' | sed 's/\"$//')
+    fi
+
+    if [ -n "$existing_cf_token" ]; then
+        log_info "Cloudflare Tunnel token found in .env; reusing it."
+        # Do not prompt; keep existing token as-is
+    else
+        log_info "Cloudflare Tunnel selected. Please provide your Cloudflare Tunnel token."
+        echo ""
+        read -p "Cloudflare Tunnel Token: " input_cf_token
+        token_to_write="$input_cf_token"
+
+        # Update the .env with the token (may be empty if user skipped)
+        if grep -q "^CLOUDFLARE_TUNNEL_TOKEN=" "$ENV_FILE"; then
+            sed -i.bak "/^CLOUDFLARE_TUNNEL_TOKEN=/d" "$ENV_FILE"
+        fi
+        echo "CLOUDFLARE_TUNNEL_TOKEN=\"$token_to_write\"" >> "$ENV_FILE"
+
+        if [ -n "$token_to_write" ]; then
+            log_success "Cloudflare Tunnel token saved to .env."
+            echo ""
+            echo "🔒 After confirming the tunnel works, consider closing ports 80, 443, and 7687 in your firewall."
+        else
+            log_warning "Cloudflare Tunnel token was left empty. You can set it later in .env."
+        fi
+    fi
+fi
+
 # Remove existing COMPOSE_PROFILES line if it exists
 if grep -q "^COMPOSE_PROFILES=" "$ENV_FILE"; then
     # Using a different delimiter for sed because a profile name might contain '/' (unlikely here)
