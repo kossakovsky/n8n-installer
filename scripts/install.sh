@@ -115,4 +115,10 @@ log_success "- Services launched via Docker Compose"
 bash "$SCRIPT_DIR/06_final_report.sh" || { log_error "Final Report Generation failed"; exit 1; }
 log_success "Final Report Generation complete!"
 
+# Workaround: Ensure Supabase DB starts if Supabase was selected
+if grep -q "supabase" .env 2>/dev/null; then
+    echo "Ensuring Supabase database container is running..."
+    sudo docker compose -p localai -f supabase/docker/docker-compose.yml up -d db 2>/dev/null || true
+fi
+
 exit 0 
