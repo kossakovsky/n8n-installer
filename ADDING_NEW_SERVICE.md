@@ -1,0 +1,164 @@
+# Guide: Adding a New Service to n8n-installer
+
+This document shows how to add a new optional service (behind Docker Compose profiles) and wire it into the installer, Caddy, and final report.
+
+Use a short lowercase slug for your service, e.g., `myservice`.
+
+## 1) docker-compose.yml
+- Add a service block under `services:` with a Compose profile:
+  - `profiles: ["myservice"]`
+  - `restart: unless-stopped`
+  - image/build/command/healthcheck as needed
+- IMPORTANT: do not publish ports and do not expose ports. Let Caddy do external HTTPS.
+  - Avoid `ports:` and avoid `expose:` entries unless strictly required for internal discovery.
+- If you intend to proxy it via Caddy, ensure you define a hostname env in `.env.example` (e.g., `MYSERVICE_HOSTNAME`) and pass it to the `caddy` container via the `environment:` section if needed for the Caddyfile.
+
+Minimal example:
+```yaml
+  myservice:
+    image: yourorg/myservice:latest
+    container_name: myservice
+    profiles: ["myservice"]
+    restart: unless-stopped
+    # command: ...
+    # healthcheck: { test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"], interval: 30s, timeout: 10s, retries: 5 }
+```
+
+If adding Caddy env passthrough (only if used in Caddyfile):
+```yaml
+  caddy:
+    # ...
+    environment:
+      - MYSERVICE_HOSTNAME=${MYSERVICE_HOSTNAME}
+      # If using basic auth:
+      - MYSERVICE_USERNAME=${MYSERVICE_USERNAME}
+      - MYSERVICE_PASSWORD_HASH=${MYSERVICE_PASSWORD_HASH}
+```
+
+## 2) Caddyfile
+- Add a site block for the service hostname if it should be reachable externally:
+- Ask users whether the service needs Basic Auth via Caddy; if yes, add `basic_auth` with env-based credentials.
+
+Example:
+```caddyfile
+{$MYSERVICE_HOSTNAME} {
+    # Optional. Ask the user if we should protect this endpoint via Basic Auth
+    basic_auth {
+        {$MYSERVICE_USERNAME} {$MYSERVICE_PASSWORD_HASH}
+    }
+    reverse_proxy myservice:8080
+}
+```
+
+Notes:
+- Keep using env placeholders (e.g., `{$MYSERVICE_HOSTNAME}`), supplied by the `caddy` service environment in `docker-compose.yml`.
+
+## 3) .env.example
+- Add the service hostname under the Caddy config section:
+```dotenv
+MYSERVICE_HOSTNAME=myservice.yourdomain.com
+```
+- If Basic Auth is desired, add credentials (username, password, and password hash):
+```dotenv
+############
+# [required]
+# MyService credentials (for Caddy basic auth)
+############
+MYSERVICE_USERNAME=
+MYSERVICE_PASSWORD=
+MYSERVICE_PASSWORD_HASH=
+```
+
+## 4) scripts/03_generate_secrets.sh
+- Generate secrets/hashes and preserve user-provided values:
+  - Add any password variables to `VARS_TO_GENERATE` (e.g., 32-char random password)
+  - Add username to `found_vars` if you want an auto default (commonly set to the installer email)
+  - Create a bcrypt hash using Caddy and write `MYSERVICE_PASSWORD_HASH` into `.env`
+
+Example edits:
+- Add to `VARS_TO_GENERATE` map:
+```bash
+["MYSERVICE_PASSWORD"]="password:32"
+```
+- Default username (optional) and mark as found var:
+```bash
+found_vars["MYSERVICE_USERNAME"]=0
+# ... later where usernames are defaulted
+generated_values["MYSERVICE_USERNAME"]="$USER_EMAIL"
+```
+- Generate hash (following the established pattern used by other services):
+```bash
+MYSERVICE_PLAIN_PASS="${generated_values["MYSERVICE_PASSWORD"]}"
+FINAL_MYSERVICE_HASH="${generated_values[MYSERVICE_PASSWORD_HASH]}"
+if [[ -z "$FINAL_MYSERVICE_HASH" && -n "$MYSERVICE_PLAIN_PASS" ]]; then
+    NEW_HASH=$(_generate_and_get_hash "$MYSERVICE_PLAIN_PASS")
+    if [[ -n "$NEW_HASH" ]]; then
+        FINAL_MYSERVICE_HASH="$NEW_HASH"
+        generated_values["MYSERVICE_PASSWORD_HASH"]="$NEW_HASH"
+    fi
+fi
+_update_or_add_env_var "MYSERVICE_PASSWORD_HASH" "$FINAL_MYSERVICE_HASH"
+```
+
+## 5) scripts/04_wizard.sh
+- Add the service to the selectable profiles list so users can opt-in during installation:
+```bash
+# base_services_data+=
+"myservice" "MyService (Short description)"
+```
+
+## 6) scripts/06_final_report.sh
+- Add a block that prints discovered URLs/credentials:
+```bash
+if is_profile_active "myservice"; then
+  echo
+  echo "================================= MyService ==========================="
+  echo
+  echo "Host: ${MYSERVICE_HOSTNAME:-<hostname_not_set>}"
+  # Only print credentials if Caddy basic auth is enabled for this service
+  echo "User: ${MYSERVICE_USERNAME:-<not_set_in_env>}"
+  echo "Password: ${MYSERVICE_PASSWORD:-<not_set_in_env>}"
+  echo "API (external via Caddy): https://${MYSERVICE_HOSTNAME:-<hostname_not_set>}"
+  echo "API (internal): http://myservice:8080"
+  echo "Docs: <link_to_docs>"
+fi
+```
+
+## 7) README.md
+- Add a short, one-line description under “What’s Included”, linking to your service docs/homepage.
+```md
+✅ [**MyService**](https://example.com) - One-line description of what it provides.
+```
+
+## 8) Ask about Basic Auth (important)
+When adding any new public-facing service, explicitly ask the user whether they want to protect the service with Basic Auth via Caddy. If yes, add:
+- Credentials section to `.env.example`
+- Secret generation in `scripts/03_generate_secrets.sh`
+- `basic_auth` in `Caddyfile`
+- Pass the username/hash through `docker-compose.yml` `caddy.environment`
+
+## 9) Verify and apply
+- Regenerate secrets to populate new variables:
+```bash
+bash scripts/03_generate_secrets.sh
+```
+- Start (or recreate) only the affected services:
+```bash
+docker compose -p localai up -d --no-deps --force-recreate caddy
+# If your service was added/changed
+docker compose -p localai up -d --no-deps --force-recreate myservice
+```
+- Check logs:
+```bash
+docker compose -p localai logs -f --tail=200 myservice | cat
+docker compose -p localai logs -f --tail=200 caddy | cat
+```
+
+## 10) Quick checklist
+- [ ] Service added to `docker-compose.yml` with a profile (no external ports exposed)
+- [ ] Hostname and (optional) credentials added to `.env.example`
+- [ ] Secret + hash generation added to `scripts/03_generate_secrets.sh`
+- [ ] Exposed via `Caddyfile` with `reverse_proxy` (+ `basic_auth` if desired)
+- [ ] Service selectable in `scripts/04_wizard.sh`
+- [ ] Listed with URLs/credentials in `scripts/06_final_report.sh`
+- [ ] One-line description added to `README.md`
