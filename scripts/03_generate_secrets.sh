@@ -317,44 +317,6 @@ fi
 # Ensure N8N_WORKER_COUNT is definitely set (should be by logic above)
 N8N_WORKER_COUNT="${N8N_WORKER_COUNT:-1}"
 
-# Cloudflare Tunnel Token (optional)
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "Cloudflare Tunnel Configuration (Optional)"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "Cloudflare Tunnel provides secure zero-trust access to your services"
-echo "without exposing ports 80/443 on your server."
-echo ""
-echo "To set up:"
-echo "1. Create a tunnel at https://one.dash.cloudflare.com/"
-echo "3. Copy the tunnel token"
-echo ""
-
-if [[ -v existing_env_vars[CLOUDFLARE_TUNNEL_TOKEN] ]]; then
-    CLOUDFLARE_TUNNEL_TOKEN="${existing_env_vars[CLOUDFLARE_TUNNEL_TOKEN]}"
-    if [[ -n "$CLOUDFLARE_TUNNEL_TOKEN" ]]; then
-        log_info "Found existing Cloudflare Tunnel Token in .env"
-    else
-        log_info "Found empty Cloudflare Tunnel Token in .env. You can provide one now or leave empty."
-        echo ""
-        read -p "Cloudflare Tunnel Token (leave empty to skip): " CLOUDFLARE_TUNNEL_TOKEN
-    fi
-else
-    echo ""
-    read -p "Cloudflare Tunnel Token (leave empty to skip): " CLOUDFLARE_TUNNEL_TOKEN
-fi
-
-if [ -n "$CLOUDFLARE_TUNNEL_TOKEN" ]; then
-    log_success "Cloudflare Tunnel Token configured"
-    echo ""
-    echo "🔒 After confirming the tunnel works, enhance security by:"
-    echo "   Closing ports 80, 443, and 7687 in your VPS firewall"
-    echo "   Example: sudo ufw delete allow 80/tcp"
-    echo ""
-else
-    log_info "Cloudflare Tunnel skipped - you can enable it later in the service selection wizard"
-fi
 
 log_info "Generating secrets and creating .env file..."
 
