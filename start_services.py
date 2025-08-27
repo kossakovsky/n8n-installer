@@ -242,6 +242,13 @@ def start_supabase():
         print("Supabase is not enabled, skipping start.")
         return
     print("Starting Supabase services...")
+    # Explicitly start the db service first
+    run_command([
+        "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d", "db"
+    ])
+    # Wait for db to be ready
+    time.sleep(5)
+    # Then start all other services
     run_command([
         "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d"
     ])
