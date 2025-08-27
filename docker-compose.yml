@@ -700,7 +700,7 @@ services:
       - ./python-runner:/app
 
   paddleocr:
-    image: registry.baidubce.com/paddlepaddle/paddle:3.1.1
+    image: paddlepaddle/paddle:latest
     container_name: paddleocr
     profiles: ["paddleocr"]
     restart: unless-stopped
