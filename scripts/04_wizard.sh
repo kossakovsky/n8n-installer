@@ -64,6 +64,7 @@ base_services_data=(
     "neo4j" "Neo4j (Graph Database)"
     "letta" "Letta (Agent Server & SDK)"
     "gotenberg" "Gotenberg (Document Conversion API)"
+    "paddleocr" "PaddleOCR (OCR API Server)"
     "crawl4ai" "Crawl4ai (Web Crawler for AI)"
     "ragapp" "RAGApp (Open-source RAG UI + API)"
     "open-webui" "Open WebUI (ChatGPT-like Interface)"
@@ -105,7 +106,7 @@ done
 
 # Use whiptail to display the checklist
 CHOICES=$(whiptail --title "Service Selection Wizard" --checklist \
-  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 32 90 21 \
+  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 32 90 22 \
   "${services[@]}" \
   3>&1 1>&2 2>&3)
 

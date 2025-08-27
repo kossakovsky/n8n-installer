@@ -217,6 +217,7 @@ services:
       - PROMETHEUS_PASSWORD_HASH=${PROMETHEUS_PASSWORD_HASH}
       - PROMETHEUS_USERNAME=${PROMETHEUS_USERNAME}
       - QDRANT_HOSTNAME=${QDRANT_HOSTNAME}
+      - PADDLEOCR_HOSTNAME=${PADDLEOCR_HOSTNAME}
       - RAGAPP_HOSTNAME=${RAGAPP_HOSTNAME}
       - RAGAPP_PASSWORD_HASH=${RAGAPP_PASSWORD_HASH}
       - RAGAPP_USERNAME=${RAGAPP_USERNAME}
@@ -697,3 +698,22 @@ services:
     command: /bin/sh -c 'if [ -f /app/requirements.txt ]; then python -m pip install --no-cache-dir -r /app/requirements.txt; fi; python /app/main.py'
     volumes:
       - ./python-runner:/app
+
+  paddleocr:
+    image: paddlepaddle/paddle:latest
+    container_name: paddleocr
+    profiles: ["paddleocr"]
+    restart: unless-stopped
+    command: /bin/sh -c "set -e; \
+      apt-get update && apt-get install -y --no-install-recommends git wget && rm -rf /var/lib/apt/lists/*; \
+      python -m pip install --upgrade pip; \
+      pip install paddlex; \
+      paddlex --install serving; \
+      exec paddlex --serve --pipeline OCR --device cpu --port 8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080 > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    expose:
+      - "8080"

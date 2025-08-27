@@ -195,6 +195,15 @@ if is_profile_active "gotenberg"; then
   echo "  Office to PDF: POST /forms/libreoffice/convert"
 fi
 
+if is_profile_active "paddleocr"; then
+  echo
+  echo "================================= PaddleOCR ==========================="
+  echo
+  echo "Host: ${PADDLEOCR_HOSTNAME:-<hostname_not_set>}"
+  echo "Internal Access (HTTP): http://paddleocr:8080"
+  echo "Notes: PaddleX Basic Serving (CPU), pipeline=OCR"
+fi
+
 if is_profile_active "python-runner"; then
   echo
   echo "================================= Python Runner ========================"

@@ -104,6 +104,11 @@ https://{$NEO4J_HOSTNAME}:7687 {
     reverse_proxy neo4j:7687
 }
 
+# PaddleOCR (PaddleX Basic Serving)
+{$PADDLEOCR_HOSTNAME} {
+    reverse_proxy paddleocr:8080
+}
+
 import /etc/caddy/addons/*.conf
 
 # # SearXNG
