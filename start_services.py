@@ -72,6 +72,20 @@ def clone_supabase_repo():
         run_command(["git", "pull"])
         os.chdir("..")
 
+def ensure_clean_supabase_db():
+    """Ensure Supabase DB starts fresh if passwords don't match."""
+    if not is_supabase_enabled():
+        return
+        
+    supabase_data_dir = os.path.join("supabase", "docker", "volumes", "db", "data")
+    
+    # Check if data directory exists and has content
+    if os.path.exists(supabase_data_dir) and os.listdir(supabase_data_dir):
+        print("WARNING: Existing Supabase database data found.")
+        print("If you have password authentication issues, consider removing:")
+        print(f"  sudo rm -rf {supabase_data_dir}")
+        print("Note: This will DELETE all existing Supabase data!")
+
 def prepare_supabase_env():
     """Create proper Supabase .env with correct password configuration."""
     if not is_supabase_enabled():
@@ -423,6 +437,7 @@ def main():
     if is_supabase_enabled():
         clone_supabase_repo()
         prepare_supabase_env()
+        ensure_clean_supabase_db()
     
     if is_dify_enabled():
         clone_dify_repo()
