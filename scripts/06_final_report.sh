@@ -200,8 +200,11 @@ if is_profile_active "paddleocr"; then
   echo "================================= PaddleOCR ==========================="
   echo
   echo "Host: ${PADDLEOCR_HOSTNAME:-<hostname_not_set>}"
+  echo "User: ${PADDLEOCR_USERNAME:-<not_set_in_env>}"
+  echo "Password: ${PADDLEOCR_PASSWORD:-<not_set_in_env>}"
   echo "API (external via Caddy): https://${PADDLEOCR_HOSTNAME:-<hostname_not_set>}"
   echo "API (internal): http://paddleocr:8080"
+  echo "Docs: https://paddleocr.a2.fyi/docs"
   echo "Notes: PaddleX Basic Serving (CPU), pipeline=OCR"
 fi
 

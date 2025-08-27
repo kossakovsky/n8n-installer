@@ -65,6 +65,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Postiz**](https://postiz.com/) - An open-source social media scheduling and publishing platform.
 
+✅ [**PaddleOCR**](https://www.paddleocr.ai/latest/en/index.html) - A CPU-ready OCR API powered by PaddleX Basic Serving. 
+
 ### Included Community Workflows
 
 Get started quickly with a vast library of pre-built automations (optional import during setup)! This collection includes over 300 workflows covering a wide range of use cases:

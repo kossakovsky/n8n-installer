@@ -53,6 +53,7 @@ declare -A VARS_TO_GENERATE=(
     ["DIFY_SECRET_KEY"]="secret:64" # Dify application secret key (maps to SECRET_KEY in Dify)
     ["COMFYUI_PASSWORD"]="password:32" # Added ComfyUI basic auth password
     ["RAGAPP_PASSWORD"]="password:32" # Added RAGApp basic auth password
+    ["PADDLEOCR_PASSWORD"]="password:32" # Added PaddleOCR basic auth password
 )
 
 # Initialize existing_env_vars and attempt to read .env if it exists
@@ -648,6 +649,18 @@ if [[ -z "$FINAL_COMFYUI_HASH" && -n "$COMFYUI_PLAIN_PASS" ]]; then
     fi
 fi
 _update_or_add_env_var "COMFYUI_PASSWORD_HASH" "$FINAL_COMFYUI_HASH"
+
+# --- PADDLEOCR ---
+PADDLEOCR_PLAIN_PASS="${generated_values["PADDLEOCR_PASSWORD"]}"
+FINAL_PADDLEOCR_HASH="${generated_values[PADDLEOCR_PASSWORD_HASH]}"
+if [[ -z "$FINAL_PADDLEOCR_HASH" && -n "$PADDLEOCR_PLAIN_PASS" ]]; then
+    NEW_HASH=$(_generate_and_get_hash "$PADDLEOCR_PLAIN_PASS")
+    if [[ -n "$NEW_HASH" ]]; then
+        FINAL_PADDLEOCR_HASH="$NEW_HASH"
+        generated_values["PADDLEOCR_PASSWORD_HASH"]="$NEW_HASH"
+    fi
+fi
+_update_or_add_env_var "PADDLEOCR_PASSWORD_HASH" "$FINAL_PADDLEOCR_HASH"
 
 # --- RAGAPP ---
 RAGAPP_PLAIN_PASS="${generated_values["RAGAPP_PASSWORD"]}"

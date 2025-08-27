@@ -106,6 +106,9 @@ https://{$NEO4J_HOSTNAME}:7687 {
 
 # PaddleOCR (PaddleX Basic Serving)
 {$PADDLEOCR_HOSTNAME} {
+    basic_auth {
+        {$PADDLEOCR_USERNAME} {$PADDLEOCR_PASSWORD_HASH}
+    }
     reverse_proxy paddleocr:8080
 }
 
