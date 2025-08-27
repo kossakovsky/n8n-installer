@@ -96,6 +96,8 @@ services:
     restart: unless-stopped
     container_name: open-webui
     profiles: ["open-webui"]
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
