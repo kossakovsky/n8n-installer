@@ -106,9 +106,8 @@ done
 
 # Use whiptail to display the checklist
 num_services=$(( ${#services[@]} / 3 ))
-list_height=$(( num_services + 4 ))
 CHOICES=$(whiptail --title "Service Selection Wizard" --checklist \
-  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 32 90 $list_height \
+  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 32 90 $num_services \
   "${services[@]}" \
   3>&1 1>&2 2>&3)
 
