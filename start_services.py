@@ -112,6 +112,9 @@ def prepare_supabase_env():
         elif line.startswith("SERVICE_ROLE_KEY="):
             service_key = root_env.get("SERVICE_ROLE_KEY", "")
             new_lines.append(f"SERVICE_ROLE_KEY={service_key}\n")
+        elif line.startswith("DASHBOARD_USERNAME="):
+            dashboard_user = root_env.get("DASHBOARD_USERNAME", "supabase")
+            new_lines.append(f"DASHBOARD_USERNAME={dashboard_user}\n")
         elif line.startswith("DASHBOARD_PASSWORD="):
             dashboard_pass = root_env.get("DASHBOARD_PASSWORD", "")
             new_lines.append(f"DASHBOARD_PASSWORD={dashboard_pass}\n")
@@ -123,6 +126,7 @@ def prepare_supabase_env():
         f.writelines(new_lines)
     
     print("Supabase .env prepared with correct passwords.")
+
 def clone_dify_repo():
     """Clone the Dify repository using sparse checkout if not already present."""
     if not is_dify_enabled():
