@@ -73,15 +73,56 @@ def clone_supabase_repo():
         os.chdir("..")
 
 def prepare_supabase_env():
-    """Copy .env to .env in supabase/docker."""
+    """Create proper Supabase .env with correct password configuration."""
     if not is_supabase_enabled():
         print("Supabase is not enabled, skipping env preparation.")
         return
-    env_path = os.path.join("supabase", "docker", ".env")
-    env_example_path = os.path.join(".env")
-    print("Copying .env in root to .env in supabase/docker...")
-    shutil.copyfile(env_example_path, env_path)
-
+    
+    supabase_docker_dir = os.path.join("supabase", "docker")
+    
+    # First, copy the example file
+    env_example_path = os.path.join(supabase_docker_dir, ".env.example")
+    env_path = os.path.join(supabase_docker_dir, ".env")
+    
+    if os.path.exists(env_example_path):
+        print(f"Creating {env_path} from {env_example_path}...")
+        shutil.copyfile(env_example_path, env_path)
+    
+    # Load values from root .env
+    root_env = dotenv_values(".env")
+    
+    # Get the postgres password from root env
+    postgres_password = root_env.get("POSTGRES_PASSWORD", "")
+    
+    # Read the Supabase .env file
+    with open(env_path, 'r') as f:
+        lines = f.readlines()
+    
+    # Update with our values
+    new_lines = []
+    for line in lines:
+        if line.startswith("POSTGRES_PASSWORD="):
+            new_lines.append(f"POSTGRES_PASSWORD={postgres_password}\n")
+        elif line.startswith("JWT_SECRET="):
+            jwt_secret = root_env.get("JWT_SECRET", "")
+            new_lines.append(f"JWT_SECRET={jwt_secret}\n")
+        elif line.startswith("ANON_KEY="):
+            anon_key = root_env.get("ANON_KEY", "")
+            new_lines.append(f"ANON_KEY={anon_key}\n")
+        elif line.startswith("SERVICE_ROLE_KEY="):
+            service_key = root_env.get("SERVICE_ROLE_KEY", "")
+            new_lines.append(f"SERVICE_ROLE_KEY={service_key}\n")
+        elif line.startswith("DASHBOARD_PASSWORD="):
+            dashboard_pass = root_env.get("DASHBOARD_PASSWORD", "")
+            new_lines.append(f"DASHBOARD_PASSWORD={dashboard_pass}\n")
+        else:
+            new_lines.append(line)
+    
+    # Write back
+    with open(env_path, 'w') as f:
+        f.writelines(new_lines)
+    
+    print("Supabase .env prepared with correct passwords.")
 def clone_dify_repo():
     """Clone the Dify repository using sparse checkout if not already present."""
     if not is_dify_enabled():
