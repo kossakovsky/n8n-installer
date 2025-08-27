@@ -707,8 +707,8 @@ services:
     command: /bin/sh -c "set -e; \
       python -m pip install --upgrade pip; \
       python -m pip install --no-cache-dir paddlex; \
-      python -m paddlex.command --install serving; \
-      exec python -m paddlex.command --serve --pipeline OCR --device cpu --port 8080"
+      python -m paddlex --install serving; \
+      exec python -m paddlex --serve --pipeline OCR --device cpu --port 8080"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080 > /dev/null || exit 1"]
       interval: 30s
