@@ -73,9 +73,6 @@
 
 # Postgresus
 {$POSTGRESUS_HOSTNAME} {
-    basic_auth {
-        {$POSTGRESUS_USERNAME} {$POSTGRESUS_PASSWORD_HASH}
-    }
     reverse_proxy postgresus:4005
 }
 
