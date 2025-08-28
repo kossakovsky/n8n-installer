@@ -19,6 +19,7 @@ volumes:
   comfyui_data:
   postiz-config:
   postiz-uploads:
+  postgresus_data:
 
 x-n8n: &service-n8n
   build:
@@ -218,6 +219,9 @@ services:
       - PADDLEOCR_USERNAME=${PADDLEOCR_USERNAME}
       - PORTAINER_HOSTNAME=${PORTAINER_HOSTNAME}
       - POSTIZ_HOSTNAME=${POSTIZ_HOSTNAME}
+      - POSTGRESUS_HOSTNAME=${POSTGRESUS_HOSTNAME}
+      - POSTGRESUS_USERNAME=${POSTGRESUS_USERNAME}
+      - POSTGRESUS_PASSWORD_HASH=${POSTGRESUS_PASSWORD_HASH}
       - PROMETHEUS_HOSTNAME=${PROMETHEUS_HOSTNAME}
       - PROMETHEUS_PASSWORD_HASH=${PROMETHEUS_PASSWORD_HASH}
       - PROMETHEUS_USERNAME=${PROMETHEUS_USERNAME}
@@ -677,6 +681,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+  postgresus:
+    image: rostislavdugin/postgresus:latest
+    container_name: postgresus
+    profiles: ["postgresus"]
+    restart: unless-stopped
+    volumes:
+      - postgresus_data:/postgresus-data
 
   comfyui:
     image: yanwk/comfyui-boot:cu124-slim

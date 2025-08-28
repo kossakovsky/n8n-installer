@@ -63,6 +63,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Portainer**](https://www.portainer.io/) - A lightweight, secure web UI to manage your Docker environment (containers, images, volumes, networks) with ease.
 
+✅ [**Postgresus**](https://github.com/RostislavDugin/postgresus) - PostgreSQL monitoring and automated backups with a self-hosted UI.
+
 ✅ [**Postiz**](https://postiz.com/) - An open-source social media scheduling and publishing platform.
 
 ✅ [**PaddleOCR**](https://www.paddleocr.ai/latest/en/index.html) - A CPU-ready OCR API powered by PaddleX Basic Serving. 

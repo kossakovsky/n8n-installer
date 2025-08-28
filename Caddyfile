@@ -71,6 +71,14 @@
     reverse_proxy postiz:5000
 }
 
+# Postgresus
+{$POSTGRESUS_HOSTNAME} {
+    basic_auth {
+        {$POSTGRESUS_USERNAME} {$POSTGRESUS_PASSWORD_HASH}
+    }
+    reverse_proxy postgresus:4005
+}
+
 # Letta
 {$LETTA_HOSTNAME} {
     reverse_proxy letta:8283

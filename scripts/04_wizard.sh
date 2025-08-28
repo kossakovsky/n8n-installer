@@ -65,6 +65,7 @@ base_services_data=(
     "open-webui" "Open WebUI (ChatGPT-like Interface)"
     "paddleocr" "PaddleOCR (OCR API Server)"
     "portainer" "Portainer (Docker management UI)"
+    "postgresus" "Postgresus (PostgreSQL backups & monitoring)"
     "postiz" "Postiz (Social publishing platform)"
     "python-runner" "Python Runner (Run your custom Python code from ./python-runner)"
     "qdrant" "Qdrant (Vector Database)"
