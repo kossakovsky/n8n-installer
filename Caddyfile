@@ -99,6 +99,14 @@
     reverse_proxy comfyui:8188
 }
 
+# LibreTranslate (Self-hosted Translation API)
+{$LIBRETRANSLATE_HOSTNAME} {
+    basic_auth {
+        {$LIBRETRANSLATE_USERNAME} {$LIBRETRANSLATE_PASSWORD_HASH}
+    }
+    reverse_proxy libretranslate:5000
+}
+
 # Neo4j
 {$NEO4J_HOSTNAME} {
     reverse_proxy neo4j:7474
