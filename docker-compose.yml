@@ -11,6 +11,9 @@ volumes:
   langfuse_clickhouse_data:
   langfuse_clickhouse_logs:
   langfuse_minio_data:
+  libretranslate_models:
+  libretranslate_cache:
+  libretranslate_db:
   grafana:
   prometheus_data:
   letta_data:
@@ -211,6 +214,9 @@ services:
       - LANGFUSE_HOSTNAME=${LANGFUSE_HOSTNAME}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-internal}
       - LETTA_HOSTNAME=${LETTA_HOSTNAME}
+      - LIBRETRANSLATE_HOSTNAME=${LIBRETRANSLATE_HOSTNAME}
+      - LIBRETRANSLATE_USERNAME=${LIBRETRANSLATE_USERNAME}
+      - LIBRETRANSLATE_PASSWORD_HASH=${LIBRETRANSLATE_PASSWORD_HASH}
       - N8N_HOSTNAME=${N8N_HOSTNAME}
       - NEO4J_HOSTNAME=${NEO4J_HOSTNAME}
       - PADDLEOCR_HOSTNAME=${PADDLEOCR_HOSTNAME}
@@ -692,6 +698,30 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  libretranslate:
+    image: libretranslate/libretranslate:v1.6.1
+    container_name: libretranslate
+    profiles: ["libretranslate"]
+    restart: unless-stopped
+    environment:
+      - LT_HOST=0.0.0.0
+      - LT_PORT=5000
+      - LT_CHAR_LIMIT=${LIBRETRANSLATE_CHAR_LIMIT:-10000}
+      - LT_FRONTEND_LANGUAGE_SOURCE=${LIBRETRANSLATE_DEFAULT_SOURCE:-auto}
+      - LT_FRONTEND_LANGUAGE_TARGET=${LIBRETRANSLATE_DEFAULT_TARGET:-en}
+      - LT_API_KEYS=${LIBRETRANSLATE_API_KEYS:-false}
+      - LT_API_KEYS_DB_PATH=/app/db/api_keys.db
+      - LT_THREADS=${LIBRETRANSLATE_THREADS:-4}
+      - LT_SUGGESTIONS=${LIBRETRANSLATE_SUGGESTIONS:-false}
+      - LT_DISABLE_WEB_UI=${LIBRETRANSLATE_DISABLE_WEB_UI:-false}
+      - LT_UPDATE_MODELS=${LIBRETRANSLATE_UPDATE_MODELS:-false}
+      - LT_METRICS=${LIBRETRANSLATE_METRICS:-false}
+    volumes:
+      - libretranslate_models:/home/libretranslate/.local/share
+      - libretranslate_cache:/home/libretranslate/.local/cache
+      - libretranslate_db:/app/db
+      - ./shared:/data/shared
 
   python-runner:
     image: python:3.11-slim
