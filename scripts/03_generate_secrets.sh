@@ -54,7 +54,6 @@ declare -A VARS_TO_GENERATE=(
     ["COMFYUI_PASSWORD"]="password:32" # Added ComfyUI basic auth password
     ["RAGAPP_PASSWORD"]="password:32" # Added RAGApp basic auth password
     ["PADDLEOCR_PASSWORD"]="password:32" # Added PaddleOCR basic auth password
-    ["POSTGRESUS_PASSWORD"]="password:32" # Added Postgresus basic auth password
 )
 
 # Initialize existing_env_vars and attempt to read .env if it exists
@@ -376,7 +375,6 @@ generated_values["WEAVIATE_USERNAME"]="$USER_EMAIL" # Set Weaviate username for 
 generated_values["COMFYUI_USERNAME"]="$USER_EMAIL" # Set ComfyUI username for Caddy
 generated_values["RAGAPP_USERNAME"]="$USER_EMAIL" # Set RAGApp username for Caddy
 generated_values["PADDLEOCR_USERNAME"]="$USER_EMAIL" # Set PaddleOCR username for Caddy
-generated_values["POSTGRESUS_USERNAME"]="$USER_EMAIL" # Set Postgresus username for Caddy
 
 if [[ -n "$OPENAI_API_KEY" ]]; then
     generated_values["OPENAI_API_KEY"]="$OPENAI_API_KEY"
@@ -403,7 +401,6 @@ found_vars["NEO4J_AUTH_USERNAME"]=0
 found_vars["COMFYUI_USERNAME"]=0
 found_vars["RAGAPP_USERNAME"]=0
 found_vars["PADDLEOCR_USERNAME"]=0
-found_vars["POSTGRESUS_USERNAME"]=0
 
 # Read template, substitute domain, generate initial values
 while IFS= read -r line || [[ -n "$line" ]]; do
@@ -450,7 +447,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             # This 'else' block is for lines from template not covered by existing values or VARS_TO_GENERATE.
             # Check if it is one of the user input vars - these are handled by found_vars later if not in template.
             is_user_input_var=0 # Reset for each line
-            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "POSTGRESUS_USERNAME")
+            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME")
             for uivar in "${user_input_vars[@]}"; do
                 if [[ "$varName" == "$uivar" ]]; then
                     is_user_input_var=1
@@ -678,18 +675,6 @@ if [[ -z "$FINAL_RAGAPP_HASH" && -n "$RAGAPP_PLAIN_PASS" ]]; then
     fi
 fi
 _update_or_add_env_var "RAGAPP_PASSWORD_HASH" "$FINAL_RAGAPP_HASH"
-
-# --- POSTGRESUS ---
-POSTGRESUS_PLAIN_PASS="${generated_values["POSTGRESUS_PASSWORD"]}"
-FINAL_POSTGRESUS_HASH="${generated_values[POSTGRESUS_PASSWORD_HASH]}"
-if [[ -z "$FINAL_POSTGRESUS_HASH" && -n "$POSTGRESUS_PLAIN_PASS" ]]; then
-    NEW_HASH=$(_generate_and_get_hash "$POSTGRESUS_PLAIN_PASS")
-    if [[ -n "$NEW_HASH" ]]; then
-        FINAL_POSTGRESUS_HASH="$NEW_HASH"
-        generated_values["POSTGRESUS_PASSWORD_HASH"]="$NEW_HASH"
-    fi
-fi
-_update_or_add_env_var "POSTGRESUS_PASSWORD_HASH" "$FINAL_POSTGRESUS_HASH"
 
 
 if [ $? -eq 0 ]; then # This $? reflects the status of the last mv command from the last _update_or_add_env_var call.

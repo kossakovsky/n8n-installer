@@ -148,8 +148,6 @@ if is_profile_active "postgresus"; then
   echo "================================= Postgresus =========================="
   echo
   echo "Host: ${POSTGRESUS_HOSTNAME:-<hostname_not_set>}"
-  echo "User: ${POSTGRESUS_USERNAME:-<not_set_in_env>}"
-  echo "Password: ${POSTGRESUS_PASSWORD:-<not_set_in_env>}"
   echo "UI (external via Caddy): https://${POSTGRESUS_HOSTNAME:-<hostname_not_set>}"
   echo "UI (internal): http://postgresus:4005"
   echo "To back up internal PostgreSQL: host=postgres, port=5432, user=postgres, password=${POSTGRES_PASSWORD:-<not_set_in_env>}"
