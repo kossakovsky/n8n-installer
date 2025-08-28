@@ -1,25 +1,27 @@
 volumes:
-  n8n_storage:
-  ollama_storage:
-  qdrant_storage:
-  open-webui:
-  flowise:
-  caddy-data:
   caddy-config:
-  valkey-data:
-  langfuse_postgres_data:
+  caddy-data:
+  comfyui_data:
+  flowise:
+  grafana:
   langfuse_clickhouse_data:
   langfuse_clickhouse_logs:
   langfuse_minio_data:
-  grafana:
-  prometheus_data:
+  langfuse_postgres_data:
   letta_data:
-  weaviate_data:
+  libretranslate_api_keys:
+  libretranslate_models:
+  n8n_storage:
+  ollama_storage:
+  open-webui:
   portainer_data:
-  comfyui_data:
+  postgresus_data:
   postiz-config:
   postiz-uploads:
-  postgresus_data:
+  prometheus_data:
+  qdrant_storage:
+  valkey-data:
+  weaviate_data:
 
 x-n8n: &service-n8n
   build:
@@ -712,17 +714,27 @@ services:
     profiles: ["libretranslate"]
     restart: unless-stopped
     environment:
-      - LT_HOST=${LT_HOST:-0.0.0.0}
-      - LT_PORT=${LT_PORT:-5000}
-      - LT_CHAR_LIMIT=${LT_CHAR_LIMIT:-10000}
-      - LT_REQ_LIMIT=${LT_REQ_LIMIT:-}
-      - LT_BATCH_LIMIT=${LT_BATCH_LIMIT:-}
-      - LT_THREADS=${LT_THREADS:-4}
       - LT_API_KEYS=${LT_API_KEYS:-false}
-      - LT_LOAD_ONLY=${LT_LOAD_ONLY:-}
+      - LT_BATCH_LIMIT=${LT_BATCH_LIMIT:-}
+      - LT_CHAR_LIMIT=${LT_CHAR_LIMIT:-10000}
+      - LT_DEBUG=${LT_DEBUG:-false}
       - LT_FRONTEND_LANGUAGE_SOURCE=${LT_FRONTEND_LANGUAGE_SOURCE:-auto}
       - LT_FRONTEND_LANGUAGE_TARGET=${LT_FRONTEND_LANGUAGE_TARGET:-en}
-      - LT_DEBUG=${LT_DEBUG:-false}
+      - LT_FRONTEND_TIMEOUT=${LT_FRONTEND_TIMEOUT:-2000}
+      - LT_HOST=${LT_HOST:-0.0.0.0}
+      - LT_LOAD_ONLY=${LT_LOAD_ONLY:-}
+      - LT_METRICS=${LT_METRICS:-false}
+      - LT_PORT=${LT_PORT:-5000}
+      - LT_REQ_LIMIT=${LT_REQ_LIMIT:-}
+      - LT_SSL=${LT_SSL:-false}
+      - LT_SUGGESTIONS=${LT_SUGGESTIONS:-false}
+      - LT_THREADS=${LT_THREADS:-4}
+      - LT_UPDATE_MODELS=${LT_UPDATE_MODELS:-false}
+    volumes:
+      - libretranslate_api_keys:/app/db
+      - libretranslate_models:/home/libretranslate/.local:rw
+    healthcheck:
+      test: ["CMD-SHELL", "./venv/bin/python scripts/healthcheck.py"]
 
   python-runner:
     image: python:3.11-slim
