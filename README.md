@@ -42,6 +42,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Letta**](https://docs.letta.com/) - An open-source agent server and SDK that can be connected to various LLM API backends (OpenAI, Anthropic, Ollama, etc.), enabling you to build and manage AI agents.
 
+✅ [**LibreTranslate**](https://docs.libretranslate.com/) - Self-hosted translation API (50+ languages).
+
 ✅ [**Neo4j**](https://neo4j.com/) - A graph database management system that allows you to model, store, and query data as a network of nodes and relationships.
 
 ✅ [**Ollama**](https://ollama.com/) - Run Llama 3, Mistral, Gemma, and other large language models locally.
@@ -138,12 +140,13 @@ After successful installation, your services are up and running! Here's how to g
     - **Grafana:** `grafana.yourdomain.com`
     - **Langfuse:** `langfuse.yourdomain.com`
     - **Letta:** `letta.yourdomain.com`
+    - **LibreTranslate:** `translate.yourdomain.com`
     - **Neo4j:** `neo4j.yourdomain.com`
-    - **PaddleOCR:** `paddleocr.yourdomain.com`
     - **Open WebUI:** `webui.yourdomain.com`
+    - **PaddleOCR:** `paddleocr.yourdomain.com`
     - **Portainer:** `portainer.yourdomain.com` (Protected by Caddy basic auth; on first login, complete Portainer admin setup)
-    - **Postiz:** `postiz.yourdomain.com`
     - **Postgresus:** `postgresus.yourdomain.com`
+    - **Postiz:** `postiz.yourdomain.com`
     - **Prometheus:** `prometheus.yourdomain.com` (Typically used as a data source for Grafana)
     - **Qdrant:** `qdrant.yourdomain.com`
     - **RAGApp:** `ragapp.yourdomain.com`
