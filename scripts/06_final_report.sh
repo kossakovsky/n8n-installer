@@ -185,10 +185,10 @@ if is_profile_active "libretranslate"; then
   echo
   echo "================================= LibreTranslate ==========================="
   echo
-  echo "Host: ${LIBRETRANSLATE_HOSTNAME:-<hostname_not_set>}"
-  echo "User: ${LIBRETRANSLATE_USERNAME:-<not_set_in_env>}"
-  echo "Password: ${LIBRETRANSLATE_PASSWORD:-<not_set_in_env>}"
-  echo "API (external via Caddy): https://${LIBRETRANSLATE_HOSTNAME:-<hostname_not_set>}"
+  echo "Host: ${LT_HOSTNAME:-<hostname_not_set>}"
+  echo "User: ${LT_USERNAME:-<not_set_in_env>}"
+  echo "Password: ${LT_PASSWORD:-<not_set_in_env>}"
+  echo "API (external via Caddy): https://${LT_HOSTNAME:-<hostname_not_set>}"
   echo "API (internal): http://libretranslate:5000"
   echo "Docs: https://github.com/LibreTranslate/LibreTranslate"
 fi
