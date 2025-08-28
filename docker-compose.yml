@@ -726,11 +726,6 @@ services:
       - LT_FRONTEND_LANGUAGE_SOURCE=${LT_FRONTEND_LANGUAGE_SOURCE:-auto}
       - LT_FRONTEND_LANGUAGE_TARGET=${LT_FRONTEND_LANGUAGE_TARGET:-en}
       - LT_DEBUG=${LT_DEBUG:-false}
-    volumes:
-      - libretranslate_models:/home/libretranslate/.local/share
-      - libretranslate_cache:/home/libretranslate/.local/cache
-      - libretranslate_db:/app/db
-      - ./shared:/data/shared
 
   python-runner:
     image: python:3.11-slim
