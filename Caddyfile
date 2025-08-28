@@ -96,7 +96,7 @@
 
 # LibreTranslate (Self-hosted Translation API)
 {$LIBRETRANSLATE_HOSTNAME} {
-    basicauth {
+    basic_auth {
         {$LIBRETRANSLATE_USERNAME} {$LIBRETRANSLATE_PASSWORD_HASH}
     }
     reverse_proxy libretranslate:5000
