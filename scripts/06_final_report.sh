@@ -150,7 +150,14 @@ if is_profile_active "postgresus"; then
   echo "Host: ${POSTGRESUS_HOSTNAME:-<hostname_not_set>}"
   echo "UI (external via Caddy): https://${POSTGRESUS_HOSTNAME:-<hostname_not_set>}"
   echo "UI (internal): http://postgresus:4005"
-  echo "To back up internal PostgreSQL: host=postgres, port=5432, user=postgres, password=${POSTGRES_PASSWORD:-<not_set_in_env>}"
+  echo "------ Backup Target (internal PostgreSQL) ------"
+  echo "PG version: ${POSTGRES_VERSION:-17}"
+  echo "Host: ${POSTGRES_HOST:-postgres}"
+  echo "Port: ${POSTGRES_PORT:-5432}"
+  echo "Username: ${POSTGRES_USER:-postgres}"
+  echo "Password: ${POSTGRES_PASSWORD:-<not_set_in_env>}"
+  echo "DB name: ${POSTGRES_DB:-postgres}"
+  echo "Use HTTPS: false"
 fi
 
 if is_profile_active "ragapp"; then
