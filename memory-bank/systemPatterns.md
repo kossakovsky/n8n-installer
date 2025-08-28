@@ -63,8 +63,8 @@ OPENAI_API_KEY=optional_key
 02_install_docker.sh       # Container runtime
 03_generate_secrets.sh     # Security credentials
 04_wizard.sh              # Interactive configuration
-05_run_services.sh        # Service deployment
-06_final_report.sh        # Success confirmation
+06_run_services.sh        # Service deployment
+07_final_report.sh        # Success confirmation
 ```
 
 ### Idempotent Operations

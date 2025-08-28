@@ -25,7 +25,7 @@ User runs: git clone && cd n8n-installer && sudo bash ./scripts/install.sh
                                     ↓
          01_system_preparation.sh → 02_install_docker.sh → 03_generate_secrets.sh
                                     ↓
-         04_wizard.sh → 05_run_services.sh → 06_final_report.sh
+         04_wizard.sh → 06_run_services.sh → 07_final_report.sh
                                     ↓
                         Installation Complete
 ```
@@ -167,7 +167,7 @@ VARS_TO_GENERATE=(
 
 ---
 
-### 🚀 **05_run_services.sh**
+### 🚀 **06_run_services.sh**
 
 **Purpose**: Validates environment and launches services
 
@@ -232,7 +232,7 @@ def start_local_services()      # Starts main services from docker-compose.yml
 
 ---
 
-### 📊 **06_final_report.sh**
+### 📊 **07_final_report.sh**
 
 **Purpose**: Displays service credentials and access URLs
 
@@ -268,7 +268,7 @@ Password: [generated_password]
 1. Updates `.env` with new variables via `03_generate_secrets.sh --update`
 2. Runs wizard to update service selection
 3. Pulls latest Docker images
-4. Restarts services via `05_run_services.sh`
+4. Restarts services via `06_run_services.sh`
 5. Shows final report
 
 > 🤖 **AI Context Note**: The update process preserves user configuration while adding new variables. The --update flag on 03_generate_secrets.sh is critical - without it, all passwords would be regenerated. The update process can handle adding new services but cannot remove deprecated ones automatically.
@@ -462,7 +462,7 @@ Multiple services share Postgres and Redis instances when possible.
 
 ### **Common Failure Points**:
 1. **APT Lock Issues**: Handled by `run_apt_with_retry()` in `02_install_docker.sh`
-2. **Docker Daemon Not Running**: Checked in `05_run_services.sh`
+2. **Docker Daemon Not Running**: Checked in `06_run_services.sh`
 3. **Missing Permissions**: Scripts automatically fix executable permissions
 4. **Network Conflicts**: All services use `localai_default` network
 5. **Port Conflicts**: Caddy handles all external ports (80, 443)
@@ -503,7 +503,7 @@ Multiple services share Postgres and Redis instances when possible.
 - [ ] Add password generation to `03_generate_secrets.sh` VARS_TO_GENERATE
 - [ ] Add service to `04_wizard.sh` base_services_data array
 - [ ] Add reverse proxy block to `Caddyfile`
-- [ ] Add credentials display to `06_final_report.sh`
+- [ ] Add credentials display to `07_final_report.sh`
 - [ ] Update README.md with service description
 - [ ] Test complete installation flow
 

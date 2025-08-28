@@ -121,7 +121,7 @@ Integrate Gotenberg, a stateless API for converting documents to PDF, PNG, JPEG,
    - [x] Add relevant use cases for n8n integration
 
 6. **Final Report Script**
-   - [x] Add Gotenberg section to scripts/06_final_report.sh
+   - [x] Add Gotenberg section to scripts/07_final_report.sh
    - [x] Include hostname, internal access, and API endpoints
    - [x] Follow existing service reporting pattern
 

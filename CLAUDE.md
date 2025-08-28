@@ -61,8 +61,8 @@ The installation follows a strict 6-step sequence managed by `scripts/install.sh
 2. **02_install_docker.sh** - Installs Docker Engine and Docker Compose
 3. **03_generate_secrets.sh** - Creates .env file with secure passwords and keys
 4. **04_wizard.sh** - Interactive service selection with whiptail UI
-5. **05_run_services.sh** - Deploys selected services using Docker Compose profiles
-6. **06_final_report.sh** - Displays access URLs and credentials
+5. **06_run_services.sh** - Deploys selected services using Docker Compose profiles
+6. **07_final_report.sh** - Displays access URLs and credentials
 
 ### Docker Compose Architecture
 - **Profiles**: Services are organized into profiles (n8n, flowise, monitoring, langfuse, ollama, etc.)

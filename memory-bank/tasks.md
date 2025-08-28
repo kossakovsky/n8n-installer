@@ -101,7 +101,7 @@ Integrate Dify, an open-source AI application development platform, into the n8n
    - [ ] Changes needed: Add Dify service description and use cases
    - [ ] Dependencies: Existing service documentation pattern
 
-8. **scripts/06_final_report.sh**
+8. **scripts/07_final_report.sh**
    - [ ] Changes needed: Add Dify section to final report
    - [ ] Dependencies: Service reporting pattern
 
@@ -172,7 +172,7 @@ Integrate Dify, an open-source AI application development platform, into the n8n
    - [ ] Add relevant use cases for n8n + Dify workflows
 
 8. **Final Report Integration**
-   - [ ] Add Dify section to scripts/06_final_report.sh
+   - [ ] Add Dify section to scripts/07_final_report.sh
    - [ ] Include hostname, credentials, and access information
    - [ ] Follow existing service reporting pattern
 
@@ -410,7 +410,7 @@ Integrate Portainer Community Edition as an optional service to manage the local
   - Persist hash in `.env` like with Prometheus/SearXNG.
 - `scripts/04_wizard.sh`
   - Add service option: `portainer` "Portainer (Docker management UI)".
-- `scripts/06_final_report.sh`
+- `scripts/07_final_report.sh`
   - Add section for Portainer host, username, and password.
 - `.env.example`
   - Add variables: `PORTAINER_HOSTNAME`, `PORTAINER_USERNAME`, `PORTAINER_PASSWORD`, `PORTAINER_PASSWORD_HASH`.
@@ -433,7 +433,7 @@ Integrate Portainer Community Edition as an optional service to manage the local
    - Compute hash with caddy (mirror Prometheus/SearXNG pattern) and `_update_or_add_env_var "PORTAINER_PASSWORD_HASH"`.
 3) `scripts/04_wizard.sh`
    - Add to `base_services_data`: `"portainer" "Portainer (Docker management UI)"`.
-4) `scripts/06_final_report.sh`
+4) `scripts/07_final_report.sh`
    - Add a block gated by `is_profile_active "portainer"` printing host, user, password.
 5) `Caddyfile`
    - Add block for `{$PORTAINER_HOSTNAME}` with `basic_auth { {$PORTAINER_USERNAME} {$PORTAINER_PASSWORD_HASH} }` and `reverse_proxy portainer:9000`.
@@ -498,7 +498,7 @@ Integrate ComfyUI as an optional service in the installer, proxied by Caddy at a
 - `docker-compose.yml`: add `comfyui` service with `profiles: ["comfyui"]`, volumes, healthcheck, optional GPU stanza
 - `Caddyfile`: add host block for `{$COMFYUI_HOSTNAME}` → `reverse_proxy comfyui:8188`
 - `scripts/04_wizard.sh`: add `comfyui` option with description
-- `scripts/06_final_report.sh`: add ComfyUI section with URL
+- `scripts/07_final_report.sh`: add ComfyUI section with URL
 - `scripts/03_generate_secrets.sh`: generate default hostname `COMFYUI_HOSTNAME`
 
 ### Implementation Steps

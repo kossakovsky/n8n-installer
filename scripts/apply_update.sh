@@ -12,8 +12,8 @@ COMPOSE_CMD="docker compose"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Project root directory (one level up from scripts)
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." &> /dev/null && pwd )"
-# Path to the 05_run_services.sh script (Corrected from original update.sh which had 04)
-RUN_SERVICES_SCRIPT="$SCRIPT_DIR/05_run_services.sh"
+# Path to the 06_run_services.sh script (Corrected from original update.sh which had 04)
+RUN_SERVICES_SCRIPT="$SCRIPT_DIR/06_run_services.sh"
 # Compose files (Not strictly needed here unless used directly, but good for context)
 # MAIN_COMPOSE_FILE="$PROJECT_ROOT/docker-compose.yml"
 # SUPABASE_COMPOSE_FILE="$PROJECT_ROOT/supabase/docker/docker-compose.yml"
@@ -70,14 +70,14 @@ $COMPOSE_CMD -p "localai" "${COMPOSE_FILES_FOR_PULL[@]}" pull --ignore-buildable
   exit 1
 }
 
-# Start services using the 05_run_services.sh script
+# Start services using the 06_run_services.sh script
 log_info "Running Services..."
 bash "$RUN_SERVICES_SCRIPT" || { log_error "Failed to start services. Check logs for details."; exit 1; }
 
 log_success "Update application completed successfully!"
 
 # --- Display Final Report with Credentials ---
-bash "$SCRIPT_DIR/06_final_report.sh" || {
+bash "$SCRIPT_DIR/07_final_report.sh" || {
     log_warning "Failed to display the final report. This does not affect the update."
     # We don't exit 1 here as the update itself was successful.
 }

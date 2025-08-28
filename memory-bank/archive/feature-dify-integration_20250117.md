@@ -83,7 +83,7 @@ The implementation followed the established Supabase integration pattern exactly
 - **Service Selection**: Added Dify to interactive wizard in `scripts/04_wizard.sh`
 - **Environment Generation**: Integrated Dify variables into `scripts/03_generate_secrets.sh`
 - **Reverse Proxy**: Added Dify configuration to `Caddyfile` and `docker-compose.yml`
-- **Documentation**: Updated `README.md` and `scripts/06_final_report.sh`
+- **Documentation**: Updated `README.md` and `scripts/07_final_report.sh`
 
 ### Key Technologies Utilized
 - **Docker Compose**: Multi-service orchestration with profile-based activation
@@ -100,7 +100,7 @@ The implementation followed the established Supabase integration pattern exactly
 5. **`Caddyfile`**: Added reverse proxy block for Dify (+4 lines)
 6. **`docker-compose.yml`**: Added DIFY_HOSTNAME environment variable (+1 line)
 7. **`README.md`**: Added service description and access information (+3 lines)
-8. **`scripts/06_final_report.sh`**: Added Dify reporting section (+13 lines)
+8. **`scripts/07_final_report.sh`**: Added Dify reporting section (+13 lines)
 
 ### Critical Technical Decision: Docker Compose File Extension
 **Issue**: Dify uses `docker-compose.yaml` while the implementation expected `docker-compose.yml`  
@@ -180,7 +180,7 @@ No blocking issues or significant technical debt identified. Integration is prod
 
 ### Documentation Files
 - **`README.md`**: Added Dify service description and access URLs
-- **`scripts/06_final_report.sh`**: Added Dify reporting section with features and integration notes
+- **`scripts/07_final_report.sh`**: Added Dify reporting section with features and integration notes
 
 ### Service Integration Pattern
 - **External Repository**: `dify/` (cloned with sparse checkout)

@@ -107,7 +107,7 @@ _update_or_add_env_var "MYSERVICE_PASSWORD_HASH" "$FINAL_MYSERVICE_HASH"
 "myservice" "MyService (Short description)"
 ```
 
-## 6) scripts/06_final_report.sh
+## 6) scripts/07_final_report.sh
 - Add a block that prints discovered URLs/credentials:
 ```bash
 if is_profile_active "myservice"; then
@@ -160,5 +160,5 @@ docker compose -p localai logs -f --tail=200 caddy | cat
 - [ ] Secret + hash generation added to `scripts/03_generate_secrets.sh`
 - [ ] Exposed via `Caddyfile` with `reverse_proxy` (+ `basic_auth` if desired)
 - [ ] Service selectable in `scripts/04_wizard.sh`
-- [ ] Listed with URLs/credentials in `scripts/06_final_report.sh`
+- [ ] Listed with URLs/credentials in `scripts/07_final_report.sh`
 - [ ] One-line description added to `README.md`

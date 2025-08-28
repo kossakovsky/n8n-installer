@@ -6,7 +6,7 @@
 - Extended `.env.example` with `PORTAINER_HOSTNAME`, `PORTAINER_USERNAME`, `PORTAINER_PASSWORD`, `PORTAINER_PASSWORD_HASH`.
 - Updated `scripts/03_generate_secrets.sh` to generate password, set username from email, and bcrypt-hash the password via Caddy.
 - Added Portainer to `scripts/04_wizard.sh` for selectable installation.
-- Added access details to `scripts/06_final_report.sh`.
+- Added access details to `scripts/07_final_report.sh`.
 - Validated `docker-compose.yml` with `docker compose config -q` and fixed default for `DOCKER_SOCKET_LOCATION`.
 
 ## Successes

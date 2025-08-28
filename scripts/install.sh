@@ -37,8 +37,8 @@ required_scripts=(
     "02_install_docker.sh"
     "03_generate_secrets.sh"
     "04_wizard.sh"
-    "05_run_services.sh"
-    "06_final_report.sh"
+    "06_run_services.sh"
+    "07_final_report.sh"
 )
 
 missing_scripts=()
@@ -98,7 +98,7 @@ bash "$SCRIPT_DIR/04_wizard.sh" || { log_error "Service Selection Wizard failed"
 log_success "Service Selection Wizard complete!"
 
 log_info "========== STEP 5: Running Services =========="
-bash "$SCRIPT_DIR/05_run_services.sh" || { log_error "Running Services failed"; exit 1; }
+bash "$SCRIPT_DIR/06_run_services.sh" || { log_error "Running Services failed"; exit 1; }
 log_success "Running Services complete!"
 
 log_info "========== STEP 6: Generating Final Report =========="
@@ -112,7 +112,7 @@ log_success "- Docker and Docker Compose installed"
 log_success "- '.env' generated with secure passwords and secrets"
 log_success "- Services launched via Docker Compose"
 
-bash "$SCRIPT_DIR/06_final_report.sh" || { log_error "Final Report Generation failed"; exit 1; }
+bash "$SCRIPT_DIR/07_final_report.sh" || { log_error "Final Report Generation failed"; exit 1; }
 log_success "Final Report Generation complete!"
 
 exit 0 

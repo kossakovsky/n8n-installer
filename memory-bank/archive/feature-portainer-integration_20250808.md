@@ -12,7 +12,7 @@ Added Portainer CE as an optional, profile-based service to manage Docker throug
 - `.env.example`: Added `PORTAINER_HOSTNAME`, `PORTAINER_USERNAME`, `PORTAINER_PASSWORD`, `PORTAINER_PASSWORD_HASH`.
 - `scripts/03_generate_secrets.sh`: Generates `PORTAINER_PASSWORD`, sets `PORTAINER_USERNAME` from email, computes bcrypt `PORTAINER_PASSWORD_HASH` via Caddy.
 - `scripts/04_wizard.sh`: Added `portainer` to selectable services.
-- `scripts/06_final_report.sh`: Added Portainer access output.
+- `scripts/07_final_report.sh`: Added Portainer access output.
 - `Caddyfile`: Added host block with `basic_auth` and `reverse_proxy portainer:9000`.
 - `docker-compose.yml`: Added `portainer_data` volume, caddy env vars for Portainer, and `portainer` service with Docker socket mount.
 

@@ -1,7 +1,7 @@
 # Reflection: ComfyUI Integration (Level 2)
 
 ## Summary
-Added ComfyUI as an optional service using Docker Compose profile `comfyui`, proxied via Caddy at `COMFYUI_HOSTNAME`. Default CPU support, optional GPU planned. Updated `.env.example`, `docker-compose.yml`, `Caddyfile`, `scripts/04_wizard.sh`, `scripts/06_final_report.sh`, and `README.md`.
+Added ComfyUI as an optional service using Docker Compose profile `comfyui`, proxied via Caddy at `COMFYUI_HOSTNAME`. Default CPU support, optional GPU planned. Updated `.env.example`, `docker-compose.yml`, `Caddyfile`, `scripts/04_wizard.sh`, `scripts/07_final_report.sh`, and `README.md`.
 
 ## What Went Well
 - Followed existing installer patterns (profiles, Caddy host blocks, env generation/wizard/reporting) with minimal, clear edits
