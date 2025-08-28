@@ -11,9 +11,6 @@ volumes:
   langfuse_clickhouse_data:
   langfuse_clickhouse_logs:
   langfuse_minio_data:
-  libretranslate_models:
-  libretranslate_cache:
-  libretranslate_db:
   grafana:
   prometheus_data:
   letta_data:
