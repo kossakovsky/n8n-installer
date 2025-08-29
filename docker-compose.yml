@@ -14,6 +14,9 @@ volumes:
   n8n_storage:
   ollama_storage:
   open-webui:
+  paddle_cache:
+  paddleocr_cache:
+  paddlex_data:
   portainer_data:
   postgresus_data:
   postiz-config:
@@ -755,7 +758,11 @@ services:
       python -m pip install --upgrade pip; \
       python -m pip install --no-cache-dir 'paddlex[ocr]'; \
       python -m paddlex --install serving; \
-      exec python -m paddlex --serve --pipeline OCR --device cpu --port 8080 --lang ru"
+      exec python -m paddlex --serve --pipeline OCR --device cpu --port 8080"
+    volumes:
+      - paddleocr_cache:/root/.paddleocr
+      - paddle_cache:/root/.cache/paddle
+      - paddlex_data:/root/.paddlex
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080 > /dev/null || exit 1"]
       interval: 30s
