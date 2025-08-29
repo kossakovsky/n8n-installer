@@ -1,2 +1,3 @@
+pipeline_name: OCR
 OCR:
   lang: ru
