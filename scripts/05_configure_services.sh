@@ -37,33 +37,35 @@ write_env_var() {
 
 log_info "Configuring service options in .env..."
 
-# Prompt for OpenAI API key (optional)
-if [[ ! -v existing_env_vars[OPENAI_API_KEY] || -z "${existing_env_vars[OPENAI_API_KEY]}" ]]; then
+
+# ----------------------------------------------------------------
+# Prompt for OpenAI API key (optional) using .env value as source of truth
+# ----------------------------------------------------------------
+EXISTING_OPENAI_API_KEY="$(read_env_var OPENAI_API_KEY)"
+OPENAI_API_KEY=""
+if [[ -z "$EXISTING_OPENAI_API_KEY" ]]; then
     echo ""
     echo "OpenAI API Key (optional). This key will be used for:"
     echo "   - Supabase: AI services to help with writing SQL queries, statements, and policies"
     echo "   - Crawl4AI: Default LLM configuration for web crawling capabilities"
     echo "   You can skip this by leaving it empty."
-fi
-
-if [[ -v existing_env_vars[OPENAI_API_KEY] ]]; then # -v checks if variable is set (even if empty)
-    OPENAI_API_KEY="${existing_env_vars[OPENAI_API_KEY]}"
-    if [[ -n "$OPENAI_API_KEY" ]]; then : # Fix: Add null command for empty 'then' block
-    else
-      log_info "Found empty OpenAI API Key in .env. You can provide one now or leave empty."
-      echo ""
-      read -p "OpenAI API Key: " OPENAI_API_KEY # Allow update if it was empty
-    fi
-else
     echo ""
     read -p "OpenAI API Key: " OPENAI_API_KEY
+    if [[ -n "$OPENAI_API_KEY" ]]; then
+        write_env_var "OPENAI_API_KEY" "$OPENAI_API_KEY"
+    fi
+else
+    # Reuse existing value without prompting
+    OPENAI_API_KEY="$EXISTING_OPENAI_API_KEY"
 fi
 
-# Logic for n8n workflow import (RUN_N8N_IMPORT)
-echo ""
 
+# ----------------------------------------------------------------
+# Logic for n8n workflow import (RUN_N8N_IMPORT)
+# ----------------------------------------------------------------
 final_run_n8n_import_decision="false"
 
+echo ""
 echo "Do you want to import 300 ready-made workflows for n8n? This process may take about 30 minutes to complete."
 echo ""
 read -p "Import workflows? (y/n): " import_workflow_choice
@@ -74,19 +76,25 @@ else
     final_run_n8n_import_decision="false"
 fi
 
+# Persist RUN_N8N_IMPORT to .env
+write_env_var "RUN_N8N_IMPORT" "$final_run_n8n_import_decision"
+
+
+# ----------------------------------------------------------------
 # Prompt for number of n8n workers
+# ----------------------------------------------------------------
 echo "" # Add a newline for better formatting
 log_info "Configuring n8n worker count..."
-if [[ -n "${existing_env_vars[N8N_WORKER_COUNT]}" ]]; then
-    N8N_WORKER_COUNT_CURRENT="${existing_env_vars[N8N_WORKER_COUNT]}"
+EXISTING_N8N_WORKER_COUNT="$(read_env_var N8N_WORKER_COUNT)"
+if [[ -n "$EXISTING_N8N_WORKER_COUNT" ]]; then
+    N8N_WORKER_COUNT_CURRENT="$EXISTING_N8N_WORKER_COUNT"
     echo ""
     read -p "Do you want to change the number of n8n workers? Current: $N8N_WORKER_COUNT_CURRENT. (Enter new number, or press Enter to keep current): " N8N_WORKER_COUNT_INPUT_RAW
     if [[ -z "$N8N_WORKER_COUNT_INPUT_RAW" ]]; then
         N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
     else
-        # Validate the new input
         if [[ "$N8N_WORKER_COUNT_INPUT_RAW" =~ ^0*[1-9][0-9]*$ ]]; then
-            N8N_WORKER_COUNT_TEMP="$((10#$N8N_WORKER_COUNT_INPUT_RAW))" # Sanitize (e.g. 01 -> 1)
+            N8N_WORKER_COUNT_TEMP="$((10#$N8N_WORKER_COUNT_INPUT_RAW))"
             if [[ "$N8N_WORKER_COUNT_TEMP" -ge 1 ]]; then
                  echo ""
                  read -p "Update n8n workers to $N8N_WORKER_COUNT_TEMP? (y/N): " confirm_change
@@ -96,7 +104,7 @@ if [[ -n "${existing_env_vars[N8N_WORKER_COUNT]}" ]]; then
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
                     log_info "Change declined. Keeping N8N_WORKER_COUNT at $N8N_WORKER_COUNT."
                  fi
-            else # Should not happen with regex but as a safeguard
+            else
                 log_warning "Invalid input '$N8N_WORKER_COUNT_INPUT_RAW'. Number must be positive. Keeping $N8N_WORKER_COUNT_CURRENT."
                 N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
             fi
@@ -109,7 +117,7 @@ else
     while true; do
         echo ""
         read -p "Enter the number of n8n workers to run (e.g., 1, 2, 3; default is 1): " N8N_WORKER_COUNT_INPUT_RAW
-        N8N_WORKER_COUNT_CANDIDATE="${N8N_WORKER_COUNT_INPUT_RAW:-1}" # Default to 1 if empty
+        N8N_WORKER_COUNT_CANDIDATE="${N8N_WORKER_COUNT_INPUT_RAW:-1}"
 
         if [[ "$N8N_WORKER_COUNT_CANDIDATE" =~ ^0*[1-9][0-9]*$ ]]; then
             N8N_WORKER_COUNT_VALIDATED="$((10#$N8N_WORKER_COUNT_CANDIDATE))"
@@ -122,7 +130,7 @@ else
                 else
                     log_info "Please try entering the number of workers again."
                 fi
-            else # Should not be reached if regex is correct
+            else
                 log_error "Number of workers must be a positive integer." >&2
             fi
         else
@@ -132,17 +140,20 @@ else
 fi
 # Ensure N8N_WORKER_COUNT is definitely set (should be by logic above)
 N8N_WORKER_COUNT="${N8N_WORKER_COUNT:-1}"
-# ---------------------------
+
+# Persist N8N_WORKER_COUNT to .env
+write_env_var "N8N_WORKER_COUNT" "$N8N_WORKER_COUNT"
+
+
+# ----------------------------------------------------------------
 # Cloudflare Tunnel Token (if cloudflare-tunnel profile is active)
-# ---------------------------
-# If Cloudflare Tunnel is selected, prompt for the token and write to .env
+# ----------------------------------------------------------------
+# If Cloudflare Tunnel is selected (based on COMPOSE_PROFILES), prompt for the token and write to .env
+COMPOSE_PROFILES_VALUE="$(read_env_var COMPOSE_PROFILES)"
 cloudflare_selected=0
-for profile in "${selected_profiles[@]}"; do
-    if [ "$profile" == "cloudflare-tunnel" ]; then
-        cloudflare_selected=1
-        break
-    fi
-done
+if [[ "$COMPOSE_PROFILES_VALUE" == *"cloudflare-tunnel"* ]]; then
+    cloudflare_selected=1
+fi
 
 if [ $cloudflare_selected -eq 1 ]; then
     existing_cf_token=""
@@ -174,7 +185,7 @@ if [ $cloudflare_selected -eq 1 ]; then
         fi
     fi
 fi
+
 log_success "Service configuration complete. .env updated at $ENV_FILE"
 
 exit 0
-
