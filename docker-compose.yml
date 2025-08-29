@@ -758,11 +758,12 @@ services:
       python -m pip install --upgrade pip; \
       python -m pip install --no-cache-dir 'paddlex[ocr]'; \
       python -m paddlex --install serving; \
-      exec python -m paddlex --serve --pipeline OCR --device cpu --port 8080"
+      exec python -m paddlex --serve --pipeline OCR --device cpu --port 8080 --hpi_config /app/ocr_hpi.yaml"
     volumes:
       - paddleocr_cache:/root/.paddleocr
       - paddle_cache:/root/.cache/paddle
       - paddlex_data:/root/.paddlex
+      - ./paddlex/ocr_hpi.yaml:/app/ocr_hpi.yaml:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080 > /dev/null || exit 1"]
       interval: 30s

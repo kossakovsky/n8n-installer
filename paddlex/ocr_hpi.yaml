@@ -1,0 +1,4 @@
+pipeline: OCR
+model:
+  lang: ru
+
