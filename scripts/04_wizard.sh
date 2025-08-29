@@ -98,7 +98,7 @@ while [ $idx -lt ${#base_services_data[@]} ]; do
     else
         # .env has no COMPOSE_PROFILES or it's empty/just quotes, use hardcoded defaults
         case "$tag" in
-            "n8n"|"flowise"|"monitoring") status="ON" ;;
+            "n8n"|"portainer"|"monitoring"|"postgresus") status="ON" ;;
             *) status="OFF" ;;
         esac
     fi
