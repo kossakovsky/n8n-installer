@@ -45,6 +45,14 @@ bash "$SCRIPT_DIR/04_wizard.sh" || {
 log_success "Service selection updated."
 # --- End of Service Selection Wizard ---
 
+# --- Configure Services (prompts and .env updates) ---
+log_info "Configuring services (.env updates for optional inputs)..."
+bash "$SCRIPT_DIR/05_configure_services.sh" || {
+    log_error "Configure Services failed. Update process cannot continue."
+    exit 1
+}
+log_success "Service configuration completed."
+
 # Pull latest versions of selected containers based on updated .env
 log_info "Pulling latest versions of selected containers..."
 COMPOSE_FILES_FOR_PULL=("-f" "$PROJECT_ROOT/docker-compose.yml")

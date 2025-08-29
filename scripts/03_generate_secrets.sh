@@ -181,101 +181,6 @@ else
     done
 fi
 
-# Prompt for OpenAI API key (optional)
-if [[ ! -v existing_env_vars[OPENAI_API_KEY] || -z "${existing_env_vars[OPENAI_API_KEY]}" ]]; then
-    echo ""
-    echo "OpenAI API Key (optional). This key will be used for:"
-    echo "   - Supabase: AI services to help with writing SQL queries, statements, and policies"
-    echo "   - Crawl4AI: Default LLM configuration for web crawling capabilities"
-    echo "   You can skip this by leaving it empty."
-fi
-
-if [[ -v existing_env_vars[OPENAI_API_KEY] ]]; then # -v checks if variable is set (even if empty)
-    OPENAI_API_KEY="${existing_env_vars[OPENAI_API_KEY]}"
-    if [[ -n "$OPENAI_API_KEY" ]]; then : # Fix: Add null command for empty 'then' block
-    else
-      log_info "Found empty OpenAI API Key in .env. You can provide one now or leave empty."
-      echo ""
-      read -p "OpenAI API Key: " OPENAI_API_KEY # Allow update if it was empty
-    fi
-else
-    echo ""
-    read -p "OpenAI API Key: " OPENAI_API_KEY
-fi
-
-# Logic for n8n workflow import (RUN_N8N_IMPORT)
-echo ""
-
-final_run_n8n_import_decision="false"
-
-echo "Do you want to import 300 ready-made workflows for n8n? This process may take about 30 minutes to complete."
-echo ""
-read -p "Import workflows? (y/n): " import_workflow_choice
-
-if [[ "$import_workflow_choice" =~ ^[Yy]$ ]]; then
-    final_run_n8n_import_decision="true"
-else
-    final_run_n8n_import_decision="false"
-fi
-
-# Prompt for number of n8n workers
-echo "" # Add a newline for better formatting
-log_info "Configuring n8n worker count..."
-if [[ -n "${existing_env_vars[N8N_WORKER_COUNT]}" ]]; then
-    N8N_WORKER_COUNT_CURRENT="${existing_env_vars[N8N_WORKER_COUNT]}"
-    echo ""
-    read -p "Do you want to change the number of n8n workers? Current: $N8N_WORKER_COUNT_CURRENT. (Enter new number, or press Enter to keep current): " N8N_WORKER_COUNT_INPUT_RAW
-    if [[ -z "$N8N_WORKER_COUNT_INPUT_RAW" ]]; then
-        N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
-    else
-        # Validate the new input
-        if [[ "$N8N_WORKER_COUNT_INPUT_RAW" =~ ^0*[1-9][0-9]*$ ]]; then
-            N8N_WORKER_COUNT_TEMP="$((10#$N8N_WORKER_COUNT_INPUT_RAW))" # Sanitize (e.g. 01 -> 1)
-            if [[ "$N8N_WORKER_COUNT_TEMP" -ge 1 ]]; then
-                 echo ""
-                 read -p "Update n8n workers to $N8N_WORKER_COUNT_TEMP? (y/N): " confirm_change
-                 if [[ "$confirm_change" =~ ^[Yy]$ ]]; then
-                    N8N_WORKER_COUNT="$N8N_WORKER_COUNT_TEMP"
-                 else
-                    N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
-                    log_info "Change declined. Keeping N8N_WORKER_COUNT at $N8N_WORKER_COUNT."
-                 fi
-            else # Should not happen with regex but as a safeguard
-                log_warning "Invalid input '$N8N_WORKER_COUNT_INPUT_RAW'. Number must be positive. Keeping $N8N_WORKER_COUNT_CURRENT."
-                N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
-            fi
-        else
-            log_warning "Invalid input '$N8N_WORKER_COUNT_INPUT_RAW'. Please enter a positive integer. Keeping $N8N_WORKER_COUNT_CURRENT."
-            N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
-        fi
-    fi
-else
-    while true; do
-        echo ""
-        read -p "Enter the number of n8n workers to run (e.g., 1, 2, 3; default is 1): " N8N_WORKER_COUNT_INPUT_RAW
-        N8N_WORKER_COUNT_CANDIDATE="${N8N_WORKER_COUNT_INPUT_RAW:-1}" # Default to 1 if empty
-
-        if [[ "$N8N_WORKER_COUNT_CANDIDATE" =~ ^0*[1-9][0-9]*$ ]]; then
-            N8N_WORKER_COUNT_VALIDATED="$((10#$N8N_WORKER_COUNT_CANDIDATE))"
-            if [[ "$N8N_WORKER_COUNT_VALIDATED" -ge 1 ]]; then
-                echo ""
-                read -p "Run $N8N_WORKER_COUNT_VALIDATED n8n worker(s)? (y/N): " confirm_workers
-                if [[ "$confirm_workers" =~ ^[Yy]$ ]]; then
-                    N8N_WORKER_COUNT="$N8N_WORKER_COUNT_VALIDATED"
-                    break
-                else
-                    log_info "Please try entering the number of workers again."
-                fi
-            else # Should not be reached if regex is correct
-                log_error "Number of workers must be a positive integer." >&2
-            fi
-        else
-            log_error "Invalid input '$N8N_WORKER_COUNT_CANDIDATE'. Please enter a positive integer (e.g., 1, 2)." >&2
-        fi
-    done
-fi
-# Ensure N8N_WORKER_COUNT is definitely set (should be by logic above)
-N8N_WORKER_COUNT="${N8N_WORKER_COUNT:-1}"
 
 
 log_info "Generating secrets and creating .env file..."
@@ -367,20 +272,15 @@ done
 generated_values["FLOWISE_USERNAME"]="$USER_EMAIL"
 generated_values["DASHBOARD_USERNAME"]="$USER_EMAIL"
 generated_values["LETSENCRYPT_EMAIL"]="$USER_EMAIL"
-generated_values["RUN_N8N_IMPORT"]="$final_run_n8n_import_decision"
 generated_values["PROMETHEUS_USERNAME"]="$USER_EMAIL"
 generated_values["SEARXNG_USERNAME"]="$USER_EMAIL"
 generated_values["LANGFUSE_INIT_USER_EMAIL"]="$USER_EMAIL"
-generated_values["N8N_WORKER_COUNT"]="$N8N_WORKER_COUNT"
 generated_values["WEAVIATE_USERNAME"]="$USER_EMAIL" # Set Weaviate username for Caddy
 generated_values["COMFYUI_USERNAME"]="$USER_EMAIL" # Set ComfyUI username for Caddy
 generated_values["RAGAPP_USERNAME"]="$USER_EMAIL" # Set RAGApp username for Caddy
 generated_values["PADDLEOCR_USERNAME"]="$USER_EMAIL" # Set PaddleOCR username for Caddy
 generated_values["LT_USERNAME"]="$USER_EMAIL" # Set LibreTranslate username for Caddy
 
-if [[ -n "$OPENAI_API_KEY" ]]; then
-    generated_values["OPENAI_API_KEY"]="$OPENAI_API_KEY"
-fi
 
 # Create a temporary file for processing
 TMP_ENV_FILE=$(mktemp)
