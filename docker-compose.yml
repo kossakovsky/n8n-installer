@@ -755,7 +755,7 @@ services:
       python -m pip install --upgrade pip; \
       python -m pip install --no-cache-dir 'paddlex[ocr]'; \
       python -m paddlex --install serving; \
-      exec python -m paddlex --serve --pipeline OCR --device cpu --port 8080"
+      exec python -m paddlex --serve --pipeline OCR --device cpu --port 8080 --lang ru"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080 > /dev/null || exit 1"]
       interval: 30s
