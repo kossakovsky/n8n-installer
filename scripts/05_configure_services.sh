@@ -186,6 +186,13 @@ if [ $cloudflare_selected -eq 1 ]; then
     fi
 fi
 
+
+# ----------------------------------------------------------------
+# Ensure Supabase Analytics targets the correct Postgres service name used by Supabase docker compose
+# ----------------------------------------------------------------
+write_env_var "POSTGRES_HOST" "db"
+# ----------------------------------------------------------------
+
 log_success "Service configuration complete. .env updated at $ENV_FILE"
 
 exit 0
