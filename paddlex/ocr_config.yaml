@@ -1,6 +1,8 @@
 pipeline_name: OCR
 OCR:
   lang: ru
-doc_preprocessor:
-  use_doc_orientation_classify: true
-  use_doc_unwarping: true
+  doc_preprocessor:
+    use_doc_orientation_classify: true
+    use_doc_unwarping: true
+  recognizer:
+    lang: ru
