@@ -756,12 +756,12 @@ services:
     restart: unless-stopped
     command: /bin/sh -c "set -e; \
       python -m pip install --upgrade pip; \
-      python -m pip install --no-cache-dir 'paddlex[ocr]'; \
+      python -m pip install --no-cache-dir 'paddlex[all]'; \
       python -m paddlex --install serving; \
-      if [ ! -f /app/PP-ChatOCRv3-doc.yaml ]; then \
-        python -m paddlex --get_pipeline_config PP-ChatOCRv3-doc --save_path /app; \
+      if [ ! -f /app/PP-ChatOCRv5-doc.yaml ]; then \
+        python -m paddlex --get_pipeline_config PP-ChatOCRv5-doc --save_path /app; \
       fi; \
-      exec python -m paddlex --serve --pipeline /app/PP-ChatOCRv3-doc.yaml --device cpu --port 8080"
+      exec python -m paddlex --serve --pipeline /app/PP-ChatOCRv5-doc.yaml --device cpu --port 8080"
     volumes:
       - paddleocr_cache:/root/.paddleocr
       - paddle_cache:/root/.cache/paddle
