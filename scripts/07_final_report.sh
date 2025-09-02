@@ -197,6 +197,7 @@ if is_profile_active "qdrant"; then
   echo
   echo "================================= Qdrant =============================="
   echo
+  echo "Dashboard: https://${QDRANT_HOSTNAME:-<hostname_not_set>}/dashboard"
   echo "Host: https://${QDRANT_HOSTNAME:-<hostname_not_set>}"
   echo "API Key: ${QDRANT_API_KEY:-<not_set_in_env>}"
   echo "Internal REST API Access (e.g., from backend): http://qdrant:6333"
@@ -254,7 +255,7 @@ if is_profile_active "n8n" || is_profile_active "langfuse"; then
   echo
   echo "Internal Host: ${REDIS_HOST:-redis}"
   echo "Internal Port: ${REDIS_PORT:-6379}"
-  echo "Password: ${REDIS_AUTH:-LOCALONLYREDIS} (Note: Default if not set in .env)"
+  echo "Password: ${REDIS_AUTH:-}"
   echo "(Note: Primarily for internal service communication, not exposed externally by default)"
 fi
 
