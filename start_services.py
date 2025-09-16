@@ -79,6 +79,10 @@ def prepare_supabase_env():
         return
     env_path = os.path.join("supabase", "docker", ".env")
     env_example_path = os.path.join(".env")
+    # Do not overwrite existing Supabase env to avoid credential drift
+    if os.path.exists(env_path):
+        print(f"Supabase env already exists at {env_path}, not overwriting.")
+        return
     print("Copying .env in root to .env in supabase/docker...")
     shutil.copyfile(env_example_path, env_path)
 
