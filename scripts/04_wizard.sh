@@ -156,6 +156,25 @@ if [ -n "$CHOICES" ]; then
     done
 fi
 
+# Enforce mutual exclusivity between Dify and Supabase (compact)
+if printf '%s\n' "${selected_profiles[@]}" | grep -qx "dify" && \
+   printf '%s\n' "${selected_profiles[@]}" | grep -qx "supabase"; then
+    CHOSEN_EXCLUSIVE=$(whiptail --title "Conflict: Dify and Supabase" --default-item "supabase" --radiolist \
+      "Dify and Supabase are mutually exclusive. Choose which one to keep." 15 78 2 \
+      "dify" "Keep Dify (AI App Platform)" OFF \
+      "supabase" "Keep Supabase (Backend as a Service)" ON \
+      3>&1 1>&2 2>&3)
+    [ -z "$CHOSEN_EXCLUSIVE" ] && CHOSEN_EXCLUSIVE="supabase"
+
+    to_remove=$([ "$CHOSEN_EXCLUSIVE" = "dify" ] && echo "supabase" || echo "dify")
+    tmp=()
+    for p in "${selected_profiles[@]}"; do
+        [ "$p" = "$to_remove" ] || tmp+=("$p")
+    done
+    selected_profiles=("${tmp[@]}")
+    log_info "Mutual exclusivity enforced: kept '$CHOSEN_EXCLUSIVE', removed '$to_remove'."
+fi
+
 # If Ollama was selected, prompt for the hardware profile
 if [ $ollama_selected -eq 1 ]; then
     # Determine default selected Ollama hardware profile from .env
