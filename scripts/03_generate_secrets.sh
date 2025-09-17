@@ -98,6 +98,7 @@ if ! command -v caddy &> /dev/null; then
     exit 1
 fi
 
+require_whiptail
 # Prompt for the domain name
 DOMAIN="" # Initialize DOMAIN variable
 
@@ -110,73 +111,52 @@ if [[ -v existing_env_vars[USER_DOMAIN_NAME] && -n "${existing_env_vars[USER_DOM
     generated_values["USER_DOMAIN_NAME"]="$DOMAIN"
 else
     while true; do
-        echo ""
-        prompt_text="Enter the primary domain name for your services (e.g., example.com): " # Simplified prompt
-        read -p "$prompt_text" DOMAIN_INPUT
+        DOMAIN_INPUT=$(wt_input "Primary Domain" "Enter the primary domain name for your services (e.g., example.com)." "") || true
 
         DOMAIN_TO_USE="$DOMAIN_INPUT" # Direct assignment, no default fallback
 
         # Validate domain input
         if [[ -z "$DOMAIN_TO_USE" ]]; then
-            log_error "Domain name cannot be empty. This field is mandatory." >&2 # Clarified error
-            continue # Ask again
+            wt_msg "Validation" "Domain name cannot be empty."
+            continue
         fi
 
         # Basic check for likely invalid domain characters (very permissive)
         if [[ "$DOMAIN_TO_USE" =~ [^a-zA-Z0-9.-] ]]; then
-            log_warning "Warning: Domain name contains potentially invalid characters: '$DOMAIN_TO_USE'" >&2
+            wt_msg "Validation" "Warning: Domain contains potentially invalid characters: '$DOMAIN_TO_USE'"
         fi
-
-        echo ""
-        read -p "Are you sure '$DOMAIN_TO_USE' is correct? (y/N): " confirm_domain
-        if [[ "$confirm_domain" =~ ^[Yy]$ ]]; then
+        if wt_yesno "Confirm Domain" "Use '$DOMAIN_TO_USE' as the primary domain?" "no"; then
             DOMAIN="$DOMAIN_TO_USE" # Set the final DOMAIN variable
             generated_values["USER_DOMAIN_NAME"]="$DOMAIN" # Using USER_DOMAIN_NAME
             log_info "Domain set to '$DOMAIN'. It will be saved in .env."
             break # Confirmed, exit loop
-        else
-            log_info "Please try entering the domain name again."
-            # No default domain suggestion to retry with.
         fi
     done
 fi
 
 # Prompt for user email
 if [[ -z "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
-    echo ""
-    echo "Please enter your email address. This email will be used for:"
-    echo "   - Login to Flowise"
-    echo "   - Login to Supabase"
-    echo "   - Login to SearXNG"
-    echo "   - Login to Grafana"
-    echo "   - Login to Prometheus"
-    echo "   - SSL certificate generation with Let\'s Encrypt"
+    wt_msg "Email Required" "Please enter your email address. It will be used for logins and Let's Encrypt SSL."
 fi
 
 if [[ -n "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
     USER_EMAIL="${existing_env_vars[LETSENCRYPT_EMAIL]}"
 else
     while true; do
-        echo ""
-        read -p "Email: " USER_EMAIL
+        USER_EMAIL=$(wt_input "Email" "Enter your email address." "") || true
 
         # Validate email input
         if [[ -z "$USER_EMAIL" ]]; then
-            log_error "Email cannot be empty." >&2
-            continue # Ask again
+            wt_msg "Validation" "Email cannot be empty."
+            continue
         fi
 
         # Basic email format validation
         if [[ ! "$USER_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-            log_warning "Warning: Email format appears to be invalid: '$USER_EMAIL'" >&2
+            wt_msg "Validation" "Warning: Email format appears to be invalid: '$USER_EMAIL'"
         fi
-
-        echo ""
-        read -p "Are you sure '$USER_EMAIL' is correct? (y/N): " confirm_email
-        if [[ "$confirm_email" =~ ^[Yy]$ ]]; then
+        if wt_yesno "Confirm Email" "Use '$USER_EMAIL' as your email?" "no"; then
             break # Confirmed, exit loop
-        else
-            log_info "Please try entering the email address again."
         fi
     done
 fi

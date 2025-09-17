@@ -44,13 +44,8 @@ log_info "Configuring service options in .env..."
 EXISTING_OPENAI_API_KEY="$(read_env_var OPENAI_API_KEY)"
 OPENAI_API_KEY=""
 if [[ -z "$EXISTING_OPENAI_API_KEY" ]]; then
-    echo ""
-    echo "OpenAI API Key (optional). This key will be used for:"
-    echo "   - Supabase: AI services to help with writing SQL queries, statements, and policies"
-    echo "   - Crawl4AI: Default LLM configuration for web crawling capabilities"
-    echo "   You can skip this by leaving it empty."
-    echo ""
-    read -p "OpenAI API Key: " OPENAI_API_KEY
+    require_whiptail
+    OPENAI_API_KEY=$(wt_input "OpenAI API Key" "Optional: Used by Supabase AI (SQL assistance) and Crawl4AI. Leave empty to skip." "") || true
     if [[ -n "$OPENAI_API_KEY" ]]; then
         write_env_var "OPENAI_API_KEY" "$OPENAI_API_KEY"
     fi
@@ -64,13 +59,8 @@ fi
 # Logic for n8n workflow import (RUN_N8N_IMPORT)
 # ----------------------------------------------------------------
 final_run_n8n_import_decision="false"
-
-echo ""
-echo "Do you want to import 300 ready-made workflows for n8n? This process may take about 30 minutes to complete."
-echo ""
-read -p "Import workflows? (y/n): " import_workflow_choice
-
-if [[ "$import_workflow_choice" =~ ^[Yy]$ ]]; then
+require_whiptail
+if wt_yesno "Import n8n Workflows" "Import ~300 ready-made n8n workflows now? This can take ~30 minutes." "no"; then
     final_run_n8n_import_decision="true"
 else
     final_run_n8n_import_decision="false"
@@ -86,24 +76,22 @@ write_env_var "RUN_N8N_IMPORT" "$final_run_n8n_import_decision"
 echo "" # Add a newline for better formatting
 log_info "Configuring n8n worker count..."
 EXISTING_N8N_WORKER_COUNT="$(read_env_var N8N_WORKER_COUNT)"
+require_whiptail
 if [[ -n "$EXISTING_N8N_WORKER_COUNT" ]]; then
     N8N_WORKER_COUNT_CURRENT="$EXISTING_N8N_WORKER_COUNT"
-    echo ""
-    read -p "Do you want to change the number of n8n workers? Current: $N8N_WORKER_COUNT_CURRENT. (Enter new number, or press Enter to keep current): " N8N_WORKER_COUNT_INPUT_RAW
+    N8N_WORKER_COUNT_INPUT_RAW=$(wt_input "n8n Workers (instances)" "Enter new number of n8n workers, or leave as current ($N8N_WORKER_COUNT_CURRENT)." "") || true
     if [[ -z "$N8N_WORKER_COUNT_INPUT_RAW" ]]; then
         N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
     else
         if [[ "$N8N_WORKER_COUNT_INPUT_RAW" =~ ^0*[1-9][0-9]*$ ]]; then
             N8N_WORKER_COUNT_TEMP="$((10#$N8N_WORKER_COUNT_INPUT_RAW))"
             if [[ "$N8N_WORKER_COUNT_TEMP" -ge 1 ]]; then
-                 echo ""
-                 read -p "Update n8n workers to $N8N_WORKER_COUNT_TEMP? (y/N): " confirm_change
-                 if [[ "$confirm_change" =~ ^[Yy]$ ]]; then
+                if wt_yesno "Confirm Workers" "Update n8n workers to $N8N_WORKER_COUNT_TEMP?" "no"; then
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_TEMP"
-                 else
+                else
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
                     log_info "Change declined. Keeping N8N_WORKER_COUNT at $N8N_WORKER_COUNT."
-                 fi
+                fi
             else
                 log_warning "Invalid input '$N8N_WORKER_COUNT_INPUT_RAW'. Number must be positive. Keeping $N8N_WORKER_COUNT_CURRENT."
                 N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
@@ -115,20 +103,14 @@ if [[ -n "$EXISTING_N8N_WORKER_COUNT" ]]; then
     fi
 else
     while true; do
-        echo ""
-        read -p "Enter the number of n8n workers to run (e.g., 1, 2, 3; default is 1): " N8N_WORKER_COUNT_INPUT_RAW
+        N8N_WORKER_COUNT_INPUT_RAW=$(wt_input "n8n Workers" "Enter number of n8n workers to run (default 1)." "1") || true
         N8N_WORKER_COUNT_CANDIDATE="${N8N_WORKER_COUNT_INPUT_RAW:-1}"
-
         if [[ "$N8N_WORKER_COUNT_CANDIDATE" =~ ^0*[1-9][0-9]*$ ]]; then
             N8N_WORKER_COUNT_VALIDATED="$((10#$N8N_WORKER_COUNT_CANDIDATE))"
             if [[ "$N8N_WORKER_COUNT_VALIDATED" -ge 1 ]]; then
-                echo ""
-                read -p "Run $N8N_WORKER_COUNT_VALIDATED n8n worker(s)? (y/N): " confirm_workers
-                if [[ "$confirm_workers" =~ ^[Yy]$ ]]; then
+                if wt_yesno "Confirm Workers" "Run $N8N_WORKER_COUNT_VALIDATED n8n worker(s)?" "no"; then
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_VALIDATED"
                     break
-                else
-                    log_info "Please try entering the number of workers again."
                 fi
             else
                 log_error "Number of workers must be a positive integer." >&2
@@ -165,9 +147,8 @@ if [ $cloudflare_selected -eq 1 ]; then
         log_info "Cloudflare Tunnel token found in .env; reusing it."
         # Do not prompt; keep existing token as-is
     else
-        log_info "Cloudflare Tunnel selected. Please provide your Cloudflare Tunnel token."
-        echo ""
-        read -p "Cloudflare Tunnel Token: " input_cf_token
+        require_whiptail
+        input_cf_token=$(wt_input "Cloudflare Tunnel Token" "Enter your Cloudflare Tunnel token (leave empty to skip)." "") || true
         token_to_write="$input_cf_token"
 
         # Update the .env with the token (may be empty if user skipped)
@@ -186,6 +167,25 @@ if [ $cloudflare_selected -eq 1 ]; then
     fi
 fi
 
+
+# ----------------------------------------------------------------
+# Safety: If Supabase is present, remove Dify from COMPOSE_PROFILES (no prompts)
+# ----------------------------------------------------------------
+if [[ -n "$COMPOSE_PROFILES_VALUE" && "$COMPOSE_PROFILES_VALUE" == *"supabase"* ]]; then
+  IFS=',' read -r -a profiles_array <<< "$COMPOSE_PROFILES_VALUE"
+  new_profiles=()
+  for p in "${profiles_array[@]}"; do
+    if [[ "$p" != "dify" ]]; then
+      new_profiles+=("$p")
+    fi
+  done
+  COMPOSE_PROFILES_VALUE_UPDATED=$(IFS=','; echo "${new_profiles[*]}")
+  if [[ "$COMPOSE_PROFILES_VALUE_UPDATED" != "$COMPOSE_PROFILES_VALUE" ]]; then
+    write_env_var "COMPOSE_PROFILES" "$COMPOSE_PROFILES_VALUE_UPDATED"
+    log_info "Supabase present: removed 'dify' from COMPOSE_PROFILES due to conflict with Supabase."
+    COMPOSE_PROFILES_VALUE="$COMPOSE_PROFILES_VALUE_UPDATED"
+  fi
+fi
 
 # ----------------------------------------------------------------
 # Ensure Supabase Analytics targets the correct Postgres service name used by Supabase docker compose
