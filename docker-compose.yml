@@ -260,7 +260,7 @@ services:
       options:
         max-size: "1m"
         max-file: "1"
-        
+
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared
@@ -273,7 +273,7 @@ services:
       driver: "json-file"
       options:
         max-size: "1m"
-        max-file: "1"  
+        max-file: "1"
 
   langfuse-worker:
     image: langfuse/langfuse-worker:3
@@ -392,7 +392,7 @@ services:
 
   postgres:
     container_name: postgres
-    image: postgres:${POSTGRES_VERSION:-latest}
+    image: postgres:${POSTGRES_VERSION:-17}
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -776,7 +776,8 @@ services:
       - paddle_cache:/root/.cache/paddle
       - paddlex_data:/root/.paddlex
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080 > /dev/null || exit 1"]
+      test:
+        ["CMD-SHELL", "wget -qO- http://localhost:8080 > /dev/null || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
