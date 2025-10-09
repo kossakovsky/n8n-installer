@@ -28,7 +28,7 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**ComfyUI**](https://github.com/comfyanonymous/ComfyUI) - A powerful, node-based UI for Stable Diffusion workflows. Build and run image-generation pipelines visually, with support for custom nodes and extensions.
 
-✅ [**Crawl4ai**](https://github.com/Alfresco/crawl4ai) - A flexible web crawler designed for AI, enabling you to extract data from websites for your projects.
+✅ [**Crawl4ai**](https://github.com/unclecode/crawl4ai) - A flexible web crawler designed for AI, enabling you to extract data from websites for your projects.
 
 ✅ [**Dify**](https://dify.ai/) - An open-source AI application development platform that provides comprehensive LLMOps capabilities, including workflow management, prompt engineering, RAG pipelines, and AI agent orchestration. Perfect for building production-ready AI applications.
 
