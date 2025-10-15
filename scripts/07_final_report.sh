@@ -225,6 +225,22 @@ if is_profile_active "gotenberg"; then
   echo "  Office to PDF: POST /forms/libreoffice/convert"
 fi
 
+if is_profile_active "waha"; then
+  echo
+  echo "============================== WAHA (WhatsApp HTTP API) =============================="
+  echo
+  echo "Host: ${WAHA_HOSTNAME:-<hostname_not_set>}"
+  echo "Dashboard: https://${WAHA_HOSTNAME:-<hostname_not_set>}/dashboard"
+  echo "Swagger:   https://${WAHA_HOSTNAME:-<hostname_not_set>}/swagger"
+  echo "Internal:  http://waha:3000"
+  echo
+  echo "Dashboard User: ${WAHA_DASHBOARD_USERNAME:-<not_set_in_env>}"
+  echo "Dashboard Pass: ${WAHA_DASHBOARD_PASSWORD:-<not_set_in_env>}"
+  echo "Swagger User:   ${WHATSAPP_SWAGGER_USERNAME:-<not_set_in_env>}"
+  echo "Swagger Pass:   ${WHATSAPP_SWAGGER_PASSWORD:-<not_set_in_env>}"
+  echo "API key (plain): ${WAHA_API_KEY_PLAIN:-<not_set_in_env>}"
+fi
+
 if is_profile_active "paddleocr"; then
   echo
   echo "================================= PaddleOCR ==========================="

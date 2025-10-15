@@ -233,6 +233,7 @@ services:
       - LT_PASSWORD_HASH=${LT_PASSWORD_HASH}
       - N8N_HOSTNAME=${N8N_HOSTNAME}
       - NEO4J_HOSTNAME=${NEO4J_HOSTNAME}
+      - WAHA_HOSTNAME=${WAHA_HOSTNAME}
       - PADDLEOCR_HOSTNAME=${PADDLEOCR_HOSTNAME}
       - PADDLEOCR_PASSWORD_HASH=${PADDLEOCR_PASSWORD_HASH}
       - PADDLEOCR_USERNAME=${PADDLEOCR_USERNAME}
@@ -782,3 +783,16 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: waha
+    profiles: ["waha"]
+    restart: unless-stopped
+    environment:
+      - WAHA_ENGINE=${WAHA_ENGINE}
+      - WAHA_API_KEY=${WAHA_API_KEY}
+      - WAHA_DASHBOARD_USERNAME=${WAHA_DASHBOARD_USERNAME}
+      - WAHA_DASHBOARD_PASSWORD=${WAHA_DASHBOARD_PASSWORD}
+      - WHATSAPP_SWAGGER_USERNAME=${WHATSAPP_SWAGGER_USERNAME}
+      - WHATSAPP_SWAGGER_PASSWORD=${WHATSAPP_SWAGGER_PASSWORD}

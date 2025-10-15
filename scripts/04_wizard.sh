@@ -73,6 +73,7 @@ base_services_data=(
     "ragapp" "RAGApp (Open-source RAG UI + API)"
     "searxng" "SearXNG (Private Metasearch Engine)"
     "supabase" "Supabase (Backend as a Service)"
+    "waha" "WAHA – WhatsApp HTTP API (NOWEB engine)"
     "weaviate" "Weaviate (Vector Database with API Key Auth)"
 )
 

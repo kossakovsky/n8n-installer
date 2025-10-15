@@ -55,6 +55,9 @@ declare -A VARS_TO_GENERATE=(
     ["RAGAPP_PASSWORD"]="password:32" # Added RAGApp basic auth password
     ["PADDLEOCR_PASSWORD"]="password:32" # Added PaddleOCR basic auth password
     ["LT_PASSWORD"]="password:32" # Added LibreTranslate basic auth password
+    # WAHA (WhatsApp HTTP API)
+    ["WAHA_DASHBOARD_PASSWORD"]="password:32"
+    ["WHATSAPP_SWAGGER_PASSWORD"]="password:32"
 )
 
 # Initialize existing_env_vars and attempt to read .env if it exists
@@ -260,6 +263,8 @@ generated_values["COMFYUI_USERNAME"]="$USER_EMAIL" # Set ComfyUI username for Ca
 generated_values["RAGAPP_USERNAME"]="$USER_EMAIL" # Set RAGApp username for Caddy
 generated_values["PADDLEOCR_USERNAME"]="$USER_EMAIL" # Set PaddleOCR username for Caddy
 generated_values["LT_USERNAME"]="$USER_EMAIL" # Set LibreTranslate username for Caddy
+generated_values["WAHA_DASHBOARD_USERNAME"]="$USER_EMAIL" # WAHA dashboard username default
+generated_values["WHATSAPP_SWAGGER_USERNAME"]="$USER_EMAIL" # WAHA swagger username default
 
 
 # Create a temporary file for processing
@@ -284,6 +289,8 @@ found_vars["COMFYUI_USERNAME"]=0
 found_vars["RAGAPP_USERNAME"]=0
 found_vars["PADDLEOCR_USERNAME"]=0
 found_vars["LT_USERNAME"]=0
+found_vars["WAHA_DASHBOARD_USERNAME"]=0
+found_vars["WHATSAPP_SWAGGER_USERNAME"]=0
 
 # Read template, substitute domain, generate initial values
 while IFS= read -r line || [[ -n "$line" ]]; do
@@ -330,7 +337,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             # This 'else' block is for lines from template not covered by existing values or VARS_TO_GENERATE.
             # Check if it is one of the user input vars - these are handled by found_vars later if not in template.
             is_user_input_var=0 # Reset for each line
-            user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME")
+    user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "WAHA_DASHBOARD_USERNAME" "WHATSAPP_SWAGGER_USERNAME")
             for uivar in "${user_input_vars[@]}"; do
                 if [[ "$varName" == "$uivar" ]]; then
                     is_user_input_var=1
@@ -412,7 +419,7 @@ if [[ -z "${generated_values[SERVICE_ROLE_KEY]}" ]]; then
 fi
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME"; do
+for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "WAHA_DASHBOARD_USERNAME" "WHATSAPP_SWAGGER_USERNAME"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
         # Before appending, check if it's already in TMP_ENV_FILE to avoid duplicates
         if ! grep -q -E "^${var}=" "$TMP_ENV_FILE"; then
@@ -420,6 +427,23 @@ for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_
         fi
     fi
 done
+
+# --- WAHA API KEY (sha512) ---
+# Generate plaintext API key if missing, then compute sha512:HEX and store in WAHA_API_KEY
+if [[ -z "${generated_values[WAHA_API_KEY_PLAIN]}" && -z "${WAHA_API_KEY_PLAIN}" ]]; then
+  generated_values[WAHA_API_KEY_PLAIN]="$(gen_base64 48 | tr -d '\n' | tr '/+' 'AZ')"
+fi
+
+PLAINTEXT_KEY="${generated_values[WAHA_API_KEY_PLAIN]:-${WAHA_API_KEY_PLAIN}}"
+if [[ -n "$PLAINTEXT_KEY" ]]; then
+  SHA_HEX="$(printf "%s" "$PLAINTEXT_KEY" | openssl dgst -sha512 | awk '{print $2}')"
+  if [[ -n "$SHA_HEX" ]]; then
+    generated_values[WAHA_API_KEY]="sha512:${SHA_HEX}"
+  fi
+fi
+
+_update_or_add_env_var "WAHA_API_KEY_PLAIN" "${generated_values[WAHA_API_KEY_PLAIN]}"
+_update_or_add_env_var "WAHA_API_KEY" "${generated_values[WAHA_API_KEY]}"
 
 # Second pass: Substitute generated values referenced like ${VAR}
 # We'll process the substitutions line by line to avoid escaping issues

@@ -53,6 +53,11 @@
     reverse_proxy grafana:3000
 }
 
+# WAHA (WhatsApp HTTP API)
+{$WAHA_HOSTNAME} {
+    reverse_proxy waha:3000
+}
+
 # Prometheus
 {$PROMETHEUS_HOSTNAME} {
     basic_auth { 
