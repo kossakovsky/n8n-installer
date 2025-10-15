@@ -229,10 +229,9 @@ if is_profile_active "waha"; then
   echo
   echo "============================== WAHA (WhatsApp HTTP API) =============================="
   echo
-  echo "Host: ${WAHA_HOSTNAME:-<hostname_not_set>}"
   echo "Dashboard: https://${WAHA_HOSTNAME:-<hostname_not_set>}/dashboard"
-  echo "Swagger:   https://${WAHA_HOSTNAME:-<hostname_not_set>}/swagger"
-  echo "Internal:  http://waha:3000"
+  echo "Swagger:   https://${WAHA_HOSTNAME:-<hostname_not_set>}"
+  echo "Internal:  http://${WAHA_HOSTNAME:-<hostname_not_set>}:3000"
   echo
   echo "Dashboard User: ${WAHA_DASHBOARD_USERNAME:-<not_set_in_env>}"
   echo "Dashboard Pass: ${WAHA_DASHBOARD_PASSWORD:-<not_set_in_env>}"
