@@ -428,22 +428,7 @@ for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_
     fi
 done
 
-# --- WAHA API KEY (sha512) ---
-# Generate plaintext API key if missing, then compute sha512:HEX and store in WAHA_API_KEY
-if [[ -z "${generated_values[WAHA_API_KEY_PLAIN]}" && -z "${WAHA_API_KEY_PLAIN}" ]]; then
-  generated_values[WAHA_API_KEY_PLAIN]="$(gen_base64 48 | tr -d '\n' | tr '/+' 'AZ')"
-fi
-
-PLAINTEXT_KEY="${generated_values[WAHA_API_KEY_PLAIN]:-${WAHA_API_KEY_PLAIN}}"
-if [[ -n "$PLAINTEXT_KEY" ]]; then
-  SHA_HEX="$(printf "%s" "$PLAINTEXT_KEY" | openssl dgst -sha512 | awk '{print $2}')"
-  if [[ -n "$SHA_HEX" ]]; then
-    generated_values[WAHA_API_KEY]="sha512:${SHA_HEX}"
-  fi
-fi
-
-_update_or_add_env_var "WAHA_API_KEY_PLAIN" "${generated_values[WAHA_API_KEY_PLAIN]}"
-_update_or_add_env_var "WAHA_API_KEY" "${generated_values[WAHA_API_KEY]}"
+# --- WAHA API KEY (sha512) --- (moved after .env write to avoid overwrite)
 
 # Second pass: Substitute generated values referenced like ${VAR}
 # We'll process the substitutions line by line to avoid escaping issues
@@ -515,6 +500,23 @@ for key in "${!generated_values[@]}"; do
     # Clean up
     rm -f "$value_file"
 done
+
+# --- WAHA API KEY (sha512) --- ensure after .env write/substitutions ---
+# Generate plaintext API key if missing, then compute sha512:HEX and store in WAHA_API_KEY
+if [[ -z "${generated_values[WAHA_API_KEY_PLAIN]}" ]]; then
+    generated_values[WAHA_API_KEY_PLAIN]="$(gen_base64 48 | tr -d '\n' | tr '/+' 'AZ')"
+fi
+
+PLAINTEXT_KEY="${generated_values[WAHA_API_KEY_PLAIN]}"
+if [[ -n "$PLAINTEXT_KEY" ]]; then
+    SHA_HEX="$(printf "%s" "$PLAINTEXT_KEY" | openssl dgst -sha512 | awk '{print $2}')"
+    if [[ -n "$SHA_HEX" ]]; then
+        generated_values[WAHA_API_KEY]="sha512:${SHA_HEX}"
+    fi
+fi
+
+_update_or_add_env_var "WAHA_API_KEY_PLAIN" "${generated_values[WAHA_API_KEY_PLAIN]}"
+_update_or_add_env_var "WAHA_API_KEY" "${generated_values[WAHA_API_KEY]}"
 
 # Hash passwords using caddy with bcrypt
 PROMETHEUS_PLAIN_PASS="${generated_values["PROMETHEUS_PASSWORD"]}"
