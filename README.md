@@ -154,6 +154,7 @@ After successful installation, your services are up and running! Here's how to g
     - **RAGApp:** `ragapp.yourdomain.com`
     - **SearXNG:** `searxng.yourdomain.com`
     - **Supabase (Dashboard):** `supabase.yourdomain.com`
+    - **WAHA:** `waha.yourdomain.com` (WhatsApp HTTP API; engines: WEBJS, NOWEB, GOWS)
     - **Weaviate:** `weaviate.yourdomain.com`
 
 ### Optional Internal Utility: Python Runner

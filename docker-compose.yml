@@ -796,8 +796,13 @@ services:
       - WAHA_DASHBOARD_PASSWORD=${WAHA_DASHBOARD_PASSWORD}
       - WHATSAPP_SWAGGER_USERNAME=${WHATSAPP_SWAGGER_USERNAME}
       - WHATSAPP_SWAGGER_PASSWORD=${WHATSAPP_SWAGGER_PASSWORD}
-      - WAHA_DASHBOARD_ENABLED=true
-      - WHATSAPP_SWAGGER_ENABLED=true
+      - WAHA_DASHBOARD_ENABLED=${WAHA_DASHBOARD_ENABLED:-true}
+      - WHATSAPP_SWAGGER_ENABLED=${WHATSAPP_SWAGGER_ENABLED:-true}
       - WAHA_BASE_URL=http://waha:3000
       - REDIS_URL=redis://redis:6379
       - WHATSAPP_SESSIONS_POSTGRESQL_URL=postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?sslmode=disable
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
