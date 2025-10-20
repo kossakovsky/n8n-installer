@@ -1,3 +1,6 @@
+---
+alwaysApply: false
+---
 # Guide: Adding a New Service to n8n-installer
 
 This document shows how to add a new optional service (behind Docker Compose profiles) and wire it into the installer, Caddy, and final report.
@@ -162,3 +165,4 @@ docker compose -p localai logs -f --tail=200 caddy | cat
 - [ ] Service selectable in `scripts/04_wizard.sh`
 - [ ] Listed with URLs/credentials in `scripts/07_final_report.sh`
 - [ ] One-line description added to `README.md`
+
