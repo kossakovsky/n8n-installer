@@ -769,7 +769,7 @@ services:
     # python -m paddlex --get_pipeline_config PP-ChatOCRv4-doc --save_path /app; \
     command: /bin/sh -c "set -e; \
       python -m pip install --upgrade pip; \
-      python -m pip install --no-cache-dir 'paddlex[all]'; \
+      python -m pip install --no-cache-dir 'paddlex[all,ocr,ie]'; \
       python -m paddlex --install serving; \
       exec python -m paddlex --serve --pipeline '/app/ocr_config.yml' --device cpu --port 8080"
     volumes:
