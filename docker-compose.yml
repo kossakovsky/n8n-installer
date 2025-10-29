@@ -878,7 +878,7 @@ services:
       - ragflow_minio_data:/data
 
   infinity:
-    image: infiniflow/infinity:latest
+    image: infiniflow/infinity:v0.6.2
     container_name: infinity
     profiles: ["ragflow"]
     restart: unless-stopped
