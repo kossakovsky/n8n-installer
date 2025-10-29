@@ -71,6 +71,7 @@ base_services_data=(
     "python-runner" "Python Runner (Run your custom Python code from ./python-runner)"
     "qdrant" "Qdrant (Vector Database)"
     "ragapp" "RAGApp (Open-source RAG UI + API)"
+    "ragflow" "RAGFlow (Deep document understanding RAG engine)"
     "searxng" "SearXNG (Private Metasearch Engine)"
     "supabase" "Supabase (Backend as a Service)"
     "waha" "WAHA – WhatsApp HTTP API (NOWEB engine)"

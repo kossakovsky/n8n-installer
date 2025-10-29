@@ -33,6 +33,11 @@
     reverse_proxy ragapp:8000
 }
 
+# RAGFlow
+{$RAGFLOW_HOSTNAME} {
+    reverse_proxy ragflow:80
+}
+
 # Langfuse
 {$LANGFUSE_HOSTNAME} {
     reverse_proxy langfuse-web:3000

@@ -23,6 +23,9 @@ volumes:
   postiz-uploads:
   prometheus_data:
   qdrant_storage:
+  ragflow_es_data:
+  ragflow_minio_data:
+  ragflow_mysql_data:
   valkey-data:
   weaviate_data:
 
@@ -245,6 +248,7 @@ services:
       - PROMETHEUS_USERNAME=${PROMETHEUS_USERNAME}
       - QDRANT_HOSTNAME=${QDRANT_HOSTNAME}
       - RAGAPP_HOSTNAME=${RAGAPP_HOSTNAME}
+      - RAGFLOW_HOSTNAME=${RAGFLOW_HOSTNAME}
       - RAGAPP_PASSWORD_HASH=${RAGAPP_PASSWORD_HASH}
       - RAGAPP_USERNAME=${RAGAPP_USERNAME}
       - SEARXNG_HOSTNAME=${SEARXNG_HOSTNAME}
@@ -806,3 +810,100 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+
+  ragflow:
+    image: infiniflow/ragflow:v0.21.1-slim
+    container_name: ragflow
+    profiles: ["ragflow"]
+    restart: unless-stopped
+    environment:
+      - SVR_HTTP_PORT=80
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MYSQL_HOST=ragflow-mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=${RAGFLOW_MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=ragflow
+      - ES_HOST=ragflow-es
+      - ES_PORT=9200
+      - MINIO_HOST=ragflow-minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=${RAGFLOW_MINIO_ROOT_PASSWORD}
+      - MINIO_BUCKET=ragflow
+    depends_on:
+      ragflow-mysql:
+        condition: service_healthy
+      ragflow-es:
+        condition: service_healthy
+      ragflow-minio:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  ragflow-mysql:
+    image: mysql:8
+    container_name: ragflow-mysql
+    profiles: ["ragflow"]
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${RAGFLOW_MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=ragflow
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    volumes:
+      - ragflow_mysql_data:/var/lib/mysql
+
+  ragflow-es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    container_name: ragflow-es
+    profiles: ["ragflow"]
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:9200 >/dev/null 2>&1 || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    volumes:
+      - ragflow_es_data:/usr/share/elasticsearch/data
+
+  ragflow-minio:
+    image: minio/minio
+    container_name: ragflow-minio
+    profiles: ["ragflow"]
+    restart: unless-stopped
+    entrypoint: sh
+    command: -c 'mkdir -p /data/ragflow && minio server --address ":9000" --console-address ":9001" /data'
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=${RAGFLOW_MINIO_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - ragflow_minio_data:/data
