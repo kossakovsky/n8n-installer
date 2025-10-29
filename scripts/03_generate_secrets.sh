@@ -61,6 +61,7 @@ declare -A VARS_TO_GENERATE=(
     # RAGFlow internal credentials
     ["RAGFLOW_MYSQL_ROOT_PASSWORD"]="password:32"
     ["RAGFLOW_MINIO_ROOT_PASSWORD"]="password:32"
+    ["RAGFLOW_REDIS_PASSWORD"]="password:32"
 )
 
 # Initialize existing_env_vars and attempt to read .env if it exists

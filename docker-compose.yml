@@ -26,6 +26,7 @@ volumes:
   ragflow_infinity_data:
   ragflow_minio_data:
   ragflow_mysql_data:
+  ragflow_redis_data:
   valkey-data:
   weaviate_data:
 
@@ -818,9 +819,9 @@ services:
     restart: unless-stopped
     environment:
       - SVR_HTTP_PORT=80
-      - REDIS_HOST=redis
+      - REDIS_HOST=ragflow-redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=
+      - REDIS_PASSWORD=${RAGFLOW_REDIS_PASSWORD}
       - MYSQL_HOST=ragflow-mysql
       - MYSQL_PORT=3306
       - MYSQL_USER=root
@@ -839,7 +840,7 @@ services:
         condition: service_healthy
       ragflow-minio:
         condition: service_healthy
-      redis:
+      ragflow-redis:
         condition: service_healthy
 
   ragflow-mysql:
@@ -877,6 +878,31 @@ services:
       start_period: 10s
     volumes:
       - ragflow_minio_data:/data
+
+  ragflow-redis:
+    image: docker.io/valkey/valkey:8-alpine
+    container_name: ragflow-redis
+    profiles: ["ragflow"]
+    restart: unless-stopped
+    command: valkey-server --save 30 1 --loglevel warning --requirepass ${RAGFLOW_REDIS_PASSWORD}
+    volumes:
+      - ragflow_redis_data:/data
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+    healthcheck:
+      test: ["CMD", "valkey-cli", "-a", "${RAGFLOW_REDIS_PASSWORD}", "ping"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
 
   infinity:
     image: infiniflow/infinity:v0.6.2
