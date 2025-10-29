@@ -39,7 +39,7 @@
 }
 
 # RAGFlow Admin
-{$RAGFLOW_HOSTNAME}-admin {
+{$RAGFLOW_ADMIN_HOSTNAME} {
     reverse_proxy ragflow:9381
 }
 
