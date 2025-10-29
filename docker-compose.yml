@@ -837,6 +837,7 @@ services:
       - MINIO_BUCKET=ragflow
     volumes:
       - ragflow_data:/ragflow
+      - ./ragflow/nginx.conf:/etc/nginx/sites-available/default:ro
     depends_on:
       infinity:
         condition: service_started
