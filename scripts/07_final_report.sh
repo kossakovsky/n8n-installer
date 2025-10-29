@@ -177,6 +177,7 @@ if is_profile_active "ragflow"; then
   echo "================================= RAGFlow ============================="
   echo
   echo "Host: ${RAGFLOW_HOSTNAME:-<hostname_not_set>}"
+  echo "Admin Host: ${RAGFLOW_ADMIN_HOSTNAME:-<hostname_not_set>}"
   echo "API (external via Caddy): https://${RAGFLOW_HOSTNAME:-<hostname_not_set>}"
   echo "API (internal): http://ragflow:80"
   echo "Note: Uses built-in authentication (login/registration available in web UI)"
