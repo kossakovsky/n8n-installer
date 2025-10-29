@@ -23,6 +23,7 @@ volumes:
   postiz-uploads:
   prometheus_data:
   qdrant_storage:
+  ragflow_data:
   ragflow_infinity_data:
   ragflow_minio_data:
   ragflow_mysql_data:
@@ -814,7 +815,7 @@ services:
         condition: service_healthy
 
   ragflow:
-    image: infiniflow/ragflow:latest-slim
+    image: infiniflow/ragflow:latest
     container_name: ragflow
     profiles: ["ragflow"]
     restart: unless-stopped
@@ -834,6 +835,8 @@ services:
       - MINIO_ACCESS_KEY=minio
       - MINIO_SECRET_KEY=${RAGFLOW_MINIO_ROOT_PASSWORD}
       - MINIO_BUCKET=ragflow
+    volumes:
+      - ragflow_data:/ragflow
     depends_on:
       infinity:
         condition: service_started
