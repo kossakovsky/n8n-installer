@@ -23,7 +23,6 @@ volumes:
   postiz-uploads:
   prometheus_data:
   qdrant_storage:
-  ragflow_es_data:
   ragflow_minio_data:
   ragflow_mysql_data:
   valkey-data:
@@ -812,7 +811,7 @@ services:
         condition: service_healthy
 
   ragflow:
-    image: infiniflow/ragflow:v0.21.1-slim
+    image: infiniflow/ragflow:latest-slim
     container_name: ragflow
     profiles: ["ragflow"]
     restart: unless-stopped
@@ -825,8 +824,7 @@ services:
       - MYSQL_USER=root
       - MYSQL_PASSWORD=${RAGFLOW_MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=ragflow
-      - ES_HOST=ragflow-es
-      - ES_PORT=9200
+      - DOC_ENGINE=infinity
       - MINIO_HOST=ragflow-minio
       - MINIO_PORT=9000
       - MINIO_ACCESS_KEY=minio
@@ -834,8 +832,6 @@ services:
       - MINIO_BUCKET=ragflow
     depends_on:
       ragflow-mysql:
-        condition: service_healthy
-      ragflow-es:
         condition: service_healthy
       ragflow-minio:
         condition: service_healthy
@@ -858,32 +854,6 @@ services:
       start_period: 30s
     volumes:
       - ragflow_mysql_data:/var/lib/mysql
-
-  ragflow-es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
-    container_name: ragflow-es
-    profiles: ["ragflow"]
-    restart: unless-stopped
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - xpack.security.http.ssl.enabled=false
-      - xpack.security.transport.ssl.enabled=false
-      - ES_JAVA_OPTS=-Xms2g -Xmx2g
-      - ingest.geoip.downloader.enabled=false
-      - cluster.routing.allocation.disk.threshold_enabled=false
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget -qO- http://localhost:9200 >/dev/null 2>&1 || exit 1",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 120s
-    volumes:
-      - ragflow_es_data:/usr/share/elasticsearch/data
 
   ragflow-minio:
     image: minio/minio
