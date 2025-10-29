@@ -882,7 +882,6 @@ services:
     container_name: infinity
     profiles: ["ragflow"]
     restart: unless-stopped
-    command: infinity --config /var/infinity/config.toml
     environment:
       - INFINITY_LOG_LEVEL=info
     ports:
