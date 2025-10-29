@@ -23,6 +23,7 @@ volumes:
   postiz-uploads:
   prometheus_data:
   qdrant_storage:
+  ragflow_infinity_data:
   ragflow_minio_data:
   ragflow_mysql_data:
   valkey-data:
@@ -831,6 +832,8 @@ services:
       - MINIO_SECRET_KEY=${RAGFLOW_MINIO_ROOT_PASSWORD}
       - MINIO_BUCKET=ragflow
     depends_on:
+      infinity:
+        condition: service_healthy
       ragflow-mysql:
         condition: service_healthy
       ragflow-minio:
@@ -873,3 +876,22 @@ services:
       start_period: 10s
     volumes:
       - ragflow_minio_data:/data
+
+  infinity:
+    image: infiniflow/infinity:latest
+    container_name: infinity
+    profiles: ["ragflow"]
+    restart: unless-stopped
+    command: infinity --config /var/infinity/config.toml
+    environment:
+      - INFINITY_LOG_LEVEL=info
+    ports:
+      - "23817:23817"
+    volumes:
+      - ragflow_infinity_data:/var/infinity/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:23817/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
