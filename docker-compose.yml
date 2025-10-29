@@ -820,11 +820,12 @@ services:
       - SVR_HTTP_PORT=80
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_PASSWORD=
       - MYSQL_HOST=ragflow-mysql
       - MYSQL_PORT=3306
       - MYSQL_USER=root
       - MYSQL_PASSWORD=${RAGFLOW_MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=ragflow
+      - MYSQL_DATABASE=rag_flow
       - DOC_ENGINE=infinity
       - MINIO_HOST=ragflow-minio
       - MINIO_PORT=9000
@@ -848,7 +849,7 @@ services:
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=${RAGFLOW_MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=ragflow
+      - MYSQL_DATABASE=rag_flow
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost || exit 1"]
       interval: 10s
