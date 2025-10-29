@@ -58,6 +58,9 @@ declare -A VARS_TO_GENERATE=(
     # WAHA (WhatsApp HTTP API)
     ["WAHA_DASHBOARD_PASSWORD"]="password:32"
     ["WHATSAPP_SWAGGER_PASSWORD"]="password:32"
+    # RAGFlow internal credentials
+    ["RAGFLOW_MYSQL_ROOT_PASSWORD"]="password:32"
+    ["RAGFLOW_MINIO_ROOT_PASSWORD"]="password:32"
 )
 
 # Initialize existing_env_vars and attempt to read .env if it exists

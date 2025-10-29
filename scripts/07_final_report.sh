@@ -172,6 +172,16 @@ if is_profile_active "ragapp"; then
   echo "API Docs: https://${RAGAPP_HOSTNAME:-<hostname_not_set>}/docs"
 fi
 
+if is_profile_active "ragflow"; then
+  echo
+  echo "================================= RAGFlow ============================="
+  echo
+  echo "Host: ${RAGFLOW_HOSTNAME:-<hostname_not_set>}"
+  echo "API (external via Caddy): https://${RAGFLOW_HOSTNAME:-<hostname_not_set>}"
+  echo "API (internal): http://ragflow:80"
+  echo "Note: Uses built-in authentication (login/registration available in web UI)"
+fi
+
 if is_profile_active "comfyui"; then
   echo
   echo "================================= ComfyUI ============================="
