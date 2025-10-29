@@ -35,12 +35,12 @@
 
 # RAGFlow
 {$RAGFLOW_HOSTNAME} {
-    reverse_proxy ragflow:9380
+    reverse_proxy ragflow:80
 }
 
 # RAGFlow Admin
 {$RAGFLOW_ADMIN_HOSTNAME} {
-    reverse_proxy ragflow:9381
+    reverse_proxy ragflow:80
 }
 
 # Langfuse
