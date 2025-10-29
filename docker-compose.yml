@@ -878,7 +878,7 @@ services:
       - ragflow_minio_data:/data
 
   infinity:
-    image: infiniflow/infinity:v0.6.2
+    image: infiniflow/infinity:v0.6.0
     container_name: infinity
     profiles: ["ragflow"]
     restart: unless-stopped
@@ -889,7 +889,7 @@ services:
     volumes:
       - ragflow_infinity_data:/var/infinity/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:23817/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:23820/health"]
       interval: 10s
       timeout: 5s
       retries: 10
