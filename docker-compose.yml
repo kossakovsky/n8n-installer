@@ -833,7 +833,7 @@ services:
       - MINIO_BUCKET=ragflow
     depends_on:
       infinity:
-        condition: service_healthy
+        condition: service_started
       ragflow-mysql:
         condition: service_healthy
       ragflow-minio:
@@ -878,19 +878,15 @@ services:
       - ragflow_minio_data:/data
 
   infinity:
-    image: infiniflow/infinity:v0.6.0
+    image: infiniflow/infinity:v0.6.2
     container_name: infinity
     profiles: ["ragflow"]
     restart: unless-stopped
     environment:
       - INFINITY_LOG_LEVEL=info
-    ports:
-      - "23817:23817"
     volumes:
-      - ragflow_infinity_data:/var/infinity/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:23820/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      - ragflow_infinity_data:/var/infinity
+    ulimits:
+      nofile:
+        soft: 500000
+        hard: 500000
