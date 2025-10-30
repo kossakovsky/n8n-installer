@@ -38,11 +38,6 @@
     reverse_proxy ragflow:80
 }
 
-# RAGFlow Admin
-{$RAGFLOW_ADMIN_HOSTNAME} {
-    reverse_proxy ragflow:80
-}
-
 # Langfuse
 {$LANGFUSE_HOSTNAME} {
     reverse_proxy langfuse-web:3000
