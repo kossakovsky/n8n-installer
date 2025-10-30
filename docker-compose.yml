@@ -831,8 +831,8 @@ services:
       - DOC_ENGINE=infinity
       - MINIO_HOST=ragflow-minio
       - MINIO_PORT=9000
-      - MINIO_ACCESS_KEY=minio
-      - MINIO_SECRET_KEY=${RAGFLOW_MINIO_ROOT_PASSWORD}
+      - MINIO_USER=minio
+      - MINIO_PASSWORD=${RAGFLOW_MINIO_ROOT_PASSWORD}
       - MINIO_BUCKET=ragflow
     volumes:
       - ragflow_data:/ragflow
