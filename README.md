@@ -42,6 +42,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Letta**](https://docs.letta.com/) - An open-source agent server and SDK that can be connected to various LLM API backends (OpenAI, Anthropic, Ollama, etc.), enabling you to build and manage AI agents.
 
+✅ [**LightRAG**](https://github.com/HKUDS/LightRAG) - A simple and fast graph-based Retrieval-Augmented Generation system with automatic knowledge graph extraction, dual-level retrieval mechanisms, and incremental updates. Supports multiple storage backends (PostgreSQL, Neo4j, JSON) and embedding models.
+
 ✅ [**LibreTranslate**](https://docs.libretranslate.com/) - Self-hosted translation API (50+ languages).
 
 ✅ [**Neo4j**](https://neo4j.com/) - A graph database management system that allows you to model, store, and query data as a network of nodes and relationships.
@@ -143,6 +145,7 @@ After successful installation, your services are up and running! Here's how to g
     - **Flowise:** `flowise.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report.)
     - **Grafana:** `grafana.yourdomain.com`
     - **Langfuse:** `langfuse.yourdomain.com`
+    - **LightRAG:** `lightrag.yourdomain.com`
     - **Letta:** `letta.yourdomain.com`
     - **LibreTranslate:** `translate.yourdomain.com`
     - **Neo4j:** `neo4j.yourdomain.com`

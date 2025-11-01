@@ -91,6 +91,11 @@
     reverse_proxy letta:8283
 }
 
+# LightRAG (Graph-based RAG with Knowledge Extraction)
+{$LIGHTRAG_HOSTNAME} {
+    reverse_proxy lightrag:9621
+}
+
 # Weaviate
 {$WEAVIATE_HOSTNAME} {
     reverse_proxy weaviate:8080
