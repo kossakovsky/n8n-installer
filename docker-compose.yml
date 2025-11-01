@@ -26,7 +26,7 @@ volumes:
   prometheus_data:
   qdrant_storage:
   ragflow_data:
-  ragflow_infinity_data:
+  ragflow_elasticsearch_data:
   ragflow_minio_data:
   ragflow_mysql_data:
   ragflow_redis_data:
@@ -831,7 +831,10 @@ services:
       - MYSQL_USER=root
       - MYSQL_PASSWORD=${RAGFLOW_MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=rag_flow
-      - DOC_ENGINE=infinity
+      - DOC_ENGINE=elasticsearch
+      - ES_HOST=ragflow-elasticsearch
+      - ES_PORT=9200
+      - ELASTIC_PASSWORD=${RAGFLOW_ELASTICSEARCH_PASSWORD}
       - MINIO_HOST=ragflow-minio
       - MINIO_PORT=9000
       - MINIO_USER=minio
@@ -841,8 +844,8 @@ services:
       - ragflow_data:/ragflow
       - ./ragflow/nginx.conf:/etc/nginx/sites-available/default:ro
     depends_on:
-      infinity:
-        condition: service_started
+      ragflow-elasticsearch:
+        condition: service_healthy
       ragflow-mysql:
         condition: service_healthy
       ragflow-minio:
@@ -911,19 +914,41 @@ services:
       timeout: 10s
       retries: 10
 
-  infinity:
-    image: infiniflow/infinity:v0.6.2
-    container_name: infinity
+  ragflow-elasticsearch:
+    image: elasticsearch:8.11.3
+    container_name: ragflow-elasticsearch
     profiles: ["ragflow"]
     restart: unless-stopped
     environment:
-      - INFINITY_LOG_LEVEL=info
-    volumes:
-      - ragflow_infinity_data:/var/infinity
+      - node.name=ragflow-es01
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=${RAGFLOW_ELASTICSEARCH_PASSWORD}
+      - bootstrap.memory_lock=false
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - cluster.routing.allocation.disk.watermark.low=5gb
+      - cluster.routing.allocation.disk.watermark.high=3gb
+      - cluster.routing.allocation.disk.watermark.flood_stage=2gb
     ulimits:
+      memlock:
+        soft: -1
+        hard: -1
       nofile:
-        soft: 500000
-        hard: 500000
+        soft: 65536
+        hard: 65536
+    volumes:
+      - ragflow_elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -u elastic:${RAGFLOW_ELASTICSEARCH_PASSWORD} http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 8g
 
   lightrag:
     image: ghcr.io/hkuds/lightrag:latest
