@@ -10,6 +10,8 @@ volumes:
   langfuse_postgres_data:
   letta_data:
   libretranslate_api_keys:
+  lightrag_data:
+  lightrag_inputs:
   libretranslate_models:
   n8n_storage:
   ollama_storage:
@@ -233,6 +235,7 @@ services:
       - LANGFUSE_HOSTNAME=${LANGFUSE_HOSTNAME}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-internal}
       - LETTA_HOSTNAME=${LETTA_HOSTNAME}
+      - LIGHTRAG_HOSTNAME=${LIGHTRAG_HOSTNAME}
       - LT_HOSTNAME=${LT_HOSTNAME}
       - LT_USERNAME=${LT_USERNAME}
       - LT_PASSWORD_HASH=${LT_PASSWORD_HASH}
@@ -921,3 +924,93 @@ services:
       nofile:
         soft: 500000
         hard: 500000
+
+  lightrag:
+    image: ghcr.io/hkuds/lightrag:latest
+    container_name: lightrag
+    profiles: ["lightrag"]
+    restart: unless-stopped
+    environment:
+      # Server Configuration
+      - HOST=0.0.0.0
+      - PORT=9621
+      - WEBUI_TITLE=LightRAG Knowledge Graph
+      - WEBUI_DESCRIPTION=Graph-based RAG with Knowledge Extraction
+
+      # Authentication (Built-in)
+      - AUTH_ACCOUNTS=${LIGHTRAG_USERNAME}:${LIGHTRAG_PASSWORD}
+      - LIGHTRAG_API_KEY=${LIGHTRAG_API_KEY}
+
+      # LLM Configuration (Ollama)
+      - LLM_BINDING=ollama
+      - LLM_MODEL=qwen2.5:32b
+      - LLM_BINDING_HOST=http://ollama:11434
+      - OLLAMA_LLM_NUM_CTX=32768
+      - MAX_ASYNC=4
+
+      # Embedding Configuration (Ollama)
+      - EMBEDDING_BINDING=ollama
+      - EMBEDDING_MODEL=bge-m3:latest
+      - EMBEDDING_DIM=1024
+      - EMBEDDING_BINDING_HOST=http://ollama:11434
+      - OLLAMA_EMBEDDING_NUM_CTX=8192
+      - EMBEDDING_FUNC_MAX_ASYNC=16
+      - EMBEDDING_BATCH_NUM=32
+
+      # Query Configuration
+      - ENABLE_LLM_CACHE=true
+      - TOP_K=60
+      - CHUNK_TOP_K=20
+      - COSINE_THRESHOLD=0.2
+      - MAX_ENTITY_TOKENS=6000
+      - MAX_RELATION_TOKENS=8000
+      - MAX_TOTAL_TOKENS=30000
+
+      # Document Processing
+      - ENABLE_LLM_CACHE_FOR_EXTRACT=true
+      - SUMMARY_LANGUAGE=English
+      - CHUNK_SIZE=1200
+      - CHUNK_OVERLAP_SIZE=100
+      - SUMMARY_MAX_TOKENS=500
+      - SUMMARY_CONTEXT_SIZE=10000
+
+      # Storage Configuration (Flexible - uses PostgreSQL/Neo4j if available)
+      - LIGHTRAG_KV_STORAGE=JsonKVStorage
+      - LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage
+      - LIGHTRAG_GRAPH_STORAGE=${LIGHTRAG_GRAPH_STORAGE:-NetworkXStorage}
+      - LIGHTRAG_VECTOR_STORAGE=${LIGHTRAG_VECTOR_STORAGE:-NanoVectorDBStorage}
+
+      # PostgreSQL Configuration (if using PostgreSQL storage)
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DATABASE=postgres
+      - POSTGRES_MAX_CONNECTIONS=12
+      - POSTGRES_VECTOR_INDEX_TYPE=HNSW
+      - POSTGRES_HNSW_M=16
+      - POSTGRES_HNSW_EF=200
+
+      # Neo4j Configuration (if using Neo4j storage)
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USERNAME=${NEO4J_AUTH_USERNAME:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_AUTH_PASSWORD}
+      - NEO4J_DATABASE=neo4j
+
+      # Directories
+      - INPUT_DIR=/app/data/inputs
+      - WORKING_DIR=/app/data/rag_storage
+
+    volumes:
+      - lightrag_data:/app/data/rag_storage
+      - lightrag_inputs:/app/data/inputs
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9621/health > /dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s

@@ -58,6 +58,7 @@ base_services_data=(
     "gotenberg" "Gotenberg (Document Conversion API)"
     "langfuse" "Langfuse Suite (AI Observability - includes Clickhouse, Minio)"
     "letta" "Letta (Agent Server & SDK)"
+    "lightrag" "LightRAG (Graph-based RAG with knowledge graphs and incremental updates)"
     "libretranslate" "LibreTranslate (Self-hosted translation API - 50+ languages)"
     "monitoring" "Monitoring Suite (Prometheus, Grafana, cAdvisor, Node-Exporter)"
     "n8n" "n8n, n8n-worker, n8n-import (Workflow Automation)"
