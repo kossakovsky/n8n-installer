@@ -46,4 +46,20 @@ apt install -y unattended-upgrades
 # Automatic confirmation for dpkg-reconfigure
 echo "y" | dpkg-reconfigure --priority=low unattended-upgrades
 
+# Configure vm.max_map_count for Elasticsearch (required for RAGFlow)
+log_info "Configuring vm.max_map_count for Elasticsearch..."
+CURRENT_VALUE=$(sysctl -n vm.max_map_count 2>/dev/null || echo "0")
+if [[ "$CURRENT_VALUE" -lt 262144 ]]; then
+  log_info "Setting vm.max_map_count=262144 (current: $CURRENT_VALUE)..."
+  sysctl -w vm.max_map_count=262144
+
+  # Make it permanent
+  if ! grep -q "vm.max_map_count" /etc/sysctl.conf 2>/dev/null; then
+    echo "vm.max_map_count=262144" >> /etc/sysctl.conf
+    log_info "Added vm.max_map_count to /etc/sysctl.conf for persistence"
+  fi
+else
+  log_info "vm.max_map_count already configured (current: $CURRENT_VALUE)"
+fi
+
 exit 0 

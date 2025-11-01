@@ -66,7 +66,7 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**RAGApp**](https://github.com/ragapp/ragapp) - Open-source application to build Retrieval-Augmented Generation (RAG) assistants over your data. Provides a web UI for chat and an HTTP API for integration with your workflows.
 
-✅ [**RAGFlow**](https://ragflow.io/) - An open-source RAG engine based on deep document understanding, providing truthful question-answering capabilities with well-founded citations from complex formatted data.
+✅ [**RAGFlow**](https://ragflow.io/) - An open-source RAG engine based on deep document understanding with Elasticsearch backend, providing truthful question-answering capabilities with well-founded citations from complex formatted data.
 
 ✅ [**SearXNG**](https://searxng.org/) - A free, open-source internet metasearch engine. It aggregates results from numerous search services without tracking or profiling you, ensuring your privacy.
 
