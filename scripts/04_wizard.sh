@@ -110,9 +110,32 @@ while [ $idx -lt ${#base_services_data[@]} ]; do
 done
 
 # Use whiptail to display the checklist
+# Dynamically size dialog to the terminal
 num_services=$(( ${#services[@]} / 3 ))
+
+# Determine terminal dimensions with safe fallbacks
+TERM_LINES=$(tput lines 2>/dev/null || echo 32)
+TERM_COLS=$(tput cols 2>/dev/null || echo 100)
+
+# Leave a small margin from terminal borders; clamp to sane min/max
+DIALOG_HEIGHT=$(( TERM_LINES - 4 ))
+[ $DIALOG_HEIGHT -lt 20 ] && DIALOG_HEIGHT=20
+[ $DIALOG_HEIGHT -gt 40 ] && DIALOG_HEIGHT=40
+
+DIALOG_WIDTH=$(( TERM_COLS - 4 ))
+[ $DIALOG_WIDTH -lt 70 ] && DIALOG_WIDTH=70
+[ $DIALOG_WIDTH -gt 200 ] && DIALOG_WIDTH=200
+
+# Compute list height so buttons/text have space
+LIST_HEIGHT=$(( DIALOG_HEIGHT - 6 ))
+[ $LIST_HEIGHT -lt 10 ] && LIST_HEIGHT=10
+
+# Cap list height to number of services to avoid extra empty space
+[ $LIST_HEIGHT -gt $num_services ] && LIST_HEIGHT=$num_services
+
 CHOICES=$(whiptail --title "Service Selection Wizard" --checklist \
-  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 32 100 $num_services \
+  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." \
+  $DIALOG_HEIGHT $DIALOG_WIDTH $LIST_HEIGHT \
   "${services[@]}" \
   3>&1 1>&2 2>&3)
 
