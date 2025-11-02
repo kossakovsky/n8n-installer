@@ -403,7 +403,7 @@ services:
 
   postgres:
     container_name: postgres
-    image: postgres:${POSTGRES_VERSION:-17}
+    image: postgres:${POSTGRES_VERSION:-18}
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -415,7 +415,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: postgres
     volumes:
-      - langfuse_postgres_data:/var/lib/postgresql/data
+      - langfuse_postgres_data:/var/lib/postgresql
 
   redis:
     container_name: redis
@@ -940,7 +940,11 @@ services:
     volumes:
       - ragflow_elasticsearch_data:/usr/share/elasticsearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -u elastic:${RAGFLOW_ELASTICSEARCH_PASSWORD} http://localhost:9200/_cluster/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -u elastic:${RAGFLOW_ELASTICSEARCH_PASSWORD} http://localhost:9200/_cluster/health || exit 1",
+        ]
       interval: 10s
       timeout: 10s
       retries: 120
@@ -1034,7 +1038,11 @@ services:
       - "host.docker.internal:host-gateway"
 
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9621/health > /dev/null 2>&1 || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:9621/health > /dev/null 2>&1 || exit 1",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
