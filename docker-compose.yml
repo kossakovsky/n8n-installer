@@ -403,7 +403,7 @@ services:
 
   postgres:
     container_name: postgres
-    image: postgres:${POSTGRES_VERSION:latest}
+    image: postgres:${POSTGRES_VERSION:-latest}
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -415,6 +415,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: postgres
     volumes:
+      # TODO: Rename to postgres_data
       - langfuse_postgres_data:/var/lib/postgresql
 
   redis:
