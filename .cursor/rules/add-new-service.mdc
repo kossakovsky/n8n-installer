@@ -1,7 +1,7 @@
 ---
 alwaysApply: false
 ---
-# Guide: Adding a New Service to n8n-installer
+# Guide: Adding a New Service to n8n-install
 
 This document shows how to add a new optional service (behind Docker Compose profiles) and wire it into the installer, Caddy, and final report.
 

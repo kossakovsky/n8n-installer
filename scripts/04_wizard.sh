@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to guide user through service selection for n8n-installer
+# Script to guide user through service selection
 
 # Source utility functions, if any, assuming it's in the same directory
 # and .env is in the parent directory

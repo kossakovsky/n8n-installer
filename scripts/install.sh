@@ -5,21 +5,21 @@ set -e
 # Source the utilities file
 source "$(dirname "$0")/utils.sh"
 
-# Check for nested n8n-installer directory
+# Check for nested n8n-install directory
 current_path=$(pwd)
-if [[ "$current_path" == *"/n8n-installer/n8n-installer" ]]; then
-    log_info "Detected nested n8n-installer directory. Correcting..."
+if [[ "$current_path" == *"/n8n-install/n8n-install" ]]; then
+    log_info "Detected nested n8n-install directory. Correcting..."
     cd ..
     log_info "Moved to $(pwd)"
-    log_info "Removing redundant n8n-installer directory..."
-    rm -rf "n8n-installer"
+    log_info "Removing redundant n8n-install directory..."
+    rm -rf "n8n-install"
     log_info "Redundant directory removed."
     # Re-evaluate SCRIPT_DIR after potential path correction
     SCRIPT_DIR_REALPATH_TEMP="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-    if [[ "$SCRIPT_DIR_REALPATH_TEMP" == *"/n8n-installer/n8n-installer/scripts" ]]; then
+    if [[ "$SCRIPT_DIR_REALPATH_TEMP" == *"/n8n-install/n8n-install/scripts" ]]; then
         # If SCRIPT_DIR is still pointing to the nested structure's scripts dir, adjust it
-        # This happens if the script was invoked like: sudo bash n8n-installer/scripts/install.sh
-        # from the outer n8n-installer directory.
+        # This happens if the script was invoked like: sudo bash n8n-install/scripts/install.sh
+        # from the outer n8n-install directory.
         # We need to ensure that relative paths for other scripts are correct.
         # The most robust way is to re-execute the script from the corrected location
         # if the SCRIPT_DIR itself was nested.

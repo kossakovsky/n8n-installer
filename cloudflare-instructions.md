@@ -26,30 +26,30 @@ Cloudflare Tunnel **bypasses Caddy** and connects directly to your services. Thi
 2. Navigate to **Access** → **Tunnels**
 3. Click **Create a tunnel**
 4. Choose **Cloudflared** connector
-5. Name your tunnel (e.g., "n8n-installer")
+5. Name your tunnel (e.g., "n8n-install")
 6. Copy the tunnel token (you'll need this during installation)
 
 #### 2. Configure Public Hostnames
 
 In the tunnel configuration, you need to create a public hostname for **each service** you want to expose. Click **Add a public hostname** for each entry:
 
-| Service | Public Hostname | Service URL | Notes |
-|---------|----------------|-------------|-------|
-| **n8n** | n8n.yourdomain.com | `http://n8n:5678` | Workflow automation |
-| **Flowise** | flowise.yourdomain.com | `http://flowise:3001` | LangChain UI |
-| **Dify** | dify.yourdomain.com | `http://nginx:80` | AI application platform |
-| **Open WebUI** | webui.yourdomain.com | `http://open-webui:8080` | Chat interface |
-| **Langfuse** | langfuse.yourdomain.com | `http://langfuse-web:3000` | LLM observability |
-| **Supabase** | supabase.yourdomain.com | `http://kong:8000` | Backend as a Service |
-| **Grafana** | grafana.yourdomain.com | `http://grafana:3000` | Metrics dashboard (⚠️ No auth) |
-| **Prometheus** | prometheus.yourdomain.com | `http://prometheus:9090` | Metrics collection (⚠️ No auth) |
-| **Portainer** | portainer.yourdomain.com | `http://portainer:9000` | Docker management |
-| **Letta** | letta.yourdomain.com | `http://letta:8283` | Memory management |
-| **Weaviate** | weaviate.yourdomain.com | `http://weaviate:8080` | Vector database |
-| **Qdrant** | qdrant.yourdomain.com | `http://qdrant:6333` | Vector database |
-| **ComfyUI** | comfyui.yourdomain.com | `http://comfyui:8188` | Image generation (⚠️ No auth) |
-| **Neo4j** | neo4j.yourdomain.com | `http://neo4j:7474` | Graph database |
-| **SearXNG** | searxng.yourdomain.com | `http://searxng:8080` | Private search (⚠️ No auth) |
+| Service        | Public Hostname           | Service URL                | Notes                          |
+| -------------- | ------------------------- | -------------------------- | ------------------------------ |
+| **n8n**        | n8n.yourdomain.com        | `http://n8n:5678`          | Workflow automation            |
+| **Flowise**    | flowise.yourdomain.com    | `http://flowise:3001`      | LangChain UI                   |
+| **Dify**       | dify.yourdomain.com       | `http://nginx:80`          | AI application platform        |
+| **Open WebUI** | webui.yourdomain.com      | `http://open-webui:8080`   | Chat interface                 |
+| **Langfuse**   | langfuse.yourdomain.com   | `http://langfuse-web:3000` | LLM observability              |
+| **Supabase**   | supabase.yourdomain.com   | `http://kong:8000`         | Backend as a Service           |
+| **Grafana**    | grafana.yourdomain.com    | `http://grafana:3000`      | Metrics dashboard (⚠️ No auth)  |
+| **Prometheus** | prometheus.yourdomain.com | `http://prometheus:9090`   | Metrics collection (⚠️ No auth) |
+| **Portainer**  | portainer.yourdomain.com  | `http://portainer:9000`    | Docker management              |
+| **Letta**      | letta.yourdomain.com      | `http://letta:8283`        | Memory management              |
+| **Weaviate**   | weaviate.yourdomain.com   | `http://weaviate:8080`     | Vector database                |
+| **Qdrant**     | qdrant.yourdomain.com     | `http://qdrant:6333`       | Vector database                |
+| **ComfyUI**    | comfyui.yourdomain.com    | `http://comfyui:8188`      | Image generation (⚠️ No auth)   |
+| **Neo4j**      | neo4j.yourdomain.com      | `http://neo4j:7474`        | Graph database                 |
+| **SearXNG**    | searxng.yourdomain.com    | `http://searxng:8080`      | Private search (⚠️ No auth)     |
 
 **⚠️ Security Warning:** Services marked with "No auth" normally have basic authentication through Caddy. When using Cloudflare Tunnel, you should:
 - Enable [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/applications/) for these services, OR
@@ -68,7 +68,7 @@ When you create public hostnames in the tunnel configuration, Cloudflare automat
 
 #### 4. Install with Tunnel Support
 
-1. Run the n8n-installer as normal:
+1. Run the n8n-install as normal:
    ```bash
    sudo bash ./scripts/install.sh
    ```
@@ -97,10 +97,10 @@ sudo ufw status
 
 You have two options for accessing your services:
 
-| Method | Pros | Cons | Best For |
-|--------|------|------|----------|
-| **Caddy (Traditional)** | • Caddy auth features work<br>• Simple subdomain setup<br>• No Cloudflare account needed | • Requires open ports<br>• Server IP exposed<br>• No DDoS protection | Local/trusted networks |
-| **Cloudflare Tunnel** | • No open ports<br>• DDoS protection<br>• IP hiding<br>• Global CDN | • Requires Cloudflare account<br>• Loses Caddy auth<br>• Each service needs configuration | Internet-facing servers |
+| Method                  | Pros                                                                                     | Cons                                                                                      | Best For                |
+| ----------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------- |
+| **Caddy (Traditional)** | • Caddy auth features work<br>• Simple subdomain setup<br>• No Cloudflare account needed | • Requires open ports<br>• Server IP exposed<br>• No DDoS protection                      | Local/trusted networks  |
+| **Cloudflare Tunnel**   | • No open ports<br>• DDoS protection<br>• IP hiding<br>• Global CDN                      | • Requires Cloudflare account<br>• Loses Caddy auth<br>• Each service needs configuration | Internet-facing servers |
 
 ### Adding Cloudflare Access (Optional but Recommended)
 
@@ -173,15 +173,15 @@ n8n webhooks need special consideration because they must be publicly accessible
 
 #### Common Security Rule Patterns
 
-| Use Case | Expression | Action | Notes |
-|----------|------------|--------|-------|
-| **Protect webhooks (CRITICAL)** | `(http.request.uri.path contains "/webhook" and not ip.src in $webhook_service_IPs)` | Block | Webhooks have NO auth - must restrict! |
-| **Protect all services** | `(not ip.src in $approved_IP_addresses)` | Block | Strictest - only approved IPs |
-| **Geographic restrictions** | `(ip.geoip.country ne "US" and ip.geoip.country ne "GB")` | Block | Allow only specific countries |
-| **Block bots on sensitive services** | `(http.host in {"prometheus.yourdomain.com" "grafana.yourdomain.com"} and cf.bot_management.score lt 30)` | Block | Blocks likely bots |
-| **Moderate UI protection** | `(not http.request.uri.path contains "/webhook" and cf.threat_score gt 30)` | Managed Challenge | UI has login, less strict |
-| **Rate limit webhooks** | `(http.request.uri.path contains "/webhook/")` | Rate Limit (10 req/min) | Additional webhook protection |
-| **Separate webhook types** | `(http.request.uri.path contains "/webhook/stripe" and not ip.src in $stripe_IPs)` | Block | Service-specific webhook protection |
+| Use Case                             | Expression                                                                                                | Action                  | Notes                                  |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------- | ----------------------- | -------------------------------------- |
+| **Protect webhooks (CRITICAL)**      | `(http.request.uri.path contains "/webhook" and not ip.src in $webhook_service_IPs)`                      | Block                   | Webhooks have NO auth - must restrict! |
+| **Protect all services**             | `(not ip.src in $approved_IP_addresses)`                                                                  | Block                   | Strictest - only approved IPs          |
+| **Geographic restrictions**          | `(ip.geoip.country ne "US" and ip.geoip.country ne "GB")`                                                 | Block                   | Allow only specific countries          |
+| **Block bots on sensitive services** | `(http.host in {"prometheus.yourdomain.com" "grafana.yourdomain.com"} and cf.bot_management.score lt 30)` | Block                   | Blocks likely bots                     |
+| **Moderate UI protection**           | `(not http.request.uri.path contains "/webhook" and cf.threat_score gt 30)`                               | Managed Challenge       | UI has login, less strict              |
+| **Rate limit webhooks**              | `(http.request.uri.path contains "/webhook/")`                                                            | Rate Limit (10 req/min) | Additional webhook protection          |
+| **Separate webhook types**           | `(http.request.uri.path contains "/webhook/stripe" and not ip.src in $stripe_IPs)`                        | Block                   | Service-specific webhook protection    |
 
 #### Service-Specific Security Strategies
 
@@ -232,12 +232,12 @@ Action: Block
 
 Create separate lists for different access levels:
 
-| List Name | Purpose | Example IPs |
-|-----------|---------|-------------|
-| `approved_IP_addresses` | General admin access | Office IPs, VPN endpoints |
-| `webhook_allowed_IPs` | Services that call webhooks | Stripe, GitHub, Slack servers |
-| `monitoring_team_IPs` | DevOps team access | Team member home IPs |
-| `api_consumer_IPs` | Third-party API access | Partner service IPs |
+| List Name               | Purpose                     | Example IPs                   |
+| ----------------------- | --------------------------- | ----------------------------- |
+| `approved_IP_addresses` | General admin access        | Office IPs, VPN endpoints     |
+| `webhook_allowed_IPs`   | Services that call webhooks | Stripe, GitHub, Slack servers |
+| `monitoring_team_IPs`   | DevOps team access          | Team member home IPs          |
+| `api_consumer_IPs`      | Third-party API access      | Partner service IPs           |
 
 #### Webhook Security Best Practices
 
