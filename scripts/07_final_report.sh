@@ -412,5 +412,5 @@ echo "3. Configure services as needed (e.g., first-run setup for n8n)."
 echo
 echo "======================================================================"
 echo
-log_info "Thank you for using this installer setup!"
+log_info "Thank you for using this repository!"
 echo
