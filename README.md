@@ -144,6 +144,7 @@ After successful installation, your services are up and running! Here's how to g
     - **n8n:** `n8n.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report. You may be prompted to change this password on first login.)
     - **ComfyUI:** `comfyui.yourdomain.com` (Node-based Stable Diffusion UI)
     - **Dify:** `dify.yourdomain.com` (AI application development platform with comprehensive LLMOps capabilities)
+    - **Docling:** `docling.yourdomain.com` (Universal document converter with REST API; web UI available at `/ui`)
     - **Flowise:** `flowise.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report.)
     - **Grafana:** `grafana.yourdomain.com`
     - **Langfuse:** `langfuse.yourdomain.com`

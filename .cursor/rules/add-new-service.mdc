@@ -128,9 +128,13 @@ fi
 ```
 
 ## 7) README.md
-- Add a short, one-line description under “What’s Included”, linking to your service docs/homepage.
+- Add a short, one-line description under "What's Included", linking to your service docs/homepage.
 ```md
 ✅ [**MyService**](https://example.com) - One-line description of what it provides.
+```
+- Also add the service URL to the "Quick Start and Usage" section in alphabetical order:
+```md
+    - **MyService:** `myservice.yourdomain.com` (Brief description)
 ```
 
 ## 8) Ask about Basic Auth (important)
