@@ -66,6 +66,8 @@ declare -A VARS_TO_GENERATE=(
     # LightRAG credentials
     ["LIGHTRAG_PASSWORD"]="password:32"
     ["LIGHTRAG_API_KEY"]="secret:48"
+    # Docling credentials
+    ["DOCLING_PASSWORD"]="password:32"
 )
 
 # Initialize existing_env_vars and attempt to read .env if it exists
@@ -274,6 +276,7 @@ generated_values["LT_USERNAME"]="$USER_EMAIL" # Set LibreTranslate username for 
 generated_values["LIGHTRAG_USERNAME"]="$USER_EMAIL" # Set LightRAG username for built-in auth
 generated_values["WAHA_DASHBOARD_USERNAME"]="$USER_EMAIL" # WAHA dashboard username default
 generated_values["WHATSAPP_SWAGGER_USERNAME"]="$USER_EMAIL" # WAHA swagger username default
+generated_values["DOCLING_USERNAME"]="$USER_EMAIL" # Set Docling username for Caddy
 
 
 # Create a temporary file for processing
@@ -297,6 +300,7 @@ found_vars["NEO4J_AUTH_USERNAME"]=0
 found_vars["COMFYUI_USERNAME"]=0
 found_vars["RAGAPP_USERNAME"]=0
 found_vars["PADDLEOCR_USERNAME"]=0
+found_vars["DOCLING_USERNAME"]=0
 found_vars["LT_USERNAME"]=0
 found_vars["LIGHTRAG_USERNAME"]=0
 found_vars["WAHA_DASHBOARD_USERNAME"]=0
@@ -429,7 +433,7 @@ if [[ -z "${generated_values[SERVICE_ROLE_KEY]}" ]]; then
 fi
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "LIGHTRAG_USERNAME" "WAHA_DASHBOARD_USERNAME" "WHATSAPP_SWAGGER_USERNAME"; do
+for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "LIGHTRAG_USERNAME" "WAHA_DASHBOARD_USERNAME" "WHATSAPP_SWAGGER_USERNAME" "DOCLING_USERNAME"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
         # Before appending, check if it's already in TMP_ENV_FILE to avoid duplicates
         if ! grep -q -E "^${var}=" "$TMP_ENV_FILE"; then
@@ -606,6 +610,18 @@ if [[ -z "$FINAL_LT_HASH" && -n "$LT_PLAIN_PASS" ]]; then
     fi
 fi
 _update_or_add_env_var "LT_PASSWORD_HASH" "$FINAL_LT_HASH"
+
+# --- DOCLING ---
+DOCLING_PLAIN_PASS="${generated_values["DOCLING_PASSWORD"]}"
+FINAL_DOCLING_HASH="${generated_values[DOCLING_PASSWORD_HASH]}"
+if [[ -z "$FINAL_DOCLING_HASH" && -n "$DOCLING_PLAIN_PASS" ]]; then
+    NEW_HASH=$(_generate_and_get_hash "$DOCLING_PLAIN_PASS")
+    if [[ -n "$NEW_HASH" ]]; then
+        FINAL_DOCLING_HASH="$NEW_HASH"
+        generated_values["DOCLING_PASSWORD_HASH"]="$NEW_HASH"
+    fi
+fi
+_update_or_add_env_var "DOCLING_PASSWORD_HASH" "$FINAL_DOCLING_HASH"
 
 if [ $? -eq 0 ]; then # This $? reflects the status of the last mv command from the last _update_or_add_env_var call.
     # For now, assuming if we reached here and mv was fine, primary operations were okay.

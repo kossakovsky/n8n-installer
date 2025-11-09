@@ -140,6 +140,14 @@ https://{$NEO4J_HOSTNAME}:7687 {
     reverse_proxy paddleocr:8080
 }
 
+# Docling (Document Conversion API)
+{$DOCLING_HOSTNAME} {
+    basic_auth {
+        {$DOCLING_USERNAME} {$DOCLING_PASSWORD_HASH}
+    }
+    reverse_proxy docling:5001
+}
+
 import /etc/caddy/addons/*.conf
 
 # # SearXNG

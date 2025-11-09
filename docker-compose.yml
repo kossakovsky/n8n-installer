@@ -230,6 +230,9 @@ services:
       - COMFYUI_PASSWORD_HASH=${COMFYUI_PASSWORD_HASH}
       - COMFYUI_USERNAME=${COMFYUI_USERNAME}
       - DIFY_HOSTNAME=${DIFY_HOSTNAME}
+      - DOCLING_HOSTNAME=${DOCLING_HOSTNAME}
+      - DOCLING_PASSWORD_HASH=${DOCLING_PASSWORD_HASH}
+      - DOCLING_USERNAME=${DOCLING_USERNAME}
       - FLOWISE_HOSTNAME=${FLOWISE_HOSTNAME}
       - GRAFANA_HOSTNAME=${GRAFANA_HOSTNAME}
       - LANGFUSE_HOSTNAME=${LANGFUSE_HOSTNAME}
@@ -1048,3 +1051,18 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+
+  docling:
+    image: ${DOCLING_IMAGE:-ghcr.io/docling-project/docling-serve:cpu}
+    container_name: docling
+    profiles: ["docling"]
+    restart: unless-stopped
+    environment:
+      - DOCLING_SERVE_ENABLE_UI=1
+    shm_size: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5001/docs > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s

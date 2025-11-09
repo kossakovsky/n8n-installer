@@ -221,6 +221,31 @@ if is_profile_active "crawl4ai"; then
   echo "(Note: Not exposed externally via Caddy by default)"
 fi
 
+if is_profile_active "docling"; then
+  echo
+  echo "================================= Docling ============================="
+  echo
+  echo "Host: ${DOCLING_HOSTNAME:-<hostname_not_set>}"
+  echo "User: ${DOCLING_USERNAME:-<not_set_in_env>}"
+  echo "Password: ${DOCLING_PASSWORD:-<not_set_in_env>}"
+  echo "API (external via Caddy): https://${DOCLING_HOSTNAME:-<hostname_not_set>}"
+  echo "API (internal): http://docling:5001"
+  echo ""
+  echo "Web UI: https://${DOCLING_HOSTNAME:-<hostname_not_set>}/ui"
+  echo "API Docs: https://${DOCLING_HOSTNAME:-<hostname_not_set>}/docs"
+  echo ""
+  echo "Configuration:"
+  echo "  Docker Image: ${DOCLING_IMAGE:-ghcr.io/docling-project/docling-serve:cpu}"
+  echo ""
+  echo "Main API Endpoint:"
+  echo "  POST /v1/convert/source"
+  echo "  Body: {\"sources\": [{\"kind\": \"http\", \"url\": \"https://example.com/doc.pdf\"}]}"
+  echo ""
+  echo "Supported formats: PDF, DOCX, PPTX, XLSX, HTML, images"
+  echo "Output formats: Markdown, JSON, HTML"
+  echo "GitHub: https://github.com/docling-project/docling-serve"
+fi
+
 if is_profile_active "gotenberg"; then
   echo
   echo "================================= Gotenberg ============================"

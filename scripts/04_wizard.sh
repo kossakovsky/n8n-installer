@@ -53,6 +53,7 @@ base_services_data=(
     "cloudflare-tunnel" "Cloudflare Tunnel (Zero-Trust Secure Access)"
     "comfyui" "ComfyUI (Node-based Stable Diffusion UI)"
     "crawl4ai" "Crawl4ai (Web Crawler for AI)"
+    "docling" "Docling (Universal Document Converter to Markdown/JSON)"
     "dify" "Dify (AI Application Development Platform with LLMOps)"
     "flowise" "Flowise (AI Agent Builder)"
     "gotenberg" "Gotenberg (Document Conversion API)"
