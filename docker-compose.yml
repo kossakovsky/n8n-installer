@@ -1053,7 +1053,7 @@ services:
       start_period: 60s
 
   docling:
-    image: ${DOCLING_IMAGE:-ghcr.io/docling-project/docling-serve:cpu}
+    image: ${DOCLING_IMAGE:-ghcr.io/docling-project/docling-serve-cpu}
     container_name: docling
     profiles: ["docling"]
     restart: unless-stopped
