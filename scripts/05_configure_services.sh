@@ -86,7 +86,7 @@ if [[ -n "$EXISTING_N8N_WORKER_COUNT" ]]; then
         if [[ "$N8N_WORKER_COUNT_INPUT_RAW" =~ ^0*[1-9][0-9]*$ ]]; then
             N8N_WORKER_COUNT_TEMP="$((10#$N8N_WORKER_COUNT_INPUT_RAW))"
             if [[ "$N8N_WORKER_COUNT_TEMP" -ge 1 ]]; then
-                if wt_yesno "Confirm Workers" "Update n8n workers to $N8N_WORKER_COUNT_TEMP?" "no"; then
+                if wt_yesno "Confirm Workers" "Update n8n workers to $N8N_WORKER_COUNT_TEMP?" "yes"; then
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_TEMP"
                 else
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
@@ -108,7 +108,7 @@ else
         if [[ "$N8N_WORKER_COUNT_CANDIDATE" =~ ^0*[1-9][0-9]*$ ]]; then
             N8N_WORKER_COUNT_VALIDATED="$((10#$N8N_WORKER_COUNT_CANDIDATE))"
             if [[ "$N8N_WORKER_COUNT_VALIDATED" -ge 1 ]]; then
-                if wt_yesno "Confirm Workers" "Run $N8N_WORKER_COUNT_VALIDATED n8n worker(s)?" "no"; then
+                if wt_yesno "Confirm Workers" "Run $N8N_WORKER_COUNT_VALIDATED n8n worker(s)?" "yes"; then
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_VALIDATED"
                     break
                 fi

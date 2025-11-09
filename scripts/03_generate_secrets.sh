@@ -138,7 +138,7 @@ else
         if [[ "$DOMAIN_TO_USE" =~ [^a-zA-Z0-9.-] ]]; then
             wt_msg "Validation" "Warning: Domain contains potentially invalid characters: '$DOMAIN_TO_USE'"
         fi
-        if wt_yesno "Confirm Domain" "Use '$DOMAIN_TO_USE' as the primary domain?" "no"; then
+        if wt_yesno "Confirm Domain" "Use '$DOMAIN_TO_USE' as the primary domain?" "yes"; then
             DOMAIN="$DOMAIN_TO_USE" # Set the final DOMAIN variable
             generated_values["USER_DOMAIN_NAME"]="$DOMAIN" # Using USER_DOMAIN_NAME
             log_info "Domain set to '$DOMAIN'. It will be saved in .env."
@@ -168,7 +168,7 @@ else
         if [[ ! "$USER_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
             wt_msg "Validation" "Warning: Email format appears to be invalid: '$USER_EMAIL'"
         fi
-        if wt_yesno "Confirm Email" "Use '$USER_EMAIL' as your email?" "no"; then
+        if wt_yesno "Confirm Email" "Use '$USER_EMAIL' as your email?" "yes"; then
             break # Confirmed, exit loop
         fi
     done
