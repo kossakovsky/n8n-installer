@@ -152,7 +152,7 @@ if is_profile_active "postgresus"; then
   echo "UI (internal): http://postgresus:4005"
   echo "------ Backup Target (internal PostgreSQL) ------"
   echo "PG version: ${POSTGRES_VERSION:-17}"
-  echo "Host: ${POSTGRES_HOST:-postgres}"
+  echo "Host: postgres"
   echo "Port: ${POSTGRES_PORT:-5432}"
   echo "Username: ${POSTGRES_USER:-postgres}"
   echo "Password: ${POSTGRES_PASSWORD:-<not_set_in_env>}"
@@ -378,7 +378,7 @@ if is_profile_active "n8n" || is_profile_active "langfuse"; then
   echo
   echo "==================== Standalone PostgreSQL (for n8n, Langfuse, etc.) ====================="
   echo
-  echo "Host: ${POSTGRES_HOST:-postgres}"
+  echo "Host: postgres"
   echo "Port: ${POSTGRES_PORT:-5432}"
   echo "Database: ${POSTGRES_DB:-postgres}" # This is typically 'postgres' or 'n8n' for n8n, and 'langfuse' for langfuse, but refers to the service.
   echo "User: ${POSTGRES_USER:-postgres}"

@@ -1061,7 +1061,11 @@ services:
       - DOCLING_SERVE_ENABLE_UI=1
     shm_size: 1g
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5001/docs > /dev/null || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:5001/docs > /dev/null || exit 1",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
