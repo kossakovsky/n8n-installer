@@ -2,6 +2,7 @@ volumes:
   caddy-config:
   caddy-data:
   comfyui_data:
+  docling_cache:
   flowise:
   grafana:
   langfuse_clickhouse_data:
@@ -10,9 +11,9 @@ volumes:
   langfuse_postgres_data:
   letta_data:
   libretranslate_api_keys:
+  libretranslate_models:
   lightrag_data:
   lightrag_inputs:
-  libretranslate_models:
   n8n_storage:
   ollama_storage:
   open-webui:
@@ -1059,6 +1060,11 @@ services:
     restart: unless-stopped
     environment:
       - DOCLING_SERVE_ENABLE_UI=1
+      - DOCLING_SERVE_ENABLE_REMOTE_SERVICES=${DOCLING_SERVE_ENABLE_REMOTE_SERVICES:-true}
+      - DOCLING_SERVE_LOAD_MODELS_AT_BOOT=${DOCLING_SERVE_LOAD_MODELS_AT_BOOT:-false}
+      - DOCLING_DEVICE=${DOCLING_DEVICE:-cpu}
+    volumes:
+      - docling_cache:/opt/app-root/src/.cache
     shm_size: 1g
     healthcheck:
       test:

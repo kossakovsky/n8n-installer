@@ -227,14 +227,35 @@ if is_profile_active "docling"; then
   echo
   echo "Web UI: https://${DOCLING_HOSTNAME:-<hostname_not_set>}/ui"
   echo "API Docs: https://${DOCLING_HOSTNAME:-<hostname_not_set>}/docs"
-  echo ""
-  echo ""
+  echo
+  echo "Credentials (Caddy Basic Auth):"
   echo "User: ${DOCLING_USERNAME:-<not_set_in_env>}"
   echo "Password: ${DOCLING_PASSWORD:-<not_set_in_env>}"
-  echo ""
-  echo ""
-  echo "API (external via Caddy): https://${DOCLING_HOSTNAME:-<hostname_not_set>}"
-  echo "API (internal): http://docling:5001"
+  echo
+  echo "API Endpoints:"
+  echo "External (via Caddy): https://${DOCLING_HOSTNAME:-<hostname_not_set>}"
+  echo "Internal (from n8n):  http://docling:5001"
+  echo
+  echo "VLM Pipeline (Vision Language Model):"
+  echo "  1. Load VLM model in Ollama via Open WebUI -> Settings -> Models"
+  echo "     Example: granite3.2-vision:2b"
+  echo
+  echo "  2. API request with VLM pipeline:"
+  echo '     curl -X POST "https://'"${DOCLING_HOSTNAME:-<hostname_not_set>}"'/v1/convert/source" \'
+  echo '       -H "Content-Type: application/json" \'
+  echo '       -u "'"${DOCLING_USERNAME:-<not_set_in_env>}"':'"${DOCLING_PASSWORD:-<not_set_in_env>}"'" \'
+  echo "       -d '{"
+  echo '         "source": "https://arxiv.org/pdf/2501.17887",'
+  echo '         "options": {'
+  echo '           "pipeline": "vlm",'
+  echo '           "vlm_pipeline_model_api": {'
+  echo '             "url": "http://ollama:11434/v1/chat/completions",'
+  echo '             "params": {"model": "granite3.2-vision:2b"},'
+  echo '             "prompt": "Convert this page to docling.",'
+  echo '             "timeout": 300'
+  echo "           }"
+  echo "         }"
+  echo "       }'"
 fi
 
 if is_profile_active "gotenberg"; then
