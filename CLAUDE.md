@@ -90,12 +90,20 @@ Follow this workflow when adding a new optional service (refer to `.cursor/rules
 
 ## Important Service Details
 
-### n8n Configuration
+### n8n Configuration (v2.0+)
 
 - n8n runs in `EXECUTIONS_MODE=queue` with Redis as the queue backend
-- Custom JavaScript libraries are pre-installed: `cheerio`, `axios`, `moment`, `lodash` (see `NODE_FUNCTION_ALLOW_EXTERNAL`)
+- **Task runners**: n8n v2.0 uses external task runners for Code node execution (JavaScript and Python)
+  - Runner count controlled by `N8N_RUNNER_COUNT` env var (defaults to 1)
+  - Runner image `n8nio/runners` must match n8n version
+- **Code node libraries**: Configured on the runner container (not n8n):
+  - `NODE_FUNCTION_ALLOW_EXTERNAL`: JS packages (`cheerio`, `axios`, `moment`, `lodash`)
+  - `NODE_FUNCTION_ALLOW_BUILTIN`: Node.js built-in modules (`*` = all)
+  - `N8N_RUNNERS_STDLIB_ALLOW`: Python stdlib modules
+  - `N8N_RUNNERS_EXTERNAL_ALLOW`: Python third-party packages
 - Workflows can access the host filesystem via `/data/shared` (mapped to `./shared`)
 - Worker count is controlled by `N8N_WORKER_COUNT` env var (defaults to 1)
+- `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` allows Code nodes to access environment variables
 
 ### Caddy Reverse Proxy
 
@@ -115,7 +123,7 @@ The `scripts/03_generate_secrets.sh` script:
 ### Service Profiles
 
 Common profiles:
-- `n8n`: n8n workflow automation (includes main app, worker, and import services)
+- `n8n`: n8n workflow automation (includes main app, worker, runner, and import services)
 - `flowise`: Flowise AI agent builder
 - `monitoring`: Prometheus, Grafana, cAdvisor, node-exporter
 - `langfuse`: Langfuse observability (includes ClickHouse, MinIO, worker, web)

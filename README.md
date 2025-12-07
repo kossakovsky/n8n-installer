@@ -14,7 +14,7 @@ This installer helps you create your own powerful, private AI workshop. Imagine 
 This setup provides a comprehensive suite of cutting-edge services, all pre-configured to work together. Key advantages include:
 
 - **Rich Toolset:** Get a curated collection of powerful open-source tools for AI development, automation, and monitoring, all in one place.
-- **Scalable n8n Performance:** n8n runs in `queue` mode by default, leveraging Redis for task management and Postgres for data storage. You can dynamically specify the number of n8n workers during installation, allowing for robust parallel processing of your workflows to handle demanding loads.
+- **Scalable n8n Performance:** n8n runs in `queue` mode by default, leveraging Redis for task management and Postgres for data storage. You can dynamically specify the number of n8n workers and task runners during installation, allowing for robust parallel processing of your workflows to handle demanding loads.
 - **Full Control:** All of this is hosted by you, giving you full control over your data, operations, and how resources are allocated.
 
 ### What's Included
@@ -130,7 +130,8 @@ During the installation, the script will prompt you for:
 3.  An optional **OpenAI API key** (Not required. If provided, it can be used by Supabase AI features and Crawl4ai. Press Enter to skip).
 4.  Whether you want to **import ~300 ready-made n8n community workflows** (y/n, Optional. This can take 20-30 minutes, depending on your server and network speed).
 5.  The **number of n8n workers** you want to run (Required, e.g., 1, 2, 3, 4. This determines how many workflows can be processed in parallel. Defaults to 1 if not specified).
-6.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
+6.  The **number of n8n task runners** you want to run (Required, e.g., 1, 2, 3. Task runners execute JavaScript and Python Code nodes. Defaults to 1 if not specified).
+7.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
 
 Upon successful completion, the script will display a summary report. This report contains the access URLs and credentials for the deployed services. **Save this information in a safe place!**
 
@@ -206,10 +207,11 @@ Cloudflare Tunnel provides zero-trust access to your services without exposing a
 See the Cloudflare Tunnel guide: [cloudflare-instructions.md](cloudflare-instructions.md)
 
 
-### Using Pre-installed Libraries in n8n's Custom JavaScript
+### Using Libraries in n8n Code Nodes (v2.0+)
 
-This setup pre-installs useful Node.js libraries for use in n8n's Code nodes, allowing you to write custom JavaScript snippets with enhanced capabilities:
+n8n v2.0 uses external task runners to execute JavaScript and Python code in Code nodes. This setup pre-configures the following libraries:
 
+**JavaScript libraries** (via `NODE_FUNCTION_ALLOW_EXTERNAL`):
 - **`cheerio`**: For parsing and manipulating HTML/XML (e.g., web scraping).
 - **`axios`**: A promise-based HTTP client for making requests to external APIs.
 - **`moment`**: For parsing, validating, manipulating, and displaying dates/times.

@@ -128,6 +128,63 @@ write_env_var "N8N_WORKER_COUNT" "$N8N_WORKER_COUNT"
 
 
 # ----------------------------------------------------------------
+# Prompt for number of n8n runners (for Code/Python node execution)
+# ----------------------------------------------------------------
+echo "" # Add a newline for better formatting
+log_info "Configuring n8n runner count..."
+EXISTING_N8N_RUNNER_COUNT="$(read_env_var N8N_RUNNER_COUNT)"
+require_whiptail
+if [[ -n "$EXISTING_N8N_RUNNER_COUNT" ]]; then
+    N8N_RUNNER_COUNT_CURRENT="$EXISTING_N8N_RUNNER_COUNT"
+    N8N_RUNNER_COUNT_INPUT_RAW=$(wt_input "n8n Runners (instances)" "Enter new number of n8n runners, or leave as current ($N8N_RUNNER_COUNT_CURRENT)." "") || true
+    if [[ -z "$N8N_RUNNER_COUNT_INPUT_RAW" ]]; then
+        N8N_RUNNER_COUNT="$N8N_RUNNER_COUNT_CURRENT"
+    else
+        if [[ "$N8N_RUNNER_COUNT_INPUT_RAW" =~ ^0*[1-9][0-9]*$ ]]; then
+            N8N_RUNNER_COUNT_TEMP="$((10#$N8N_RUNNER_COUNT_INPUT_RAW))"
+            if [[ "$N8N_RUNNER_COUNT_TEMP" -ge 1 ]]; then
+                if wt_yesno "Confirm Runners" "Update n8n runners to $N8N_RUNNER_COUNT_TEMP?" "yes"; then
+                    N8N_RUNNER_COUNT="$N8N_RUNNER_COUNT_TEMP"
+                else
+                    N8N_RUNNER_COUNT="$N8N_RUNNER_COUNT_CURRENT"
+                    log_info "Change declined. Keeping N8N_RUNNER_COUNT at $N8N_RUNNER_COUNT."
+                fi
+            else
+                log_warning "Invalid input '$N8N_RUNNER_COUNT_INPUT_RAW'. Number must be positive. Keeping $N8N_RUNNER_COUNT_CURRENT."
+                N8N_RUNNER_COUNT="$N8N_RUNNER_COUNT_CURRENT"
+            fi
+        else
+            log_warning "Invalid input '$N8N_RUNNER_COUNT_INPUT_RAW'. Please enter a positive integer. Keeping $N8N_RUNNER_COUNT_CURRENT."
+            N8N_RUNNER_COUNT="$N8N_RUNNER_COUNT_CURRENT"
+        fi
+    fi
+else
+    while true; do
+        N8N_RUNNER_COUNT_INPUT_RAW=$(wt_input "n8n Runners" "Enter number of n8n runners for Code/Python nodes (default 1)." "1") || true
+        N8N_RUNNER_COUNT_CANDIDATE="${N8N_RUNNER_COUNT_INPUT_RAW:-1}"
+        if [[ "$N8N_RUNNER_COUNT_CANDIDATE" =~ ^0*[1-9][0-9]*$ ]]; then
+            N8N_RUNNER_COUNT_VALIDATED="$((10#$N8N_RUNNER_COUNT_CANDIDATE))"
+            if [[ "$N8N_RUNNER_COUNT_VALIDATED" -ge 1 ]]; then
+                if wt_yesno "Confirm Runners" "Run $N8N_RUNNER_COUNT_VALIDATED n8n runner(s)?" "yes"; then
+                    N8N_RUNNER_COUNT="$N8N_RUNNER_COUNT_VALIDATED"
+                    break
+                fi
+            else
+                log_error "Number of runners must be a positive integer." >&2
+            fi
+        else
+            log_error "Invalid input '$N8N_RUNNER_COUNT_CANDIDATE'. Please enter a positive integer (e.g., 1, 2)." >&2
+        fi
+    done
+fi
+# Ensure N8N_RUNNER_COUNT is definitely set (should be by logic above)
+N8N_RUNNER_COUNT="${N8N_RUNNER_COUNT:-1}"
+
+# Persist N8N_RUNNER_COUNT to .env
+write_env_var "N8N_RUNNER_COUNT" "$N8N_RUNNER_COUNT"
+
+
+# ----------------------------------------------------------------
 # Cloudflare Tunnel Token (if cloudflare-tunnel profile is active)
 # ----------------------------------------------------------------
 # If Cloudflare Tunnel is selected (based on COMPOSE_PROFILES), prompt for the token and write to .env
