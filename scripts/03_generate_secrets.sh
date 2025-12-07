@@ -21,53 +21,48 @@ DOMAIN_PLACEHOLDER="yourdomain.com"
 # Variables to generate: varName="type:length"
 # Types: password (alphanum), secret (base64), hex, base64, alphanum
 declare -A VARS_TO_GENERATE=(
-    ["FLOWISE_PASSWORD"]="password:32"
-    ["N8N_ENCRYPTION_KEY"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
-    ["N8N_USER_MANAGEMENT_JWT_SECRET"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
-    ["POSTGRES_PASSWORD"]="password:32"
-    ["POSTGRES_NON_ROOT_PASSWORD"]="password:32"
-    ["JWT_SECRET"]="base64:64" # 48 bytes -> 64 chars
-    ["DASHBOARD_PASSWORD"]="password:32" # Supabase Dashboard
     ["CLICKHOUSE_PASSWORD"]="password:32"
-    ["MINIO_ROOT_PASSWORD"]="password:32"
-    ["LANGFUSE_SALT"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
-    ["NEXTAUTH_SECRET"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
+    ["COMFYUI_PASSWORD"]="password:32" # Added ComfyUI basic auth password
+    ["DASHBOARD_PASSWORD"]="password:32" # Supabase Dashboard
+    ["DIFY_SECRET_KEY"]="secret:64" # Dify application secret key (maps to SECRET_KEY in Dify)
+    ["DOCLING_PASSWORD"]="password:32"
     ["ENCRYPTION_KEY"]="hex:64" # Langfuse Encryption Key (32 bytes -> 64 hex chars)
+    ["FLOWISE_PASSWORD"]="password:32"
     ["GRAFANA_ADMIN_PASSWORD"]="password:32"
-    # From MD file (ensure they are in template if needed)
-    ["SECRET_KEY_BASE"]="base64:64" # 48 bytes -> 64 chars
-    ["VAULT_ENC_KEY"]="alphanum:32"
-    ["LOGFLARE_PRIVATE_ACCESS_TOKEN"]="fixed:not-in-use" # For supabase-vector, can't be empty
-    ["LOGFLARE_PUBLIC_ACCESS_TOKEN"]="fixed:not-in-use" # For supabase-vector, can't be empty
-    ["PROMETHEUS_PASSWORD"]="password:32" # Added Prometheus password
-    ["SEARXNG_PASSWORD"]="password:32" # Added SearXNG admin password
-    ["LETTA_SERVER_PASSWORD"]="password:32" # Added Letta server password
-    ["LANGFUSE_INIT_USER_PASSWORD"]="password:32"
+    ["JWT_SECRET"]="base64:64" # 48 bytes -> 64 chars
     ["LANGFUSE_INIT_PROJECT_PUBLIC_KEY"]="langfuse_pk:32"
     ["LANGFUSE_INIT_PROJECT_SECRET_KEY"]="langfuse_sk:32"
-    ["WEAVIATE_API_KEY"]="secret:48" # API Key for Weaviate service (36 bytes -> 48 chars base64)
-    ["QDRANT_API_KEY"]="secret:48" # API Key for Qdrant service
+    ["LANGFUSE_INIT_USER_PASSWORD"]="password:32"
+    ["LANGFUSE_SALT"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
+    ["LETTA_SERVER_PASSWORD"]="password:32" # Added Letta server password
+    ["LIGHTRAG_API_KEY"]="secret:48"
+    ["LIGHTRAG_PASSWORD"]="password:32"
+    ["LOGFLARE_PRIVATE_ACCESS_TOKEN"]="fixed:not-in-use" # For supabase-vector, can't be empty
+    ["LOGFLARE_PUBLIC_ACCESS_TOKEN"]="fixed:not-in-use" # For supabase-vector, can't be empty
+    ["LT_PASSWORD"]="password:32" # Added LibreTranslate basic auth password
+    ["MINIO_ROOT_PASSWORD"]="password:32"
+    ["N8N_ENCRYPTION_KEY"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
+    ["N8N_RUNNERS_AUTH_TOKEN"]="secret:64" # Task runner auth token for n8n v2.0
+    ["N8N_USER_MANAGEMENT_JWT_SECRET"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
     ["NEO4J_AUTH_PASSWORD"]="password:32" # Added Neo4j password
     ["NEO4J_AUTH_USERNAME"]="fixed:neo4j" # Added Neo4j username
-    # Dify environment variables
-    ["DIFY_SECRET_KEY"]="secret:64" # Dify application secret key (maps to SECRET_KEY in Dify)
-    ["COMFYUI_PASSWORD"]="password:32" # Added ComfyUI basic auth password
-    ["RAGAPP_PASSWORD"]="password:32" # Added RAGApp basic auth password
+    ["NEXTAUTH_SECRET"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
     ["PADDLEOCR_PASSWORD"]="password:32" # Added PaddleOCR basic auth password
-    ["LT_PASSWORD"]="password:32" # Added LibreTranslate basic auth password
-    # WAHA (WhatsApp HTTP API)
-    ["WAHA_DASHBOARD_PASSWORD"]="password:32"
-    ["WHATSAPP_SWAGGER_PASSWORD"]="password:32"
-    # RAGFlow internal credentials
-    ["RAGFLOW_MYSQL_ROOT_PASSWORD"]="password:32"
-    ["RAGFLOW_MINIO_ROOT_PASSWORD"]="password:32"
-    ["RAGFLOW_REDIS_PASSWORD"]="password:32"
+    ["POSTGRES_NON_ROOT_PASSWORD"]="password:32"
+    ["POSTGRES_PASSWORD"]="password:32"
+    ["PROMETHEUS_PASSWORD"]="password:32" # Added Prometheus password
+    ["QDRANT_API_KEY"]="secret:48" # API Key for Qdrant service
+    ["RAGAPP_PASSWORD"]="password:32" # Added RAGApp basic auth password
     ["RAGFLOW_ELASTICSEARCH_PASSWORD"]="password:32"
-    # LightRAG credentials
-    ["LIGHTRAG_PASSWORD"]="password:32"
-    ["LIGHTRAG_API_KEY"]="secret:48"
-    # Docling credentials
-    ["DOCLING_PASSWORD"]="password:32"
+    ["RAGFLOW_MINIO_ROOT_PASSWORD"]="password:32"
+    ["RAGFLOW_MYSQL_ROOT_PASSWORD"]="password:32"
+    ["RAGFLOW_REDIS_PASSWORD"]="password:32"
+    ["SEARXNG_PASSWORD"]="password:32" # Added SearXNG admin password
+    ["SECRET_KEY_BASE"]="base64:64" # 48 bytes -> 64 chars
+    ["VAULT_ENC_KEY"]="alphanum:32"
+    ["WAHA_DASHBOARD_PASSWORD"]="password:32"
+    ["WEAVIATE_API_KEY"]="secret:48" # API Key for Weaviate service (36 bytes -> 48 chars base64)
+    ["WHATSAPP_SWAGGER_PASSWORD"]="password:32"
 )
 
 # Initialize existing_env_vars and attempt to read .env if it exists
@@ -295,6 +290,7 @@ found_vars["SEARXNG_USERNAME"]=0
 found_vars["OPENAI_API_KEY"]=0
 found_vars["LANGFUSE_INIT_USER_EMAIL"]=0
 found_vars["N8N_WORKER_COUNT"]=0
+found_vars["N8N_RUNNER_COUNT"]=0
 found_vars["WEAVIATE_USERNAME"]=0
 found_vars["NEO4J_AUTH_USERNAME"]=0
 found_vars["COMFYUI_USERNAME"]=0
@@ -351,7 +347,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             # This 'else' block is for lines from template not covered by existing values or VARS_TO_GENERATE.
             # Check if it is one of the user input vars - these are handled by found_vars later if not in template.
             is_user_input_var=0 # Reset for each line
-    user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "LIGHTRAG_USERNAME" "WAHA_DASHBOARD_USERNAME" "WHATSAPP_SWAGGER_USERNAME")
+    user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "N8N_RUNNER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "LIGHTRAG_USERNAME" "WAHA_DASHBOARD_USERNAME" "WHATSAPP_SWAGGER_USERNAME")
             for uivar in "${user_input_vars[@]}"; do
                 if [[ "$varName" == "$uivar" ]]; then
                     is_user_input_var=1
@@ -433,7 +429,7 @@ if [[ -z "${generated_values[SERVICE_ROLE_KEY]}" ]]; then
 fi
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "LIGHTRAG_USERNAME" "WAHA_DASHBOARD_USERNAME" "WHATSAPP_SWAGGER_USERNAME" "DOCLING_USERNAME"; do
+for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "N8N_RUNNER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "LIGHTRAG_USERNAME" "WAHA_DASHBOARD_USERNAME" "WHATSAPP_SWAGGER_USERNAME" "DOCLING_USERNAME"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
         # Before appending, check if it's already in TMP_ENV_FILE to avoid duplicates
         if ! grep -q -E "^${var}=" "$TMP_ENV_FILE"; then
