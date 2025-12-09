@@ -107,7 +107,7 @@ x-init-ollama: &init-ollama
     - "sleep 3; OLLAMA_HOST=ollama:11434 ollama pull qwen2.5:7b-instruct-q4_K_M; OLLAMA_HOST=ollama:11434 ollama pull nomic-embed-text"
 
 x-n8n-runner: &service-n8n-runner
-  image: n8nio/runners:2.0.0-rc.4
+  image: n8nio/runners:2.0.0
   environment: &service-n8n-runner-env
     N8N_RUNNERS_AUTH_TOKEN: ${N8N_RUNNERS_AUTH_TOKEN}
     N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT: 15
