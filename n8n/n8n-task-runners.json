@@ -1,0 +1,10 @@
+{
+  "task-runners": {
+    "js": {
+      "env-overrides": {
+        "NODE_FUNCTION_ALLOW_EXTERNAL": "cheerio,axios,moment,lodash",
+        "NODE_FUNCTION_ALLOW_BUILTIN": "*"
+      }
+    }
+  }
+}

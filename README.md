@@ -208,9 +208,9 @@ See the Cloudflare Tunnel guide: [cloudflare-instructions.md](cloudflare-instruc
 
 ### Using Libraries in n8n Code Nodes (v2.0+)
 
-n8n v2.0 uses external task runners to execute JavaScript and Python code in Code nodes. This setup pre-configures the following libraries:
+n8n v2.0 uses external task runners to execute JavaScript and Python code in Code nodes. This setup pre-configures the following libraries via `n8n/Dockerfile.runner` and `n8n/n8n-task-runners.json`:
 
-**JavaScript libraries** (via `NODE_FUNCTION_ALLOW_EXTERNAL`):
+**JavaScript libraries**:
 - **`cheerio`**: For parsing and manipulating HTML/XML (e.g., web scraping).
 - **`axios`**: A promise-based HTTP client for making requests to external APIs.
 - **`moment`**: For parsing, validating, manipulating, and displaying dates/times.
