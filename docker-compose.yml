@@ -67,6 +67,7 @@ x-n8n: &service-n8n
     N8N_RUNNERS_BROKER_LISTEN_ADDRESS: 0.0.0.0
     N8N_RUNNERS_ENABLED: true
     N8N_RUNNERS_MODE: external
+    OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS: ${OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS:-true}
     N8N_SMTP_HOST: ${N8N_SMTP_HOST:-}
     N8N_SMTP_OAUTH_PRIVATE_KEY: ${N8N_SMTP_OAUTH_PRIVATE_KEY:-}
     N8N_SMTP_OAUTH_SERVICE_CLIENT: ${N8N_SMTP_OAUTH_SERVICE_CLIENT:-}
@@ -106,15 +107,16 @@ x-init-ollama: &init-ollama
     - "-c"
     - "sleep 3; OLLAMA_HOST=ollama:11434 ollama pull qwen2.5:7b-instruct-q4_K_M; OLLAMA_HOST=ollama:11434 ollama pull nomic-embed-text"
 
-x-n8n-runner: &service-n8n-runner
+# Worker-runner anchor for sidecar pattern (runner connects to worker via localhost)
+x-n8n-worker-runner: &service-n8n-worker-runner
   image: n8nio/runners:2.0.0
-  environment: &service-n8n-runner-env
+  environment:
     N8N_RUNNERS_AUTH_TOKEN: ${N8N_RUNNERS_AUTH_TOKEN}
     N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT: 15
     N8N_RUNNERS_EXTERNAL_ALLOW: "*"
     N8N_RUNNERS_MAX_CONCURRENCY: ${N8N_RUNNERS_MAX_CONCURRENCY:-5}
     N8N_RUNNERS_STDLIB_ALLOW: "*"
-    N8N_RUNNERS_TASK_BROKER_URI: http://n8n:5679
+    N8N_RUNNERS_TASK_BROKER_URI: http://127.0.0.1:5679
     NODE_FUNCTION_ALLOW_BUILTIN: "*"
     NODE_FUNCTION_ALLOW_EXTERNAL: cheerio,axios,moment,lodash
 
@@ -175,40 +177,26 @@ services:
       n8n-import:
         condition: service_completed_successfully
 
-  n8n-worker:
+  # Template services for worker-runner pairs (used by docker-compose.n8n-workers.yml via extends)
+  # These templates use profile "n8n-template" which is never activated directly
+  n8n-worker-template:
     <<: *service-n8n
-    profiles: ["n8n"]
-    restart: unless-stopped
+    profiles: ["n8n-template"]
     command: worker
     volumes:
       - n8n_storage:/home/node/.n8n
       - ./shared:/data/shared
-    depends_on:
-      n8n:
-        condition: service_started
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    deploy:
-      replicas: ${N8N_WORKER_COUNT:-1}
 
-  n8n-runner:
-    <<: *service-n8n-runner
-    profiles: ["n8n"]
-    restart: unless-stopped
+  n8n-runner-template:
+    <<: *service-n8n-worker-runner
+    profiles: ["n8n-template"]
     entrypoint: ["/bin/sh", "-c", "/usr/local/bin/task-runner-launcher javascript python"]
-    depends_on:
-      n8n:
-        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:5680/healthz || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 30s
-    deploy:
-      replicas: ${N8N_RUNNER_COUNT:-1}
 
   qdrant:
     image: qdrant/qdrant
