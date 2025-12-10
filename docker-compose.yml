@@ -329,6 +329,7 @@ services:
 
   langfuse-worker:
     image: langfuse/langfuse-worker:3
+    container_name: langfuse-worker
     restart: always
     profiles: ["langfuse"]
     depends_on: &langfuse-depends-on
@@ -386,6 +387,7 @@ services:
 
   langfuse-web:
     image: langfuse/langfuse:3
+    container_name: langfuse-web
     restart: always
     profiles: ["langfuse"]
     depends_on: *langfuse-depends-on
@@ -406,6 +408,7 @@ services:
 
   clickhouse:
     image: clickhouse/clickhouse-server
+    container_name: clickhouse
     restart: always
     profiles: ["langfuse"]
     user: "101:101"
@@ -425,6 +428,7 @@ services:
 
   minio:
     image: minio/minio
+    container_name: minio
     restart: always
     profiles: ["langfuse"]
     entrypoint: sh
