@@ -218,10 +218,10 @@ n8n v2.0 uses external task runners to execute JavaScript and Python code in Cod
 
 ## Upgrading
 
-To update all components (n8n, Open WebUI, etc.) to their latest versions and incorporate the newest changes from this installer project, use the update script from the project root:
+To update all components (n8n, Open WebUI, etc.) to their latest versions and incorporate the newest changes from this installer project:
 
 ```bash
-sudo bash ./scripts/update.sh
+make update
 ```
 
 This script will:
@@ -234,13 +234,37 @@ This script will:
 
 ## Cleaning up Docker
 
-If you need to free up disk space, you can run the Docker cleanup script. This script removes all unused Docker containers, images, and volumes.
+If you need to free up disk space, you can run the Docker cleanup command. This removes all unused Docker containers, images, and volumes.
 
 ```bash
-sudo bash ./scripts/docker_cleanup.sh
+make clean
 ```
 
 This can be useful for removing old images and freeing up space, but be aware that it will remove all unused data.
+
+## Quick Commands (Makefile)
+
+The project includes a Makefile for simplified command execution:
+
+| Command | Description |
+|---------|-------------|
+| `make install` | Full installation |
+| `make update` | Update system and services |
+| `make clean` | Remove unused Docker resources |
+| `make logs` | View logs (all services) |
+| `make logs s=n8n` | View logs for specific service |
+| `make status` | Show container status |
+| `make monitor` | Live CPU/memory monitoring |
+| `make restarts` | Show restart count per container |
+
+### Switch Versions
+
+| Command | Description |
+|---------|-------------|
+| `make switch-beta` | Switch to beta (develop branch) |
+| `make switch-stable` | Switch to stable (main branch) |
+
+Run `make help` for the full list of available commands.
 
 ## Important Links
 

@@ -15,6 +15,7 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 
 ### Key Files
 
+- `Makefile`: Common commands (install, update, logs, etc.)
 - `docker-compose.yml`: Service definitions with profiles
 - `Caddyfile`: Reverse proxy configuration with automatic HTTPS
 - `.env`: Generated secrets and configuration (from `.env.example`)
@@ -25,54 +26,23 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 
 ## Common Development Commands
 
-### Installation and Updates
+### Makefile Commands
 
 ```bash
-# Full installation (run from project root)
-sudo bash ./scripts/install.sh
+make install           # Full installation
+make update            # Update system and services
+make clean             # Remove unused Docker resources
 
-# Update to latest versions and pull new images
-sudo bash ./scripts/update.sh
+make logs              # View logs (all services)
+make logs s=<service>  # View logs for specific service
+make status            # Show container status
+make monitor           # Live CPU/memory monitoring
+make restarts          # Show restart count per container
 
-# Re-run service selection wizard (for adding/removing services)
-sudo bash ./scripts/04_wizard.sh
+make switch-beta       # Switch to beta (develop branch)
+make switch-stable     # Switch to stable (main branch)
 ```
 
-### Docker Compose Operations
-
-```bash
-# Start all enabled profile services
-docker compose -p localai up -d
-
-# View logs for a specific service
-docker compose -p localai logs -f --tail=200 <service-name> | cat
-
-# Recreate a single service (e.g., after config changes)
-docker compose -p localai up -d --no-deps --force-recreate <service-name>
-
-# Stop all services
-docker compose -p localai down
-
-# Remove unused Docker resources
-sudo bash ./scripts/docker_cleanup.sh
-```
-
-### Development and Testing
-
-```bash
-# Regenerate secrets after modifying .env.example
-bash ./scripts/03_generate_secrets.sh
-
-# Check current active profiles
-grep COMPOSE_PROFILES .env
-
-# View Caddy logs for reverse proxy issues
-docker compose -p localai logs -f caddy
-
-# Test n8n worker scaling
-# Edit N8N_WORKER_COUNT in .env, then:
-docker compose -p localai up -d --scale n8n-worker=<count>
-```
 
 ## Adding a New Service
 
