@@ -11,4 +11,4 @@ RUN pnpm add cheerio axios moment lodash
 # Copy task runner configuration
 COPY n8n-task-runners.json /etc/n8n-task-runners.json
 
-USER node
+USER runner
