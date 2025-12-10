@@ -21,7 +21,8 @@ fi
 
 # Загрузить N8N_WORKER_COUNT из .env если не задан
 if [[ -z "${N8N_WORKER_COUNT:-}" ]] && [[ -f "$PROJECT_DIR/.env" ]]; then
-    N8N_WORKER_COUNT=$(grep -E "^N8N_WORKER_COUNT=" "$PROJECT_DIR/.env" | cut -d'=' -f2 || echo "1")
+    # Strip quotes (single and double) from the value
+    N8N_WORKER_COUNT=$(grep -E "^N8N_WORKER_COUNT=" "$PROJECT_DIR/.env" | cut -d'=' -f2 | tr -d '"'"'" || echo "1")
 fi
 N8N_WORKER_COUNT=${N8N_WORKER_COUNT:-1}
 
@@ -56,7 +57,7 @@ cat >> "$OUTPUT_FILE" << EOF
     restart: unless-stopped
     depends_on:
       n8n:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_healthy
       postgres:
@@ -72,7 +73,7 @@ cat >> "$OUTPUT_FILE" << EOF
     network_mode: "service:n8n-worker-$i"
     depends_on:
       n8n-worker-$i:
-        condition: service_started
+        condition: service_healthy
 
 EOF
 done

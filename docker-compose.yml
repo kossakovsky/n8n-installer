@@ -38,6 +38,8 @@ x-n8n: &service-n8n
   build:
     context: ./n8n
     pull: true
+    args:
+      N8N_VERSION: ${N8N_VERSION:-stable}
   environment: &service-n8n-env
     DB_POSTGRESDB_DATABASE: postgres
     DB_POSTGRESDB_HOST: postgres
@@ -109,7 +111,7 @@ x-init-ollama: &init-ollama
 
 # Worker-runner anchor for sidecar pattern (runner connects to worker via localhost)
 x-n8n-worker-runner: &service-n8n-worker-runner
-  image: n8nio/runners:2.0.0
+  image: n8nio/runners:${N8N_VERSION:-stable}
   environment:
     N8N_RUNNERS_AUTH_TOKEN: ${N8N_RUNNERS_AUTH_TOKEN}
     N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT: 15
@@ -173,6 +175,12 @@ services:
       - n8n_storage:/home/node/.n8n
       - ./n8n/backup:/backup
       - ./shared:/data/shared
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     depends_on:
       n8n-import:
         condition: service_completed_successfully
@@ -186,6 +194,12 @@ services:
     volumes:
       - n8n_storage:/home/node/.n8n
       - ./shared:/data/shared
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   n8n-runner-template:
     <<: *service-n8n-worker-runner
