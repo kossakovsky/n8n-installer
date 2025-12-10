@@ -77,9 +77,8 @@ if [ -d "$DIFY_DOCKER_DIR" ] && [ -f "$DIFY_COMPOSE_FILE_PATH" ]; then
     COMPOSE_FILES_FOR_PULL+=("-f" "$DIFY_COMPOSE_FILE_PATH")
 fi
 
-# Use the project name "localai" for consistency.
 # This command WILL respect COMPOSE_PROFILES from the .env file (updated by the wizard above).
-$COMPOSE_CMD -p "localai" "${COMPOSE_FILES_FOR_PULL[@]}" pull --ignore-buildable || {
+$COMPOSE_CMD "${COMPOSE_FILES_FOR_PULL[@]}" pull --ignore-buildable || {
   log_error "Failed to pull Docker images for selected services. Check network connection and Docker Hub status."
   exit 1
 }

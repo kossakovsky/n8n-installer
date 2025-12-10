@@ -3,8 +3,7 @@
 start_services.py
 
 This script starts the Supabase stack first, waits for it to initialize, and then starts
-the local AI stack. Both stacks use the same Docker Compose project name ("localai")
-so they appear together in Docker Desktop.
+the local AI stack.
 """
 
 import os
@@ -169,11 +168,11 @@ def prepare_dify_env():
         f.write("\n".join(lines) + "\n")
 
 def stop_existing_containers():
-    """Stop and remove existing containers for our unified project ('localai')."""
-    print("Stopping and removing existing containers for the unified project 'localai'...")
-    
+    """Stop and remove existing containers."""
+    print("Stopping and removing existing containers...")
+
     # Base command
-    cmd = ["docker", "compose", "-p", "localai"]
+    cmd = ["docker", "compose"]
 
     # Get all profiles from the main docker-compose.yml to ensure all services can be brought down
     all_profiles = get_all_profiles("docker-compose.yml")
@@ -207,7 +206,7 @@ def start_supabase():
         return
     print("Starting Supabase services...")
     run_command([
-        "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d"
+        "docker", "compose", "-f", "supabase/docker/docker-compose.yml", "up", "-d"
     ])
 
 def start_dify():
@@ -217,7 +216,7 @@ def start_dify():
         return
     print("Starting Dify services...")
     run_command([
-        "docker", "compose", "-p", "localai", "-f", "dify/docker/docker-compose.yaml", "up", "-d"
+        "docker", "compose", "-f", "dify/docker/docker-compose.yaml", "up", "-d"
     ])
 
 def start_local_ai():
@@ -234,12 +233,12 @@ def start_local_ai():
 
     # Explicitly build services and pull newer base images first.
     print("Checking for newer base images and building services...")
-    build_cmd = ["docker", "compose", "-p", "localai"] + compose_files + ["build", "--pull"]
+    build_cmd = ["docker", "compose"] + compose_files + ["build", "--pull"]
     run_command(build_cmd)
 
     # Now, start the services using the newly built images. No --build needed as we just built.
     print("Starting containers...")
-    up_cmd = ["docker", "compose", "-p", "localai"] + compose_files + ["up", "-d"]
+    up_cmd = ["docker", "compose"] + compose_files + ["up", "-d"]
     run_command(up_cmd)
 
 def generate_searxng_secret_key():
