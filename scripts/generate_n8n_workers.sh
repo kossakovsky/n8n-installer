@@ -52,7 +52,6 @@ cat >> "$OUTPUT_FILE" << EOF
     extends:
       file: docker-compose.yml
       service: n8n-worker-template
-    container_name: n8n-worker-$i
     profiles: ["n8n"]
     restart: unless-stopped
     depends_on:
@@ -67,7 +66,6 @@ cat >> "$OUTPUT_FILE" << EOF
     extends:
       file: docker-compose.yml
       service: n8n-runner-template
-    container_name: n8n-runner-$i
     profiles: ["n8n"]
     restart: unless-stopped
     network_mode: "service:n8n-worker-$i"
