@@ -50,9 +50,25 @@ restarts:
 switch-beta:
 	git restore docker-compose.yml
 	git checkout develop
+	@if [ -f .env ]; then \
+		if grep -q '^N8N_VERSION=' .env; then \
+			sed -i.bak 's/^N8N_VERSION=.*/N8N_VERSION=2.0.0/' .env && rm -f .env.bak; \
+		else \
+			echo 'N8N_VERSION=2.0.0' >> .env; \
+		fi; \
+	fi
+	@echo "N8N_VERSION set to 2.0.0"
 	sudo bash ./scripts/update.sh
 
 switch-stable:
 	git restore docker-compose.yml
 	git checkout main
+	@if [ -f .env ]; then \
+		if grep -q '^N8N_VERSION=' .env; then \
+			sed -i.bak 's/^N8N_VERSION=.*/N8N_VERSION=stable/' .env && rm -f .env.bak; \
+		else \
+			echo 'N8N_VERSION=stable' >> .env; \
+		fi; \
+	fi
+	@echo "N8N_VERSION set to stable"
 	sudo bash ./scripts/update.sh
