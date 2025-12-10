@@ -379,8 +379,8 @@ To disable Cloudflare Tunnel and return to Caddy-only access:
 
 2. Stop the tunnel and restart services:
    ```bash
-   docker compose -p localai --profile cloudflare-tunnel down
-   docker compose -p localai up -d
+   docker compose --profile cloudflare-tunnel down
+   docker compose up -d
    ```
 
 3. Re-open firewall ports if closed:

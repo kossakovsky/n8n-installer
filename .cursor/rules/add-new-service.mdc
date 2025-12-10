@@ -151,14 +151,14 @@ bash scripts/03_generate_secrets.sh
 ```
 - Start (or recreate) only the affected services:
 ```bash
-docker compose -p localai up -d --no-deps --force-recreate caddy
+docker compose up -d --no-deps --force-recreate caddy
 # If your service was added/changed
-docker compose -p localai up -d --no-deps --force-recreate myservice
+docker compose up -d --no-deps --force-recreate myservice
 ```
 - Check logs:
 ```bash
-docker compose -p localai logs -f --tail=200 myservice | cat
-docker compose -p localai logs -f --tail=200 caddy | cat
+docker compose logs -f --tail=200 myservice | cat
+docker compose logs -f --tail=200 caddy | cat
 ```
 
 ## 10) Quick checklist
