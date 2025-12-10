@@ -196,7 +196,7 @@ def stop_existing_containers():
     if os.path.exists(n8n_workers_compose_path):
         cmd.extend(["-f", n8n_workers_compose_path])
 
-    cmd.append("down")
+    cmd.extend(["down", "--remove-orphans"])
     run_command(cmd)
 
 def start_supabase():
