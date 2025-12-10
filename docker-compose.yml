@@ -37,6 +37,7 @@ volumes:
 x-n8n: &service-n8n
   build:
     context: ./n8n
+    dockerfile: Dockerfile.n8n
     pull: true
     args:
       N8N_VERSION: ${N8N_VERSION:-stable}
@@ -111,7 +112,12 @@ x-init-ollama: &init-ollama
 
 # Worker-runner anchor for sidecar pattern (runner connects to worker via localhost)
 x-n8n-worker-runner: &service-n8n-worker-runner
-  image: n8nio/runners:${N8N_VERSION:-stable}
+  build:
+    context: ./n8n
+    dockerfile: Dockerfile.runner
+    pull: true
+    args:
+      N8N_VERSION: ${N8N_VERSION:-stable}
   environment:
     N8N_RUNNERS_AUTH_TOKEN: ${N8N_RUNNERS_AUTH_TOKEN}
     N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT: 15

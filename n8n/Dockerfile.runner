@@ -1,0 +1,10 @@
+ARG N8N_VERSION=stable
+FROM n8nio/runners:${N8N_VERSION}
+
+USER root
+
+# Install npm packages that can be used in Code nodes
+# These must match NODE_FUNCTION_ALLOW_EXTERNAL in docker-compose.yml
+RUN npm install -g cheerio axios moment lodash
+
+USER node
