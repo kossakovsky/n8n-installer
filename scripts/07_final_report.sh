@@ -51,6 +51,8 @@ if is_profile_active "n8n"; then
   echo "================================= n8n ================================="
   echo
   echo "Host: ${N8N_HOSTNAME:-<hostname_not_set>}"
+  N8N_WORKER_COUNT_VAL="${N8N_WORKER_COUNT:-1}"
+  echo "Workers: $N8N_WORKER_COUNT_VAL (each with dedicated task runner sidecar)"
 fi
 
 if is_profile_active "open-webui"; then
