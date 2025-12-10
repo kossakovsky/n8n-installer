@@ -3,7 +3,8 @@
 start_services.py
 
 This script starts the Supabase stack first, waits for it to initialize, and then starts
-the local AI stack.
+the local AI stack. Both stacks use the same Docker Compose project name ("localai")
+so they appear together in Docker Desktop.
 """
 
 import os
@@ -167,33 +168,12 @@ def prepare_dify_env():
     with open(env_path, 'w') as f:
         f.write("\n".join(lines) + "\n")
 
-def cleanup_legacy_project():
-    """Clean up containers from legacy 'localai' project name.
-
-    The project was previously named 'localai' (from the old directory name or profile).
-    After renaming to 'n8n-installer', old containers may still exist under the old project name.
-    This function removes them to prevent container name conflicts.
-    """
-    print("Checking for legacy 'localai' project containers...")
-    try:
-        # This will silently do nothing if no containers exist for the project
-        subprocess.run(
-            ["docker", "compose", "-p", "localai", "down", "--remove-orphans"],
-            check=False,  # Don't fail if project doesn't exist
-            capture_output=True  # Suppress output for cleaner logs
-        )
-    except Exception:
-        pass  # Ignore any errors - this is just cleanup
-
 def stop_existing_containers():
-    """Stop and remove existing containers."""
-    print("Stopping and removing existing containers...")
+    """Stop and remove existing containers for our unified project ('localai')."""
+    print("Stopping and removing existing containers for the unified project 'localai'...")
 
-    # First, clean up any legacy containers from the old 'localai' project
-    cleanup_legacy_project()
-
-    # Base command
-    cmd = ["docker", "compose"]
+    # Base command with project name for consistency
+    cmd = ["docker", "compose", "-p", "localai"]
 
     # Get all profiles from the main docker-compose.yml to ensure all services can be brought down
     all_profiles = get_all_profiles("docker-compose.yml")
@@ -227,7 +207,7 @@ def start_supabase():
         return
     print("Starting Supabase services...")
     run_command([
-        "docker", "compose", "-f", "supabase/docker/docker-compose.yml", "up", "-d"
+        "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d"
     ])
 
 def start_dify():
@@ -237,7 +217,7 @@ def start_dify():
         return
     print("Starting Dify services...")
     run_command([
-        "docker", "compose", "-f", "dify/docker/docker-compose.yaml", "up", "-d"
+        "docker", "compose", "-p", "localai", "-f", "dify/docker/docker-compose.yaml", "up", "-d"
     ])
 
 def start_local_ai():
@@ -254,13 +234,13 @@ def start_local_ai():
 
     # Explicitly build services and pull newer base images first.
     print("Checking for newer base images and building services...")
-    build_cmd = ["docker", "compose"] + compose_files + ["build", "--pull"]
+    build_cmd = ["docker", "compose", "-p", "localai"] + compose_files + ["build", "--pull"]
     run_command(build_cmd)
 
     # Now, start the services using the newly built images. No --build needed as we just built.
     # Use --remove-orphans to clean up containers from profiles that are no longer active
     print("Starting containers...")
-    up_cmd = ["docker", "compose"] + compose_files + ["up", "-d", "--remove-orphans"]
+    up_cmd = ["docker", "compose", "-p", "localai"] + compose_files + ["up", "-d", "--remove-orphans"]
     run_command(up_cmd)
 
 def generate_searxng_secret_key():
