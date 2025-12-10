@@ -26,6 +26,7 @@
             "env-overrides": {
                 "NODE_FUNCTION_ALLOW_BUILTIN": "*",
                 "NODE_FUNCTION_ALLOW_EXTERNAL": "cheerio,axios,moment,lodash",
+                "NODE_PATH": "/home/runner/node_modules",
                 "N8N_RUNNERS_HEALTH_CHECK_SERVER_HOST": "0.0.0.0"
             }
         },
