@@ -237,8 +237,9 @@ def start_local_ai():
     run_command(build_cmd)
 
     # Now, start the services using the newly built images. No --build needed as we just built.
+    # Use --remove-orphans to clean up containers from profiles that are no longer active
     print("Starting containers...")
-    up_cmd = ["docker", "compose"] + compose_files + ["up", "-d"]
+    up_cmd = ["docker", "compose"] + compose_files + ["up", "-d", "--remove-orphans"]
     run_command(up_cmd)
 
 def generate_searxng_secret_key():
