@@ -129,9 +129,8 @@ During the installation, the script will prompt you for:
 2.  Your **email address** (Required, used for service logins like Flowise, Supabase dashboard, Grafana, and for SSL certificate registration with Let's Encrypt).
 3.  An optional **OpenAI API key** (Not required. If provided, it can be used by Supabase AI features and Crawl4ai. Press Enter to skip).
 4.  Whether you want to **import ~300 ready-made n8n community workflows** (y/n, Optional. This can take 20-30 minutes, depending on your server and network speed).
-5.  The **number of n8n workers** you want to run (Required, e.g., 1, 2, 3, 4. This determines how many workflows can be processed in parallel. Defaults to 1 if not specified).
-6.  The **number of n8n task runners** you want to run (Required, e.g., 1, 2, 3. Task runners execute JavaScript and Python Code nodes. Defaults to 1 if not specified).
-7.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
+5.  The **number of n8n workers** you want to run (Required, e.g., 1, 2, 3, 4. This determines how many workflows can be processed in parallel. Each worker automatically gets its own dedicated task runner sidecar for executing Code nodes. Defaults to 1 if not specified).
+6.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
 
 Upon successful completion, the script will display a summary report. This report contains the access URLs and credentials for the deployed services. **Save this information in a safe place!**
 
