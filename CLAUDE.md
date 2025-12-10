@@ -100,11 +100,10 @@ Follow this workflow when adding a new optional service (refer to `.cursor/rules
   - Runner connects to its worker via `network_mode: "service:n8n-worker-N"` (localhost:5679)
   - Runner image `n8nio/runners` must match n8n version
 - **Scaling**: Change `N8N_WORKER_COUNT` in `.env` and run `bash scripts/generate_n8n_workers.sh`
-- **Code node libraries**: Configured on the runner container (not n8n):
-  - `NODE_FUNCTION_ALLOW_EXTERNAL`: JS packages (`cheerio`, `axios`, `moment`, `lodash`)
-  - `NODE_FUNCTION_ALLOW_BUILTIN`: Node.js built-in modules (`*` = all)
-  - `N8N_RUNNERS_STDLIB_ALLOW`: Python stdlib modules
-  - `N8N_RUNNERS_EXTERNAL_ALLOW`: Python third-party packages
+- **Code node libraries**: Configured via `n8n/n8n-task-runners.json` and `n8n/Dockerfile.runner`:
+  - JS packages installed via `pnpm add` in Dockerfile.runner
+  - Allowlist configured in `n8n-task-runners.json` (`NODE_FUNCTION_ALLOW_EXTERNAL`, `NODE_FUNCTION_ALLOW_BUILTIN`)
+  - Default packages: `cheerio`, `axios`, `moment`, `lodash`
 - Workflows can access the host filesystem via `/data/shared` (mapped to `./shared`)
 - `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` allows Code nodes to access environment variables
 
