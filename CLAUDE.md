@@ -42,16 +42,16 @@ sudo bash ./scripts/04_wizard.sh
 
 ```bash
 # Start all enabled profile services
-docker compose up -d
+docker compose -p localai up -d
 
 # View logs for a specific service
-docker compose logs -f --tail=200 <service-name> | cat
+docker compose -p localai logs -f --tail=200 <service-name> | cat
 
 # Recreate a single service (e.g., after config changes)
-docker compose up -d --no-deps --force-recreate <service-name>
+docker compose -p localai up -d --no-deps --force-recreate <service-name>
 
 # Stop all services
-docker compose down
+docker compose -p localai down
 
 # Remove unused Docker resources
 sudo bash ./scripts/docker_cleanup.sh
@@ -67,11 +67,11 @@ bash ./scripts/03_generate_secrets.sh
 grep COMPOSE_PROFILES .env
 
 # View Caddy logs for reverse proxy issues
-docker compose logs -f caddy
+docker compose -p localai logs -f caddy
 
 # Test n8n worker scaling
 # Edit N8N_WORKER_COUNT in .env, then:
-docker compose up -d --scale n8n-worker=<count>
+docker compose -p localai up -d --scale n8n-worker=<count>
 ```
 
 ## Adding a New Service
@@ -177,7 +177,7 @@ fi
 
 ### Service won't start after adding
 1. Ensure profile is added to `COMPOSE_PROFILES` in `.env`
-2. Check logs: `docker compose logs <service>`
+2. Check logs: `docker compose -p localai logs <service>`
 3. Verify no port conflicts (no services should publish ports)
 4. Ensure healthcheck is properly defined if service has dependencies
 
@@ -187,16 +187,16 @@ fi
 - Verify `LETSENCRYPT_EMAIL` is set in `.env`
 
 ### Password hash generation fails
-- Ensure Caddy container is running: `docker compose up -d caddy`
+- Ensure Caddy container is running: `docker compose -p localai up -d caddy`
 - Script uses: `docker exec caddy caddy hash-password --plaintext "$password"`
 
 ## File Locations
 
 - Shared files accessible by n8n: `./shared` (mounted as `/data/shared` in n8n)
-- n8n storage: Docker volume `n8n_storage`
+- n8n storage: Docker volume `localai_n8n_storage`
 - Service-specific volumes: Defined in `volumes:` section at top of `docker-compose.yml`
 - Installation logs: stdout during script execution
-- Service logs: `docker compose logs <service>`
+- Service logs: `docker compose -p localai logs <service>`
 
 ## Testing Changes
 
