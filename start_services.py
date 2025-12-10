@@ -167,9 +167,30 @@ def prepare_dify_env():
     with open(env_path, 'w') as f:
         f.write("\n".join(lines) + "\n")
 
+def cleanup_legacy_project():
+    """Clean up containers from legacy 'localai' project name.
+
+    The project was previously named 'localai' (from the old directory name or profile).
+    After renaming to 'n8n-installer', old containers may still exist under the old project name.
+    This function removes them to prevent container name conflicts.
+    """
+    print("Checking for legacy 'localai' project containers...")
+    try:
+        # This will silently do nothing if no containers exist for the project
+        subprocess.run(
+            ["docker", "compose", "-p", "localai", "down", "--remove-orphans"],
+            check=False,  # Don't fail if project doesn't exist
+            capture_output=True  # Suppress output for cleaner logs
+        )
+    except Exception:
+        pass  # Ignore any errors - this is just cleanup
+
 def stop_existing_containers():
     """Stop and remove existing containers."""
     print("Stopping and removing existing containers...")
+
+    # First, clean up any legacy containers from the old 'localai' project
+    cleanup_legacy_project()
 
     # Base command
     cmd = ["docker", "compose"]
@@ -178,7 +199,7 @@ def stop_existing_containers():
     all_profiles = get_all_profiles("docker-compose.yml")
     for profile in all_profiles:
         cmd.extend(["--profile", profile])
-    
+
     cmd.extend(["-f", "docker-compose.yml"])
 
     # Check if the Supabase Docker Compose file exists. If so, include it in the 'down' command.
