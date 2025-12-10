@@ -93,16 +93,19 @@ Follow this workflow when adding a new optional service (refer to `.cursor/rules
 ### n8n Configuration (v2.0+)
 
 - n8n runs in `EXECUTIONS_MODE=queue` with Redis as the queue backend
-- **Task runners**: n8n v2.0 uses external task runners for Code node execution (JavaScript and Python)
-  - Runner count controlled by `N8N_RUNNER_COUNT` env var (defaults to 1)
+- **OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true**: All executions (including manual tests) run on workers
+- **Worker-Runner Sidecar Pattern**: Each worker has its own dedicated task runner
+  - Workers and runners are generated dynamically via `scripts/generate_n8n_workers.sh`
+  - Configuration stored in `docker-compose.n8n-workers.yml` (auto-generated, gitignored)
+  - Runner connects to its worker via `network_mode: "service:n8n-worker-N"` (localhost:5679)
   - Runner image `n8nio/runners` must match n8n version
+- **Scaling**: Change `N8N_WORKER_COUNT` in `.env` and run `bash scripts/generate_n8n_workers.sh`
 - **Code node libraries**: Configured on the runner container (not n8n):
   - `NODE_FUNCTION_ALLOW_EXTERNAL`: JS packages (`cheerio`, `axios`, `moment`, `lodash`)
   - `NODE_FUNCTION_ALLOW_BUILTIN`: Node.js built-in modules (`*` = all)
   - `N8N_RUNNERS_STDLIB_ALLOW`: Python stdlib modules
   - `N8N_RUNNERS_EXTERNAL_ALLOW`: Python third-party packages
 - Workflows can access the host filesystem via `/data/shared` (mapped to `./shared`)
-- Worker count is controlled by `N8N_WORKER_COUNT` env var (defaults to 1)
 - `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` allows Code nodes to access environment variables
 
 ### Caddy Reverse Proxy
