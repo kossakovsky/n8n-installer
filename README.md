@@ -256,23 +256,30 @@ This can be useful for removing old images and freeing up space, but be aware th
 
 The project includes a Makefile for simplified command execution:
 
-| Command | Description |
-|---------|-------------|
-| `make install` | Full installation |
-| `make update` | Update system and services |
-| `make clean` | Remove unused Docker resources |
-| `make logs` | View logs (all services) |
-| `make logs s=n8n` | View logs for specific service |
-| `make status` | Show container status |
-| `make monitor` | Live CPU/memory monitoring |
-| `make restarts` | Show restart count per container |
+### Installation & Updates
 
-### Switch Versions
+| Command               | Description                                          |
+| --------------------- | ---------------------------------------------------- |
+| `make install`        | Full installation                                    |
+| `make update`         | Update system and services                           |
+| `make update-preview` | Preview available updates without applying (dry-run) |
+| `make clean`          | Remove unused Docker resources                       |
 
-| Command | Description |
-|---------|-------------|
-| `make switch-beta` | Switch to beta (develop branch) |
-| `make switch-stable` | Switch to stable (main branch) |
+### Monitoring & Logs
+
+| Command                 | Description                                              |
+| ----------------------- | -------------------------------------------------------- |
+| `make logs`             | View logs (all services)                                 |
+| `make logs s=<service>` | View logs for specific service (e.g., `make logs s=n8n`) |
+| `make status`           | Show container status                                    |
+| `make monitor`          | Live CPU/memory monitoring                               |
+| `make restarts`         | Show restart count per container                         |
+
+### Diagnostics
+
+| Command       | Description                                                        |
+| ------------- | ------------------------------------------------------------------ |
+| `make doctor` | Run system diagnostics (checks DNS, SSL, containers, disk, memory) |
 
 Run `make help` for the full list of available commands.
 
