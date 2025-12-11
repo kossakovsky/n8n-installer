@@ -119,6 +119,7 @@ x-n8n-worker-runner: &service-n8n-worker-runner
     args:
       N8N_VERSION: ${N8N_VERSION:-stable}
   environment:
+    GENERIC_TIMEZONE: ${GENERIC_TIMEZONE:-America/New_York}
     N8N_RUNNERS_AUTH_TOKEN: ${N8N_RUNNERS_AUTH_TOKEN}
     N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT: 15
     N8N_RUNNERS_MAX_CONCURRENCY: ${N8N_RUNNERS_MAX_CONCURRENCY:-5}
