@@ -216,6 +216,16 @@ n8n v2.0 uses external task runners to execute JavaScript and Python code in Cod
 - **`moment`**: For parsing, validating, manipulating, and displaying dates/times.
 - **`lodash`**: A utility library for common programming tasks (arrays, objects, strings, etc.).
 
+### Pre-installed System Tools in n8n
+
+The custom n8n Docker image (`n8n/Dockerfile.n8n`) includes the following system-level tools:
+
+- **`ffmpeg`**: A powerful multimedia framework for converting, recording, and streaming audio and video. Use it via the [Execute Command](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.executecommand/) node in n8n workflows for tasks like:
+  - Converting video/audio formats (e.g., MP4 to MP3)
+  - Extracting audio from video files
+  - Resizing or compressing media files
+  - Generating thumbnails from videos
+
 ## Upgrading
 
 To update all components (n8n, Open WebUI, etc.) to their latest versions and incorporate the newest changes from this installer project:
