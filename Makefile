@@ -52,12 +52,12 @@ switch-beta:
 	git checkout develop
 	@if [ -f .env ]; then \
 		if grep -q '^N8N_VERSION=' .env; then \
-			sed -i.bak 's/^N8N_VERSION=.*/N8N_VERSION=2.0.0/' .env && rm -f .env.bak; \
+			sed -i.bak 's/^N8N_VERSION=.*/N8N_VERSION=2.0.1/' .env && rm -f .env.bak; \
 		else \
-			echo 'N8N_VERSION=2.0.0' >> .env; \
+			echo 'N8N_VERSION=2.0.1' >> .env; \
 		fi; \
 	fi
-	@echo "N8N_VERSION set to 2.0.0"
+	@echo "N8N_VERSION set to 2.0.1"
 	sudo bash ./scripts/update.sh
 
 switch-stable:
