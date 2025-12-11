@@ -1,4 +1,4 @@
-.PHONY: help install update clean logs status monitor restarts switch-beta switch-stable
+.PHONY: help install update update-preview clean logs status monitor restarts doctor switch-beta switch-stable
 
 PROJECT_NAME := localai
 
@@ -7,6 +7,7 @@ help:
 	@echo ""
 	@echo "  make install           Full installation"
 	@echo "  make update            Update system and services"
+	@echo "  make update-preview    Preview available updates (dry-run)"
 	@echo "  make clean             Remove unused Docker resources"
 	@echo ""
 	@echo "  make logs              View logs (all services)"
@@ -14,6 +15,7 @@ help:
 	@echo "  make status            Show container status"
 	@echo "  make monitor           Live CPU/memory monitoring"
 	@echo "  make restarts          Show restart count per container"
+	@echo "  make doctor            Run system diagnostics"
 	@echo ""
 	@echo "  make switch-beta       Switch to beta (develop branch)"
 	@echo "  make switch-stable     Switch to stable (main branch)"
@@ -23,6 +25,9 @@ install:
 
 update:
 	sudo bash ./scripts/update.sh
+
+update-preview:
+	bash ./scripts/update_preview.sh
 
 clean:
 	sudo bash ./scripts/docker_cleanup.sh
@@ -46,6 +51,9 @@ restarts:
 		restarts=$$(docker inspect --format '{{.RestartCount}}' $$id); \
 		echo "$$name restarted $$restarts times"; \
 	done
+
+doctor:
+	bash ./scripts/doctor.sh
 
 switch-beta:
 	git restore docker-compose.yml

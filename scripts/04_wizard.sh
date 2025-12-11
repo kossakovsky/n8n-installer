@@ -35,6 +35,54 @@ check_whiptail
 ORIGINAL_DEBIAN_FRONTEND="$DEBIAN_FRONTEND"
 export DEBIAN_FRONTEND=dialog
 
+# --- Quick Start Pack Selection ---
+# First screen: choose between Quick Start Pack or Custom Selection
+
+PACK_CHOICE=$(whiptail --title "Installation Mode" --menu \
+  "Choose how you want to set up your services:\n\nQuick Start uses a recommended set of services.\nCustom lets you pick individual services." 15 70 2 \
+  "quick" "Quick Start (Recommended: n8n + monitoring + backups + management)" \
+  "custom" "Custom Selection (Choose individual services)" \
+  3>&1 1>&2 2>&3)
+
+pack_exitstatus=$?
+if [ $pack_exitstatus -ne 0 ]; then
+    log_info "Installation cancelled by user."
+    exit 0
+fi
+
+# If Quick Start is selected, set the Base Pack profiles and exit
+if [ "$PACK_CHOICE" == "quick" ]; then
+    log_info "Quick Start Pack selected: n8n + monitoring + postgresus + portainer"
+
+    # Base Pack profiles
+    COMPOSE_PROFILES_VALUE="n8n,monitoring,postgresus,portainer"
+
+    # Ensure .env file exists
+    if [ ! -f "$ENV_FILE" ]; then
+        touch "$ENV_FILE"
+    fi
+
+    # Remove existing COMPOSE_PROFILES line if it exists
+    if grep -q "^COMPOSE_PROFILES=" "$ENV_FILE"; then
+        sed -i.bak "\|^COMPOSE_PROFILES=|d" "$ENV_FILE"
+    fi
+
+    # Add the new COMPOSE_PROFILES line
+    echo "COMPOSE_PROFILES=${COMPOSE_PROFILES_VALUE}" >> "$ENV_FILE"
+    log_info "The following Docker Compose profiles will be active: ${COMPOSE_PROFILES_VALUE}"
+
+    # Restore original DEBIAN_FRONTEND
+    if [ -n "$ORIGINAL_DEBIAN_FRONTEND" ]; then
+        export DEBIAN_FRONTEND="$ORIGINAL_DEBIAN_FRONTEND"
+    else
+        unset DEBIAN_FRONTEND
+    fi
+
+    exit 0
+fi
+
+# --- Custom Selection Mode (existing logic) ---
+
 # --- Read current COMPOSE_PROFILES from .env ---
 CURRENT_PROFILES_VALUE=""
 if [ -f "$ENV_FILE" ]; then
