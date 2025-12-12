@@ -642,7 +642,18 @@
 
         const title = document.createElement('h3');
         title.className = 'font-semibold text-white';
-        title.textContent = metadata.name;
+
+        if (metadata.docsUrl) {
+            const titleLink = document.createElement('a');
+            titleLink.href = metadata.docsUrl;
+            titleLink.target = '_blank';
+            titleLink.rel = 'noopener';
+            titleLink.className = 'hover:text-brand transition-colors';
+            titleLink.textContent = metadata.name;
+            title.appendChild(titleLink);
+        } else {
+            title.textContent = metadata.name;
+        }
 
         const desc = document.createElement('p');
         desc.className = 'text-sm text-gray-500 mb-2';
