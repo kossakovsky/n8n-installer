@@ -473,12 +473,12 @@ if is_profile_active "n8n"; then
     ((STEP_NUM++))
 fi
 
-# Step 3: Explore examples
-if is_profile_active "n8n"; then
+# Step 3: Configure database backups (if postgresus active)
+if is_profile_active "postgresus"; then
     QUICK_START_ARRAY+=("    {
       \"step\": $STEP_NUM,
-      \"title\": \"Explore community workflows\",
-      \"description\": \"300+ examples available in imported workflows\"
+      \"title\": \"Configure database backups\",
+      \"description\": \"Set up Postgresus for automated PostgreSQL backups\"
     }")
     ((STEP_NUM++))
 fi
@@ -489,16 +489,6 @@ if is_profile_active "monitoring"; then
       \"step\": $STEP_NUM,
       \"title\": \"Monitor your system\",
       \"description\": \"Use Grafana to track performance metrics\"
-    }")
-    ((STEP_NUM++))
-fi
-
-# Step 5: Configure database backups (if postgresus active)
-if is_profile_active "postgresus"; then
-    QUICK_START_ARRAY+=("    {
-      \"step\": $STEP_NUM,
-      \"title\": \"Configure database backups\",
-      \"description\": \"Set up Postgresus for automated PostgreSQL backups\"
     }")
     ((STEP_NUM++))
 fi
