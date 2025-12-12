@@ -24,7 +24,7 @@ DOMAIN_PLACEHOLDER="yourdomain.com"
 #=============================================================================
 # WHIPTAIL THEME (NEWT_COLORS)
 #=============================================================================
-# Dark theme with green/cyan accents on black background
+# Supabase-style dark theme with green accents on black background
 # Format: element=foreground,background
 # Colors: black, red, green, yellow, blue, magenta, cyan, white
 # Prefix with "bright" for bright variants (e.g., brightgreen)
@@ -35,22 +35,22 @@ window=white,black
 shadow=black,black
 title=brightgreen,black
 button=black,brightgreen
-actbutton=black,brightcyan
+actbutton=black,brightgreen
 compactbutton=white,black
 checkbox=brightgreen,black
 actcheckbox=black,brightgreen
-entry=brightcyan,black
+entry=brightgreen,black
 disentry=gray,black
 label=white,black
 listbox=white,black
 actlistbox=black,brightgreen
-sellistbox=brightcyan,black
-actsellistbox=black,brightcyan
+sellistbox=brightgreen,black
+actsellistbox=black,brightgreen
 textbox=white,black
 acttextbox=brightgreen,black
 emptyscale=black,black
 fullscale=brightgreen,black
-helpline=brightcyan,black
+helpline=brightgreen,black
 roottext=brightgreen,black
 '
 
