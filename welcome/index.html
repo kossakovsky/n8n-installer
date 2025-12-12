@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome | n8n-install</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti for celebration effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -26,6 +28,7 @@
                             900: '#07291B'
                         },
                         surface: {
+                            bg: '#111111',
                             DEFAULT: '#1C1C1C',
                             50: '#171717',
                             100: '#1C1C1C',
@@ -40,46 +43,97 @@
         }
     </script>
     <style>
+        /* CSS Variables */
+        :root {
+            --color-bg: #111111;
+            --color-surface-100: #1C1C1C;
+            --color-surface-500: #3B3B3B;
+            --color-surface-hover: #4B4B4B;
+        }
+
         /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #1C1C1C; }
-        ::-webkit-scrollbar-thumb { background: #3B3B3B; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #4B4B4B; }
-
-        /* Subtle glow effect for brand elements */
-        .brand-glow {
-            box-shadow: 0 0 20px rgba(62, 207, 142, 0.15);
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(17, 17, 17, 0.8); border-radius: 5px; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #3ECF8E 0%, #24B374 100%);
+            border-radius: 5px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #47DF97 0%, #3ECF8E 100%);
+            background-clip: padding-box;
         }
 
-        /* Border gradient effect */
-        .border-gradient {
-            position: relative;
+        /* ============================================
+           GLOW EFFECTS
+           ============================================ */
+        .brand-glow-soft {
+            box-shadow:
+                0 0 20px rgba(62, 207, 142, 0.15),
+                0 0 40px rgba(62, 207, 142, 0.1),
+                0 0 60px rgba(62, 207, 142, 0.05);
         }
-        .border-gradient::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background: linear-gradient(135deg, rgba(62, 207, 142, 0.3), transparent 50%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
+
+        .text-glow {
+            text-shadow:
+                0 0 20px rgba(62, 207, 142, 0.5),
+                0 0 40px rgba(62, 207, 142, 0.3),
+                0 0 60px rgba(62, 207, 142, 0.1);
+        }
+
+        .hover-glow {
+            transition: box-shadow 0.4s ease, transform 0.3s ease;
+        }
+
+        .hover-glow:hover {
+            box-shadow:
+                0 0 30px rgba(62, 207, 142, 0.2),
+                0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Pulse glow for status indicator */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(62, 207, 142, 0.7); }
+            50% { box-shadow: 0 0 0 8px rgba(62, 207, 142, 0); }
+        }
+
+        .status-pulse {
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* Gradient line divider */
+        .gradient-line {
+            height: 1px;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(62, 207, 142, 0.3) 20%,
+                rgba(62, 207, 142, 0.5) 50%,
+                rgba(62, 207, 142, 0.3) 80%,
+                transparent
+            );
+            opacity: 0.5;
+        }
+
+        /* ============================================
+           REDUCED MOTION SUPPORT
+           ============================================ */
+        @media (prefers-reduced-motion: reduce) {
+            .status-pulse { animation: none; }
         }
     </style>
 </head>
-<body class="bg-[#111111] text-gray-100 min-h-screen antialiased">
+<body class="bg-surface-bg text-gray-100 min-h-screen antialiased">
     <div class="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <!-- Header -->
         <header class="text-center mb-16">
             <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-200 border border-surface-400 text-sm text-gray-400 mb-6">
-                <span class="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
+                <span class="w-2 h-2 rounded-full bg-brand status-pulse"></span>
                 System Online
             </div>
             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight">
-                Welcome to <span class="text-brand">n8n-install</span>
+                Welcome to <span class="text-brand text-glow">n8n-install</span>
             </h1>
             <p class="text-lg text-gray-400 max-w-2xl mx-auto">
                 Your self-hosted automation platform is ready to use
@@ -90,11 +144,7 @@
         <!-- Services Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                    </svg>
-                </div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center brand-glow-soft" data-section-icon="server"></div>
                 <h2 class="text-2xl font-semibold text-white">Your Services</h2>
             </div>
             <div id="services-container" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -105,14 +155,12 @@
             </div>
         </section>
 
+        <div class="gradient-line my-8" aria-hidden="true"></div>
+
         <!-- Quick Start Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                </div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center brand-glow-soft" data-section-icon="bolt"></div>
                 <h2 class="text-2xl font-semibold text-white">Quick Start</h2>
             </div>
             <div id="quickstart-container" class="space-y-3">
@@ -122,17 +170,15 @@
             </div>
         </section>
 
+        <div class="gradient-line my-8" aria-hidden="true"></div>
+
         <!-- Update Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                </div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center brand-glow-soft" data-section-icon="refresh"></div>
                 <h2 class="text-2xl font-semibold text-white">Keeping Up to Date</h2>
             </div>
-            <div class="bg-surface-100 rounded-xl border border-surface-400 p-6">
+            <div class="bg-surface-100 rounded-xl border border-surface-400 p-6 hover-glow">
                 <p class="text-gray-300 mb-4">Keep your services up to date with the latest features and security patches:</p>
                 <div class="flex items-start gap-3">
                     <code class="text-brand font-mono text-sm bg-surface-200 px-2 py-1 rounded">make update</code>
@@ -141,56 +187,52 @@
             </div>
         </section>
 
+        <div class="gradient-line my-8" aria-hidden="true"></div>
+
         <!-- Commands Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                </div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center brand-glow-soft" data-section-icon="terminal"></div>
                 <h2 class="text-2xl font-semibold text-white">Useful Commands</h2>
             </div>
-            <div id="commands-container" class="bg-surface-100 rounded-xl border border-surface-400 p-6">
+            <div id="commands-container" class="bg-surface-100 rounded-xl border border-surface-400 p-6 hover-glow">
                 <!-- Commands will be injected here by JavaScript -->
                 <div class="animate-pulse h-32"></div>
             </div>
         </section>
 
+        <div class="gradient-line my-8" aria-hidden="true"></div>
+
         <!-- Documentation Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                    </svg>
-                </div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center brand-glow-soft" data-section-icon="book"></div>
                 <h2 class="text-2xl font-semibold text-white">Documentation</h2>
             </div>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <a href="https://docs.n8n.io/" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/50 hover:bg-surface-200 transition-all group">
+                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover-glow group">
                     <span class="text-gray-300 group-hover:text-brand transition-colors">n8n Docs</span>
                     <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                     </svg>
                 </a>
                 <a href="https://docs.n8n.io/advanced-ai/intro-tutorial/" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/50 hover:bg-surface-200 transition-all group">
+                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover-glow group">
                     <span class="text-gray-300 group-hover:text-brand transition-colors">AI Tutorial</span>
                     <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                     </svg>
                 </a>
                 <a href="https://n8n.io/workflows/" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/50 hover:bg-surface-200 transition-all group">
+                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover-glow group">
                     <span class="text-gray-300 group-hover:text-brand transition-colors">Templates</span>
                     <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                     </svg>
                 </a>
                 <a href="https://github.com/kossakovsky/n8n-install" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/50 hover:bg-surface-200 transition-all group">
+                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover-glow group">
                     <span class="text-gray-300 group-hover:text-brand transition-colors">GitHub</span>
                     <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -199,9 +241,11 @@
             </div>
         </section>
 
+        <div class="gradient-line my-8" aria-hidden="true"></div>
+
         <!-- Footer -->
-        <footer class="text-center text-sm text-gray-500 pt-8 border-t border-surface-400">
-            <p>Powered by <a href="https://github.com/kossakovsky" target="_blank" rel="noopener" class="text-brand hover:text-brand-400 transition-colors">Yury Kossakovsky</a></p>
+        <footer class="text-center text-sm text-gray-500 pt-8">
+            <p>Powered with ❤️  by <a href="https://github.com/kossakovsky" target="_blank" rel="noopener" class="text-brand hover:text-brand-400 transition-colors">Yury Kossakovsky</a></p>
         </footer>
     </div>
 
