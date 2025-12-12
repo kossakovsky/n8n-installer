@@ -5,12 +5,8 @@
 # Guides the user through selecting which services to install using whiptail.
 #
 # Features:
-#   - Quick Start mode: pre-configured set (n8n + monitoring + backups)
-#   - Custom mode: multi-screen selection grouped by category
-#     - Core Services (n8n, Flowise, Dify, etc.)
-#     - AI & ML Services (Ollama with CPU/GPU, ComfyUI, etc.)
-#     - Databases & Vector Stores (Qdrant, Weaviate, Neo4j, etc.)
-#     - Infrastructure & Monitoring (Grafana, Prometheus, Portainer, etc.)
+#   - Single-screen checklist for service selection
+#   - Default services: n8n, portainer, monitoring, postgresus
 #   - Preserves previously selected services on re-run
 #   - Updates COMPOSE_PROFILES in .env file
 #
@@ -26,38 +22,6 @@ require_whiptail
 
 # Set DEBIAN_FRONTEND for whiptail
 save_debian_frontend
-
-# --- Quick Start Pack Selection ---
-# First screen: choose between Quick Start Pack or Custom Selection
-
-PACK_CHOICE=$(whiptail --title "Installation Mode" --menu \
-  "Choose how you want to set up your services:\n\nQuick Start uses a recommended set of services.\nCustom lets you pick individual services." 15 70 2 \
-  "quick" "Quick Start (Recommended: n8n + monitoring + backups + management)" \
-  "custom" "Custom Selection (Choose individual services)" \
-  3>&1 1>&2 2>&3)
-
-pack_exitstatus=$?
-if [ $pack_exitstatus -ne 0 ]; then
-    log_info "Installation cancelled by user."
-    exit 0
-fi
-
-# If Quick Start is selected, set the Base Pack profiles and exit
-if [ "$PACK_CHOICE" == "quick" ]; then
-    log_info "Quick Start Pack selected: n8n + monitoring + postgresus + portainer"
-
-    # Base Pack profiles
-    COMPOSE_PROFILES_VALUE="n8n,monitoring,postgresus,portainer"
-
-    # Update COMPOSE_PROFILES in .env
-    update_compose_profiles "$COMPOSE_PROFILES_VALUE"
-    log_info "The following Docker Compose profiles will be active: ${COMPOSE_PROFILES_VALUE}"
-
-    restore_debian_frontend
-    exit 0
-fi
-
-# --- Custom Selection Mode (existing logic) ---
 
 # --- Read current COMPOSE_PROFILES from .env ---
 CURRENT_PROFILES_VALUE=""
