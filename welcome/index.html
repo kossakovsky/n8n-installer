@@ -43,14 +43,6 @@
         }
     </script>
     <style>
-        /* CSS Variables */
-        :root {
-            --color-bg: #111111;
-            --color-surface-100: #1C1C1C;
-            --color-surface-500: #3B3B3B;
-            --color-surface-hover: #4B4B4B;
-        }
-
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: rgba(17, 17, 17, 0.8); border-radius: 5px; }
@@ -63,33 +55,6 @@
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #47DF97 0%, #3ECF8E 100%);
             background-clip: padding-box;
-        }
-
-        /* ============================================
-           GLOW EFFECTS
-           ============================================ */
-        .brand-glow-soft {
-            box-shadow:
-                0 0 20px rgba(62, 207, 142, 0.15),
-                0 0 40px rgba(62, 207, 142, 0.1),
-                0 0 60px rgba(62, 207, 142, 0.05);
-        }
-
-        .text-glow {
-            text-shadow:
-                0 0 20px rgba(62, 207, 142, 0.5),
-                0 0 40px rgba(62, 207, 142, 0.3),
-                0 0 60px rgba(62, 207, 142, 0.1);
-        }
-
-        .hover-glow {
-            transition: box-shadow 0.4s ease, transform 0.3s ease;
-        }
-
-        .hover-glow:hover {
-            box-shadow:
-                0 0 30px rgba(62, 207, 142, 0.2),
-                0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         /* Pulse glow for status indicator */
@@ -133,7 +98,7 @@
                 System Online
             </div>
             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight">
-                Welcome to <span class="text-brand text-glow">n8n-install</span>
+                Welcome to <span class="text-brand">n8n-install</span>
             </h1>
             <p class="text-lg text-gray-400 max-w-2xl mx-auto">
                 Your self-hosted automation platform is ready to use
@@ -144,7 +109,7 @@
         <!-- Services Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center brand-glow-soft" data-section-icon="server"></div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center" data-section-icon="server"></div>
                 <h2 class="text-2xl font-semibold text-white">Your Services</h2>
             </div>
             <div id="services-container" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -160,7 +125,7 @@
         <!-- Quick Start Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center brand-glow-soft" data-section-icon="bolt"></div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center" data-section-icon="bolt"></div>
                 <h2 class="text-2xl font-semibold text-white">Quick Start</h2>
             </div>
             <div id="quickstart-container" class="space-y-3">
@@ -175,10 +140,10 @@
         <!-- Update Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center brand-glow-soft" data-section-icon="refresh"></div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center" data-section-icon="refresh"></div>
                 <h2 class="text-2xl font-semibold text-white">Keeping Up to Date</h2>
             </div>
-            <div class="bg-surface-100 rounded-xl border border-surface-400 p-6 hover-glow">
+            <div class="bg-surface-100 rounded-xl border border-surface-400 p-6 hover:border-brand/30 hover:bg-surface-200 transition-all">
                 <p class="text-gray-300 mb-4">Keep your services up to date with the latest features and security patches:</p>
                 <div class="flex items-start gap-3">
                     <code class="text-brand font-mono text-sm bg-surface-200 px-2 py-1 rounded">make update</code>
@@ -192,10 +157,10 @@
         <!-- Commands Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center brand-glow-soft" data-section-icon="terminal"></div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center" data-section-icon="terminal"></div>
                 <h2 class="text-2xl font-semibold text-white">Useful Commands</h2>
             </div>
-            <div id="commands-container" class="bg-surface-100 rounded-xl border border-surface-400 p-6 hover-glow">
+            <div id="commands-container" class="bg-surface-100 rounded-xl border border-surface-400 p-6">
                 <!-- Commands will be injected here by JavaScript -->
                 <div class="animate-pulse h-32"></div>
             </div>
@@ -206,33 +171,33 @@
         <!-- Documentation Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center brand-glow-soft" data-section-icon="book"></div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center" data-section-icon="book"></div>
                 <h2 class="text-2xl font-semibold text-white">Documentation</h2>
             </div>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <a href="https://docs.n8n.io/" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover-glow group">
+                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all group">
                     <span class="text-gray-300 group-hover:text-brand transition-colors">n8n Docs</span>
                     <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                     </svg>
                 </a>
                 <a href="https://docs.n8n.io/advanced-ai/intro-tutorial/" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover-glow group">
+                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all group">
                     <span class="text-gray-300 group-hover:text-brand transition-colors">AI Tutorial</span>
                     <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                     </svg>
                 </a>
                 <a href="https://n8n.io/workflows/" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover-glow group">
+                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all group">
                     <span class="text-gray-300 group-hover:text-brand transition-colors">Templates</span>
                     <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                     </svg>
                 </a>
                 <a href="https://github.com/kossakovsky/n8n-install" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover-glow group">
+                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all group">
                     <span class="text-gray-300 group-hover:text-brand transition-colors">GitHub</span>
                     <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -247,11 +212,6 @@
         <footer class="text-center text-sm text-gray-500 pt-8">
             <p>Powered with ❤️  by <a href="https://github.com/kossakovsky" target="_blank" rel="noopener" class="text-brand hover:text-brand-400 transition-colors">Yury Kossakovsky</a></p>
         </footer>
-    </div>
-
-    <!-- Error Toast (hidden by default) -->
-    <div id="error-toast" class="fixed bottom-4 right-4 bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 hidden border border-red-400/50">
-        <p id="error-message">Error loading data</p>
     </div>
 
     <script src="app.js"></script>

@@ -1,7 +1,6 @@
 /**
  * n8n-install Welcome Page
  * Dynamic rendering of services and credentials from data.json
- * Supabase-inspired design with cinematic animations
  */
 
 (function() {
@@ -648,7 +647,7 @@
     }
 
     /**
-     * Render a single service card (no setTimeout hack)
+     * Render a single service card
      */
     function renderServiceCard(key, serviceData) {
         const metadata = SERVICE_METADATA[key] || {
@@ -659,8 +658,7 @@
         };
 
         const card = document.createElement('article');
-        card.className = 'bg-surface-100 rounded-xl border border-surface-400 p-5 hover-glow';
-        // card.className = 'bg-surface-100 rounded-xl border border-surface-400 p-5 hover:border-brand/30 hover:bg-surface-200 transition-all hover-glow';
+        card.className = 'bg-surface-100 rounded-xl border border-surface-400 p-5 hover:border-brand/30 hover:bg-surface-200 transition-all';
 
         // Build card using DOM API (no innerHTML + setTimeout hack)
         const header = createCardHeader(metadata, serviceData);
@@ -684,8 +682,6 @@
     const quickstartContainer = document.getElementById('quickstart-container');
     const commandsContainer = document.getElementById('commands-container');
     const domainInfo = document.getElementById('domain-info');
-    const errorToast = document.getElementById('error-toast');
-    const errorMessage = document.getElementById('error-message');
 
     /**
      * Inject section icons from JS (replaces inline SVG in HTML)
@@ -697,25 +693,6 @@
                 container.innerHTML = Icons[iconName]('w-5 h-5 text-brand');
             }
         });
-    }
-
-    /**
-     * Show error toast
-     */
-    function showError(message) {
-        if (!errorToast || !errorMessage) return;
-
-        errorMessage.textContent = message;
-        errorToast.classList.remove('hidden');
-
-        requestAnimationFrame(() => {
-            errorToast.classList.remove('translate-y-20', 'opacity-0');
-        });
-
-        setTimeout(() => {
-            errorToast.classList.add('translate-y-20', 'opacity-0');
-            setTimeout(() => errorToast.classList.add('hidden'), 300);
-        }, 5000);
     }
 
     /**
@@ -769,7 +746,7 @@
         const fragment = document.createDocumentFragment();
         steps.forEach(item => {
             const stepEl = document.createElement('div');
-            stepEl.className = 'flex items-start gap-4 p-4 bg-surface-100 rounded-xl border border-surface-400 hover-glow';
+            stepEl.className = 'flex items-start gap-4 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all';
 
             stepEl.innerHTML = `
                 <div class="w-8 h-8 rounded-full bg-brand/20 border border-brand/30 text-brand flex items-center justify-center font-semibold text-sm flex-shrink-0">
@@ -798,7 +775,7 @@
 
         COMMANDS.forEach(item => {
             const cmdEl = document.createElement('div');
-            cmdEl.className = 'flex items-start gap-3 p-3 rounded-lg bg-surface-200/50 border border-surface-400 hover:border-brand/30 transition-all';
+            cmdEl.className = 'flex items-start gap-3 p-3 rounded-lg bg-surface-200/50 border border-surface-400 hover:border-brand/30 hover:bg-surface-300 transition-all';
 
             // Command content
             const content = document.createElement('div');
@@ -881,7 +858,7 @@
             renderQuickStart(null);
         }
 
-        // Initialize cinematic animations (entrance, confetti, card tilt)
+        // Initialize confetti animation on first visit
         CinematicAnimations.init();
     }
 
