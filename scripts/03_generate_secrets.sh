@@ -62,6 +62,7 @@ declare -A VARS_TO_GENERATE=(
     ["VAULT_ENC_KEY"]="alphanum:32"
     ["WAHA_DASHBOARD_PASSWORD"]="password:32"
     ["WEAVIATE_API_KEY"]="secret:48" # API Key for Weaviate service (36 bytes -> 48 chars base64)
+    ["WELCOME_PASSWORD"]="password:32" # Welcome page basic auth password
     ["WHATSAPP_SWAGGER_PASSWORD"]="password:32"
 )
 
@@ -272,6 +273,7 @@ generated_values["LIGHTRAG_USERNAME"]="$USER_EMAIL" # Set LightRAG username for 
 generated_values["WAHA_DASHBOARD_USERNAME"]="$USER_EMAIL" # WAHA dashboard username default
 generated_values["WHATSAPP_SWAGGER_USERNAME"]="$USER_EMAIL" # WAHA swagger username default
 generated_values["DOCLING_USERNAME"]="$USER_EMAIL" # Set Docling username for Caddy
+generated_values["WELCOME_USERNAME"]="$USER_EMAIL" # Set Welcome page username for Caddy
 
 
 # Create a temporary file for processing
@@ -299,6 +301,7 @@ found_vars["DOCLING_USERNAME"]=0
 found_vars["LT_USERNAME"]=0
 found_vars["LIGHTRAG_USERNAME"]=0
 found_vars["WAHA_DASHBOARD_USERNAME"]=0
+found_vars["WELCOME_USERNAME"]=0
 found_vars["WHATSAPP_SWAGGER_USERNAME"]=0
 
 # Read template, substitute domain, generate initial values
@@ -346,7 +349,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             # This 'else' block is for lines from template not covered by existing values or VARS_TO_GENERATE.
             # Check if it is one of the user input vars - these are handled by found_vars later if not in template.
             is_user_input_var=0 # Reset for each line
-    user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "LIGHTRAG_USERNAME" "WAHA_DASHBOARD_USERNAME" "WHATSAPP_SWAGGER_USERNAME")
+    user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "LIGHTRAG_USERNAME" "WAHA_DASHBOARD_USERNAME" "WELCOME_USERNAME" "WHATSAPP_SWAGGER_USERNAME")
             for uivar in "${user_input_vars[@]}"; do
                 if [[ "$varName" == "$uivar" ]]; then
                     is_user_input_var=1
@@ -428,7 +431,7 @@ if [[ -z "${generated_values[SERVICE_ROLE_KEY]}" ]]; then
 fi
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "LIGHTRAG_USERNAME" "WAHA_DASHBOARD_USERNAME" "WHATSAPP_SWAGGER_USERNAME" "DOCLING_USERNAME"; do
+for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "LIGHTRAG_USERNAME" "WAHA_DASHBOARD_USERNAME" "WELCOME_USERNAME" "WHATSAPP_SWAGGER_USERNAME" "DOCLING_USERNAME"; do
     if [[ ${found_vars["$var"]} -eq 0 && -v generated_values["$var"] ]]; then
         # Before appending, check if it's already in TMP_ENV_FILE to avoid duplicates
         if ! grep -q -E "^${var}=" "$TMP_ENV_FILE"; then
@@ -617,6 +620,18 @@ if [[ -z "$FINAL_DOCLING_HASH" && -n "$DOCLING_PLAIN_PASS" ]]; then
     fi
 fi
 _update_or_add_env_var "DOCLING_PASSWORD_HASH" "$FINAL_DOCLING_HASH"
+
+# --- WELCOME PAGE ---
+WELCOME_PLAIN_PASS="${generated_values["WELCOME_PASSWORD"]}"
+FINAL_WELCOME_HASH="${generated_values[WELCOME_PASSWORD_HASH]}"
+if [[ -z "$FINAL_WELCOME_HASH" && -n "$WELCOME_PLAIN_PASS" ]]; then
+    NEW_HASH=$(_generate_and_get_hash "$WELCOME_PLAIN_PASS")
+    if [[ -n "$NEW_HASH" ]]; then
+        FINAL_WELCOME_HASH="$NEW_HASH"
+        generated_values["WELCOME_PASSWORD_HASH"]="$NEW_HASH"
+    fi
+fi
+_update_or_add_env_var "WELCOME_PASSWORD_HASH" "$FINAL_WELCOME_HASH"
 
 if [ $? -eq 0 ]; then # This $? reflects the status of the last mv command from the last _update_or_add_env_var call.
     # For now, assuming if we reached here and mv was fine, primary operations were okay.

@@ -3,7 +3,7 @@ alwaysApply: false
 ---
 # Guide: Adding a New Service to n8n-install
 
-This document shows how to add a new optional service (behind Docker Compose profiles) and wire it into the installer, Caddy, and final report.
+This document shows how to add a new optional service (behind Docker Compose profiles) and wire it into the installer, Caddy, and Welcome Page.
 
 Use a short lowercase slug for your service, e.g., `myservice`.
 
@@ -110,24 +110,43 @@ _update_or_add_env_var "MYSERVICE_PASSWORD_HASH" "$FINAL_MYSERVICE_HASH"
 "myservice" "MyService (Short description)"
 ```
 
-## 6) scripts/07_final_report.sh
-- Add a block that prints discovered URLs/credentials:
+## 6) scripts/generate_welcome_page.sh
+- Add a block that generates JSON data for the Welcome Page:
 ```bash
+# MyService
 if is_profile_active "myservice"; then
-  echo
-  echo "================================= MyService ==========================="
-  echo
-  echo "Host: ${MYSERVICE_HOSTNAME:-<hostname_not_set>}"
-  # Only print credentials if Caddy basic auth is enabled for this service
-  echo "User: ${MYSERVICE_USERNAME:-<not_set_in_env>}"
-  echo "Password: ${MYSERVICE_PASSWORD:-<not_set_in_env>}"
-  echo "API (external via Caddy): https://${MYSERVICE_HOSTNAME:-<hostname_not_set>}"
-  echo "API (internal): http://myservice:8080"
-  echo "Docs: <link_to_docs>"
+    SERVICES_JSON+='"myservice": {
+      "hostname": "'"$(json_escape "$MYSERVICE_HOSTNAME")"'",
+      "credentials": {
+        "username": "'"$(json_escape "$MYSERVICE_USERNAME")"'",
+        "password": "'"$(json_escape "$MYSERVICE_PASSWORD")"'"
+      },
+      "extra": {
+        "internal_api": "http://myservice:8080",
+        "docs": "https://example.com/docs"
+      }
+    },'
 fi
 ```
 
-## 7) README.md
+Notes:
+- Use `"hostname": null` for internal-only services (no external access)
+- Use `"credentials": { "note": "..." }` for services without username/password
+- Add useful info to `extra` (internal_api, docs, dashboard URLs, etc.)
+
+## 7) welcome/app.js
+- Add service metadata to `SERVICE_METADATA` object:
+```javascript
+'myservice': {
+    name: 'MyService',
+    description: 'Short description of what it does',
+    icon: 'MS',  // 2-letter abbreviation
+    color: 'bg-blue-500',  // Tailwind color class
+    category: 'tools'  // ai, database, monitoring, tools, infra, automation
+},
+```
+
+## 8) README.md
 - Add a short, one-line description under "What's Included", linking to your service docs/homepage.
 ```md
 ✅ [**MyService**](https://example.com) - One-line description of what it provides.
@@ -137,14 +156,14 @@ fi
     - **MyService:** `myservice.yourdomain.com` (Brief description)
 ```
 
-## 8) Ask about Basic Auth (important)
+## 9) Ask about Basic Auth (important)
 When adding any new public-facing service, explicitly ask the user whether they want to protect the service with Basic Auth via Caddy. If yes, add:
 - Credentials section to `.env.example`
 - Secret generation in `scripts/03_generate_secrets.sh`
 - `basic_auth` in `Caddyfile`
 - Pass the username/hash through `docker-compose.yml` `caddy.environment`
 
-## 9) Verify and apply
+## 10) Verify and apply
 - Regenerate secrets to populate new variables:
 ```bash
 bash scripts/03_generate_secrets.sh
@@ -161,12 +180,13 @@ docker compose -p localai logs -f --tail=200 myservice | cat
 docker compose -p localai logs -f --tail=200 caddy | cat
 ```
 
-## 10) Quick checklist
+## 11) Quick checklist
 - [ ] Service added to `docker-compose.yml` with a profile (no external ports exposed)
 - [ ] Hostname and (optional) credentials added to `.env.example`
 - [ ] Secret + hash generation added to `scripts/03_generate_secrets.sh`
 - [ ] Exposed via `Caddyfile` with `reverse_proxy` (+ `basic_auth` if desired)
 - [ ] Service selectable in `scripts/04_wizard.sh`
-- [ ] Listed with URLs/credentials in `scripts/07_final_report.sh`
+- [ ] Service data added to `scripts/generate_welcome_page.sh`
+- [ ] Service metadata added to `welcome/app.js` (`SERVICE_METADATA`)
 - [ ] One-line description added to `README.md`
 

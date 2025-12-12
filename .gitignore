@@ -12,3 +12,4 @@ dify/
 volumes/
 docker-compose.override.yml
 docker-compose.n8n-workers.yml
+welcome/data.json

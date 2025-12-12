@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to n8n-install</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Auto dark mode detection
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            document.documentElement.classList.toggle('dark', e.matches);
+        });
+
+        // Tailwind config for dark mode
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for dark mode */
+        .dark ::-webkit-scrollbar { width: 8px; }
+        .dark ::-webkit-scrollbar-track { background: #1e293b; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-200">
+    <div class="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent mb-3">
+                Welcome to n8n-install
+            </h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400">
+                Your self-hosted automation platform is ready
+            </p>
+            <p id="domain-info" class="text-sm text-gray-500 dark:text-gray-500 mt-2"></p>
+        </header>
+
+        <!-- Services Section -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2">
+                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                Your Services
+            </h2>
+            <div id="services-container" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <!-- Services will be injected here by JavaScript -->
+                <div class="animate-pulse bg-gray-200 dark:bg-slate-800 rounded-xl h-48"></div>
+                <div class="animate-pulse bg-gray-200 dark:bg-slate-800 rounded-xl h-48"></div>
+                <div class="animate-pulse bg-gray-200 dark:bg-slate-800 rounded-xl h-48"></div>
+            </div>
+        </section>
+
+        <!-- Quick Start Section -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2">
+                <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                Quick Start
+            </h2>
+            <div id="quickstart-container" class="space-y-4">
+                <!-- Quick start steps will be injected here -->
+                <div class="animate-pulse bg-gray-200 dark:bg-slate-800 rounded-xl h-20"></div>
+                <div class="animate-pulse bg-gray-200 dark:bg-slate-800 rounded-xl h-20"></div>
+            </div>
+        </section>
+
+        <!-- Documentation Section -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2">
+                <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                Documentation
+            </h2>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <a href="https://docs.n8n.io/" target="_blank" rel="noopener"
+                   class="flex items-center gap-3 p-4 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors group">
+                    <span class="text-gray-700 dark:text-gray-300 group-hover:text-blue-500 transition-colors">n8n Docs</span>
+                    <svg class="w-4 h-4 ml-auto text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+                <a href="https://docs.n8n.io/advanced-ai/intro-tutorial/" target="_blank" rel="noopener"
+                   class="flex items-center gap-3 p-4 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors group">
+                    <span class="text-gray-700 dark:text-gray-300 group-hover:text-blue-500 transition-colors">AI Tutorial</span>
+                    <svg class="w-4 h-4 ml-auto text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+                <a href="https://n8n.io/workflows/" target="_blank" rel="noopener"
+                   class="flex items-center gap-3 p-4 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors group">
+                    <span class="text-gray-700 dark:text-gray-300 group-hover:text-blue-500 transition-colors">Templates</span>
+                    <svg class="w-4 h-4 ml-auto text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/kossakovsky/n8n-install" target="_blank" rel="noopener"
+                   class="flex items-center gap-3 p-4 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors group">
+                    <span class="text-gray-700 dark:text-gray-300 group-hover:text-blue-500 transition-colors">GitHub</span>
+                    <svg class="w-4 h-4 ml-auto text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center text-sm text-gray-500 dark:text-gray-500 pt-8 border-t border-gray-200 dark:border-slate-800">
+            <p>Powered by <a href="https://github.com/kossakovsky/n8n-install" target="_blank" rel="noopener" class="text-blue-500 hover:underline">n8n-install</a></p>
+        </footer>
+    </div>
+
+    <!-- Error Toast (hidden by default) -->
+    <div id="error-toast" class="fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 hidden">
+        <p id="error-message">Error loading data</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
