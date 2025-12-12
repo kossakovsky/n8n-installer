@@ -39,6 +39,36 @@ MAX_PAGES=80
 require_command "curl" "Please install curl to use this script."
 require_command "jq" "Please install jq to use this script."
 
+# --- Helper functions ---
+
+# Generate a random 16-character base62 ID (like n8n workflow IDs)
+generate_workflow_id() {
+    cat /dev/urandom | LC_ALL=C tr -dc 'a-zA-Z0-9' | head -c 16
+}
+
+# Generate a UUID v4 (for versionId)
+generate_version_id() {
+    if command -v uuidgen &> /dev/null; then
+        uuidgen | tr '[:upper:]' '[:lower:]'
+    else
+        # Fallback for systems without uuidgen
+        cat /proc/sys/kernel/random/uuid 2>/dev/null || \
+            printf '%04x%04x-%04x-%04x-%04x-%04x%04x%04x' \
+                $RANDOM $RANDOM $RANDOM $(($RANDOM & 0x0fff | 0x4000)) \
+                $(($RANDOM & 0x3fff | 0x8000)) $RANDOM $RANDOM $RANDOM
+    fi
+}
+
+# Convert filename slug to readable name
+# "ai-agent-chat" -> "Ai agent chat"
+slug_to_name() {
+    local slug="$1"
+    # Replace dashes with spaces, capitalize first letter only
+    local with_spaces=$(echo "$slug" | sed 's/-/ /g')
+    # Capitalize first character
+    echo "$(echo "${with_spaces:0:1}" | tr '[:lower:]' '[:upper:]')${with_spaces:1}"
+}
+
 # --- Main ---
 log_header "n8n Workflow Downloader"
 log_info "Target: $COUNT most popular workflows"
@@ -100,8 +130,17 @@ for id in $TOP_IDS; do
 
         filename="${id}_${name}.json"
 
-        # Extract just the workflow part (ready for n8n import)
-        echo "$workflow_data" | jq '.workflow.workflow' > "$OUTPUT_DIR/$filename"
+        # Generate n8n-compatible metadata
+        workflow_name=$(slug_to_name "$name")
+        workflow_id=$(generate_workflow_id)
+        version_id=$(generate_version_id)
+
+        # Extract workflow and add required metadata (name, active, id, versionId)
+        echo "$workflow_data" | jq --arg name "$workflow_name" \
+                                   --arg id "$workflow_id" \
+                                   --arg versionId "$version_id" \
+            '.workflow.workflow + {name: $name, active: false, id: $id, versionId: $versionId}' \
+            > "$OUTPUT_DIR/$filename"
 
         if [ $((downloaded % 50)) -eq 0 ]; then
             log_info "Downloaded $downloaded/$TOTAL..."
