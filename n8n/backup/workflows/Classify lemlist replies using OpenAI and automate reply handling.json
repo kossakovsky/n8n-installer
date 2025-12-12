@@ -471,5 +471,6 @@
   },
   "name": "Classify lemlist replies using OpenAI and automate reply handling",
   "active": false,
-  "id": "8lKWFjSXJka8hmqv"
+  "id": "8lKWFjSXJka8hmqv",
+  "versionId": "b84abea0-f5b2-44b9-9c4a-2c5fb1dabd58"
 }

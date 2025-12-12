@@ -175,5 +175,6 @@
   },
   "name": "Query Perplexity AI from your n8n workflows",
   "active": false,
-  "id": "nFKKki19hWIiyF13"
+  "id": "nFKKki19hWIiyF13",
+  "versionId": "3e134d32-5a40-4fd7-9d80-667499f3f53d"
 }

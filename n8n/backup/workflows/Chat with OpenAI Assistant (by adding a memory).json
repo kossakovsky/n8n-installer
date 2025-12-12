@@ -334,5 +334,6 @@
   },
   "name": "Chat with OpenAI Assistant (by adding a memory)",
   "active": false,
-  "id": "979GEv3VUY3Gom3S"
+  "id": "979GEv3VUY3Gom3S",
+  "versionId": "09b106bd-c402-420f-9429-6ce5bb1eadb0"
 }

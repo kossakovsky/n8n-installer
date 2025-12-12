@@ -536,5 +536,6 @@
   },
   "name": "Classify new bugs in Linear with OpenAI_s GPT-4 and move them to the right team",
   "active": false,
-  "id": "h4z7rD4FktOaY0gP"
+  "id": "h4z7rD4FktOaY0gP",
+  "versionId": "c729db43-3fe3-4a82-bb67-44d2cc27200f"
 }
