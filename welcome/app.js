@@ -147,218 +147,249 @@
             name: 'n8n',
             description: 'Workflow Automation',
             icon: 'n8n',
-            color: 'bg-orange-500',
-            category: 'automation'
+            color: 'bg-[#EA4B71]',
+            category: 'automation',
+            docsUrl: 'https://docs.n8n.io'
         },
         'flowise': {
             name: 'Flowise',
             description: 'AI Agent Builder',
             icon: 'FL',
-            color: 'bg-blue-500',
-            category: 'ai'
+            color: 'bg-[#673AB7]',
+            category: 'ai',
+            docsUrl: 'https://docs.flowiseai.com'
         },
         'open-webui': {
             name: 'Open WebUI',
             description: 'ChatGPT-like Interface',
             icon: 'AI',
-            color: 'bg-emerald-500',
-            category: 'ai'
+            color: 'bg-black',
+            category: 'ai',
+            docsUrl: 'https://docs.openwebui.com'
         },
         'grafana': {
             name: 'Grafana',
             description: 'Monitoring Dashboard',
             icon: 'GF',
-            color: 'bg-orange-600',
-            category: 'monitoring'
+            color: 'bg-[#F46800]',
+            category: 'monitoring',
+            docsUrl: 'https://grafana.com/docs'
         },
         'prometheus': {
             name: 'Prometheus',
             description: 'Metrics Collection',
             icon: 'PM',
-            color: 'bg-red-500',
-            category: 'monitoring'
+            color: 'bg-[#E6522C]',
+            category: 'monitoring',
+            docsUrl: 'https://prometheus.io/docs'
         },
         'portainer': {
             name: 'Portainer',
             description: 'Docker Management UI',
             icon: 'PT',
-            color: 'bg-cyan-500',
-            category: 'infra'
+            color: 'bg-[#13BEF9]',
+            category: 'infra',
+            docsUrl: 'https://docs.portainer.io'
         },
         'postgresus': {
             name: 'Postgresus',
             description: 'PostgreSQL Backups & Monitoring',
             icon: 'PG',
-            color: 'bg-blue-600',
-            category: 'database'
+            color: 'bg-[#336791]',
+            category: 'database',
+            docsUrl: 'https://postgresus.com/'
         },
         'langfuse': {
             name: 'Langfuse',
             description: 'AI Observability',
             icon: 'LF',
-            color: 'bg-violet-500',
-            category: 'ai'
+            color: 'bg-[#0A60B5]',
+            category: 'ai',
+            docsUrl: 'https://langfuse.com/docs'
         },
         'supabase': {
             name: 'Supabase',
             description: 'Backend as a Service',
             icon: 'SB',
-            color: 'bg-emerald-500',
-            category: 'database'
+            color: 'bg-[#3ECF8E]',
+            category: 'database',
+            docsUrl: 'https://supabase.com/docs'
         },
         'dify': {
             name: 'Dify',
             description: 'AI Application Platform',
             icon: 'DF',
-            color: 'bg-indigo-500',
-            category: 'ai'
+            color: 'bg-[#1C64F2]',
+            category: 'ai',
+            docsUrl: 'https://docs.dify.ai'
         },
         'qdrant': {
             name: 'Qdrant',
             description: 'Vector Database',
             icon: 'QD',
-            color: 'bg-purple-500',
-            category: 'database'
+            color: 'bg-[#DC244C]',
+            category: 'database',
+            docsUrl: 'https://qdrant.tech/documentation'
         },
         'weaviate': {
             name: 'Weaviate',
             description: 'Vector Database',
             icon: 'WV',
-            color: 'bg-green-600',
-            category: 'database'
+            color: 'bg-[#38B349]',
+            category: 'database',
+            docsUrl: 'https://weaviate.io/developers/weaviate'
         },
         'neo4j': {
             name: 'Neo4j',
             description: 'Graph Database',
             icon: 'N4',
-            color: 'bg-blue-700',
-            category: 'database'
+            color: 'bg-[#0A6190]',
+            category: 'database',
+            docsUrl: 'https://neo4j.com/docs'
         },
         'searxng': {
             name: 'SearXNG',
             description: 'Private Metasearch Engine',
             icon: 'SX',
-            color: 'bg-teal-500',
-            category: 'tools'
+            color: 'bg-[#3EBBE7]',
+            category: 'tools',
+            docsUrl: 'https://docs.searxng.org'
         },
         'ragapp': {
             name: 'RAGApp',
             description: 'RAG UI & API',
             icon: 'RA',
             color: 'bg-amber-500',
-            category: 'ai'
+            category: 'ai',
+            docsUrl: 'https://github.com/ragapp/ragapp'
         },
         'ragflow': {
             name: 'RAGFlow',
             description: 'Document Understanding RAG',
             icon: 'RF',
-            color: 'bg-rose-500',
-            category: 'ai'
+            color: 'bg-[#6C63FF]',
+            category: 'ai',
+            docsUrl: 'https://ragflow.io/docs'
         },
         'lightrag': {
             name: 'LightRAG',
             description: 'Graph-based RAG',
             icon: 'LR',
-            color: 'bg-lime-600',
-            category: 'ai'
+            color: 'bg-lime-500',
+            category: 'ai',
+            docsUrl: 'https://github.com/HKUDS/LightRAG'
         },
         'letta': {
             name: 'Letta',
             description: 'Agent Server & SDK',
             icon: 'LT',
-            color: 'bg-fuchsia-500',
-            category: 'ai'
+            color: 'bg-violet-500',
+            category: 'ai',
+            docsUrl: 'https://docs.letta.com'
         },
         'comfyui': {
             name: 'ComfyUI',
             description: 'Stable Diffusion UI',
             icon: 'CU',
-            color: 'bg-pink-500',
-            category: 'ai'
+            color: 'bg-[#172DD7]',
+            category: 'ai',
+            docsUrl: 'https://docs.comfy.org'
         },
         'libretranslate': {
             name: 'LibreTranslate',
             description: 'Translation API',
             icon: 'TR',
-            color: 'bg-sky-500',
-            category: 'tools'
+            color: 'bg-[#295F98]',
+            category: 'tools',
+            docsUrl: 'https://libretranslate.com/docs'
         },
         'docling': {
             name: 'Docling',
             description: 'Document Converter',
             icon: 'DL',
-            color: 'bg-stone-500',
-            category: 'tools'
+            color: 'bg-[#006699]',
+            category: 'tools',
+            docsUrl: 'https://docling-project.github.io/docling'
         },
         'paddleocr': {
             name: 'PaddleOCR',
             description: 'OCR API Server',
             icon: 'OC',
-            color: 'bg-yellow-600',
-            category: 'tools'
+            color: 'bg-[#2932E1]',
+            category: 'tools',
+            docsUrl: 'https://www.paddleocr.ai/latest/en/index.html'
         },
         'postiz': {
             name: 'Postiz',
             description: 'Social Publishing Platform',
             icon: 'PZ',
-            color: 'bg-violet-600',
-            category: 'tools'
+            color: 'bg-violet-500',
+            category: 'tools',
+            docsUrl: 'https://docs.postiz.com'
         },
         'waha': {
             name: 'WAHA',
             description: 'WhatsApp HTTP API',
             icon: 'WA',
-            color: 'bg-green-700',
-            category: 'tools'
+            color: 'bg-[#25D366]',
+            category: 'tools',
+            docsUrl: 'https://waha.devlike.pro/docs'
         },
         'crawl4ai': {
             name: 'Crawl4AI',
             description: 'Web Crawler for AI',
             icon: 'C4',
-            color: 'bg-gray-600',
-            category: 'tools'
+            color: 'bg-[#50FFFF]',
+            category: 'tools',
+            docsUrl: 'https://docs.crawl4ai.com'
         },
         'gotenberg': {
             name: 'Gotenberg',
             description: 'PDF Generator API',
             icon: 'GT',
-            color: 'bg-red-600',
-            category: 'tools'
+            color: 'bg-red-500',
+            category: 'tools',
+            docsUrl: 'https://gotenberg.dev/docs/getting-started/introduction'
         },
         'ollama': {
             name: 'Ollama',
             description: 'Local LLM Runner',
             icon: 'OL',
-            color: 'bg-gray-700',
-            category: 'ai'
+            color: 'bg-black',
+            category: 'ai',
+            docsUrl: 'https://docs.ollama.com/'
         },
         'redis': {
             name: 'Redis (Valkey)',
             description: 'In-Memory Data Store',
             icon: 'RD',
-            color: 'bg-red-700',
-            category: 'infra'
+            color: 'bg-[#D82C20]',
+            category: 'infra',
+            docsUrl: 'https://valkey.io/docs'
         },
         'postgres': {
             name: 'PostgreSQL',
             description: 'Relational Database',
             icon: 'PG',
-            color: 'bg-blue-800',
-            category: 'infra'
+            color: 'bg-[#336791]',
+            category: 'infra',
+            docsUrl: 'https://www.postgresql.org/docs'
         },
         'python-runner': {
             name: 'Python Runner',
             description: 'Custom Python Scripts',
             icon: 'PY',
-            color: 'bg-yellow-500',
-            category: 'tools'
+            color: 'bg-[#3776AB]',
+            category: 'tools',
+            docsUrl: 'https://docs.python.org'
         },
         'cloudflare-tunnel': {
             name: 'Cloudflare Tunnel',
             description: 'Zero-Trust Network Access',
             icon: 'CF',
-            color: 'bg-orange-500',
-            category: 'infra'
+            color: 'bg-[#F48120]',
+            category: 'infra',
+            docsUrl: 'https://developers.cloudflare.com/cloudflare-one/connections/connect-apps'
         }
     };
 
@@ -563,15 +594,19 @@
 
     /**
      * Create extra info section (internal URLs, etc.)
+     * @param {Object} extra - Extra data object
+     * @param {boolean} skipInternalUrls - Skip internal_api/internal_url (shown in header)
      */
-    function createExtraSection(extra) {
+    function createExtraSection(extra, skipInternalUrls = false) {
         const items = [];
 
-        if (extra.internal_api) {
-            items.push(`<span class="text-xs text-gray-600 font-mono">Internal: ${escapeHtml(extra.internal_api)}</span>`);
-        }
-        if (extra.internal_url) {
-            items.push(`<span class="text-xs text-gray-600 font-mono">Internal: ${escapeHtml(extra.internal_url)}</span>`);
+        if (!skipInternalUrls) {
+            if (extra.internal_api) {
+                items.push(`<span class="text-xs text-gray-600 font-mono">Internal: ${escapeHtml(extra.internal_api)}</span>`);
+            }
+            if (extra.internal_url) {
+                items.push(`<span class="text-xs text-gray-600 font-mono">Internal: ${escapeHtml(extra.internal_url)}</span>`);
+            }
         }
         if (extra.workers) {
             items.push(`<span class="text-xs text-gray-600">Workers: ${escapeHtml(extra.workers)}</span>`);
@@ -593,7 +628,8 @@
      */
     function createCardHeader(metadata, serviceData) {
         const header = document.createElement('div');
-        header.className = 'flex items-start gap-4';
+        // Fixed min-height so border is always at the same position (accounts for external + internal URLs)
+        header.className = 'flex items-start gap-4 min-h-[104px]';
 
         // Icon
         const iconDiv = document.createElement('div');
@@ -615,7 +651,10 @@
         content.appendChild(title);
         content.appendChild(desc);
 
-        // Link or internal service indicator
+        // Check if service has internal URL in extra
+        const hasInternalUrl = serviceData.extra && (serviceData.extra.internal_api || serviceData.extra.internal_url);
+
+        // External link (if hostname exists)
         if (serviceData.hostname) {
             const link = document.createElement('a');
             link.href = `https://${serviceData.hostname}`;
@@ -627,20 +666,44 @@
                 ${Icons.externalLink('w-3 h-3 group-hover:translate-x-0.5 transition-transform')}
             `;
             content.appendChild(link);
-        } else {
+        }
+
+        // Internal URL (shown from extra section, no duplicate "Internal service" text)
+        if (hasInternalUrl) {
+            const internalDiv = document.createElement('div');
+            internalDiv.className = serviceData.hostname ? 'mt-1' : '';
+            const internalUrl = serviceData.extra.internal_api || serviceData.extra.internal_url;
+            internalDiv.innerHTML = `<span class="text-xs text-gray-600 font-mono">Internal: ${escapeHtml(internalUrl)}</span>`;
+            content.appendChild(internalDiv);
+        }
+
+        // Only show "Internal service" if no hostname AND no internal URL
+        if (!serviceData.hostname && !hasInternalUrl) {
             const internalSpan = document.createElement('span');
             internalSpan.className = 'text-sm text-gray-600 italic';
             internalSpan.textContent = 'Internal service';
             content.appendChild(internalSpan);
         }
 
-        // Extra info
+        // Extra info (excluding internal URLs which are now shown above)
         if (serviceData.extra) {
-            const extraSection = createExtraSection(serviceData.extra);
+            const extraSection = createExtraSection(serviceData.extra, true);
             if (extraSection) content.appendChild(extraSection);
         }
 
-        header.appendChild(iconDiv);
+        // Make icon clickable if docsUrl is available
+        if (metadata.docsUrl) {
+            const iconLink = document.createElement('a');
+            iconLink.href = metadata.docsUrl;
+            iconLink.target = '_blank';
+            iconLink.rel = 'noopener';
+            iconLink.title = `Open ${metadata.name} documentation`;
+            iconLink.className = 'flex-shrink-0 hover:scale-110 transition-transform';
+            iconLink.appendChild(iconDiv);
+            header.appendChild(iconLink);
+        } else {
+            header.appendChild(iconDiv);
+        }
         header.appendChild(content);
 
         return header;
@@ -658,7 +721,7 @@
         };
 
         const card = document.createElement('article');
-        card.className = 'bg-surface-100 rounded-xl border border-surface-400 p-5 hover:border-brand/30 hover:bg-surface-200 transition-all';
+        card.className = 'bg-surface-100 rounded-xl border border-surface-400 p-5 hover:border-brand/30 hover:bg-surface-200 transition-all min-w-0 overflow-hidden';
 
         // Build card using DOM API (no innerHTML + setTimeout hack)
         const header = createCardHeader(metadata, serviceData);
@@ -738,8 +801,7 @@
             steps = [
                 { step: 1, title: 'Log into n8n', description: 'Use the email you provided during installation' },
                 { step: 2, title: 'Create your first workflow', description: 'Start with a Manual Trigger + HTTP Request nodes' },
-                { step: 3, title: 'Explore community workflows', description: 'Check imported workflows for 300+ examples' },
-                { step: 4, title: 'Monitor your system', description: 'Use Grafana to track performance' }
+                { step: 3, title: 'Monitor your system', description: 'Use Grafana to track performance' }
             ];
         }
 
