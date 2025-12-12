@@ -65,7 +65,6 @@ write_env_var "RUN_N8N_IMPORT" "$final_run_n8n_import_decision"
 # ----------------------------------------------------------------
 # Prompt for number of n8n workers
 # ----------------------------------------------------------------
-echo "" # Add a newline for better formatting
 log_info "Configuring n8n worker count..."
 EXISTING_N8N_WORKER_COUNT="$(read_env_var N8N_WORKER_COUNT)"
 require_whiptail
@@ -147,8 +146,7 @@ if is_profile_active "cloudflare-tunnel"; then
 
         if [ -n "$input_cf_token" ]; then
             log_success "Cloudflare Tunnel token saved to .env."
-            echo ""
-            echo "🔒 After confirming the tunnel works, consider closing ports 80, 443, and 7687 in your firewall."
+            log_info "After confirming the tunnel works, consider closing ports 80, 443, and 7687 in your firewall."
         else
             log_warning "Cloudflare Tunnel token was left empty. You can set it later in .env."
         fi
