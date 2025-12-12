@@ -1,29 +1,34 @@
 #!/bin/bash
+# =============================================================================
+# apply_update.sh - Service update and restart logic
+# =============================================================================
+# Called by update.sh after git pull. Performs the actual service updates:
+#   1. Updates .env with any new variables (03_generate_secrets.sh --update)
+#   2. Runs service selection wizard (04_wizard.sh) to update profiles
+#   3. Configures services (05_configure_services.sh)
+#   4. Pulls latest Docker images for selected services
+#   5. Restarts all services (06_run_services.sh)
+#   6. Displays final report (07_final_report.sh)
+#
+# Handles multiple compose files: main, n8n-workers, Supabase, and Dify.
+#
+# Usage: Called automatically by update.sh (not typically run directly)
+# =============================================================================
 
 set -e
 
-# Source the utilities file
+# Source the utilities file and initialize paths
 source "$(dirname "$0")/utils.sh"
+init_paths
 
 # Set the compose command explicitly to use docker compose subcommand
 COMPOSE_CMD="docker compose"
 
-# Navigate to the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-# Project root directory (one level up from scripts)
-PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." &> /dev/null && pwd )"
-# Path to the 06_run_services.sh script (Corrected from original update.sh which had 04)
+# Path to the 06_run_services.sh script
 RUN_SERVICES_SCRIPT="$SCRIPT_DIR/06_run_services.sh"
-# Compose files (Not strictly needed here unless used directly, but good for context)
-# MAIN_COMPOSE_FILE="$PROJECT_ROOT/docker-compose.yml"
-# SUPABASE_COMPOSE_FILE="$PROJECT_ROOT/supabase/docker/docker-compose.yml"
-ENV_FILE="$PROJECT_ROOT/.env"
 
 # Check if run services script exists
-if [ ! -f "$RUN_SERVICES_SCRIPT" ]; then
-    log_error "$RUN_SERVICES_SCRIPT not found."
-    exit 1
-fi
+require_file "$RUN_SERVICES_SCRIPT" "$RUN_SERVICES_SCRIPT not found."
 
 cd "$PROJECT_ROOT"
 

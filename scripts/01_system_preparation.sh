@@ -1,9 +1,22 @@
 #!/bin/bash
+# =============================================================================
+# 01_system_preparation.sh - System preparation and security hardening
+# =============================================================================
+# Prepares an Ubuntu/Debian system for running Docker services:
+#   - Updates system packages and installs essential CLI tools
+#   - Configures UFW firewall (allows SSH, HTTP, HTTPS; denies other incoming)
+#   - Enables Fail2Ban for SSH brute-force protection
+#   - Sets up automatic security updates via unattended-upgrades
+#   - Configures vm.max_map_count for Elasticsearch (required by RAGFlow)
+#
+# Required: Must be run as root (sudo)
+# =============================================================================
 
 set -e
 
-# Source the utilities file
+# Source the utilities file and initialize paths
 source "$(dirname "$0")/utils.sh"
+init_paths
 
 export DEBIAN_FRONTEND=noninteractive
 

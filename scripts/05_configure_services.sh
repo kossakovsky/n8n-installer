@@ -1,39 +1,31 @@
 #!/bin/bash
+# =============================================================================
+# 05_configure_services.sh - Service-specific configuration
+# =============================================================================
+# Collects additional configuration needed by selected services via whiptail
+# prompts and writes settings to .env file.
+#
+# Prompts for:
+#   - OpenAI API Key (optional, used by Supabase AI and Crawl4AI)
+#   - n8n workflow import option (~300 ready-made workflows)
+#   - Number of n8n workers to run
+#   - Cloudflare Tunnel token (if cloudflare-tunnel profile is active)
+#
+# Also handles:
+#   - Generates n8n worker-runner pairs configuration
+#   - Resolves service conflicts (e.g., removes Dify if Supabase is selected)
+#
+# Usage: bash scripts/05_configure_services.sh
+# =============================================================================
 
 set -e
 
-# Source the utilities file
+# Source the utilities file and initialize paths
 source "$(dirname "$0")/utils.sh"
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-ENV_FILE="$PROJECT_ROOT/.env"
+init_paths
 
 # Ensure .env exists
-if [ ! -f "$ENV_FILE" ]; then
-  touch "$ENV_FILE"
-fi
-
-# Helper: read value from .env (without surrounding quotes)
-read_env_var() {
-  local var_name="$1"
-  if grep -q "^${var_name}=" "$ENV_FILE"; then
-    grep "^${var_name}=" "$ENV_FILE" | cut -d'=' -f2- | sed 's/^"//' | sed 's/"$//'
-  else
-    echo ""
-  fi
-}
-
-# Helper: upsert value into .env (quote the value)
-write_env_var() {
-  local var_name="$1"
-  local var_value="$2"
-  if grep -q "^${var_name}=" "$ENV_FILE"; then
-    # use different delimiter to be safe
-    sed -i.bak "\|^${var_name}=|d" "$ENV_FILE"
-  fi
-  echo "${var_name}=\"${var_value}\"" >> "$ENV_FILE"
-}
+ensure_file_exists "$ENV_FILE"
 
 log_info "Configuring service options in .env..."
 
@@ -113,10 +105,10 @@ else
                     break
                 fi
             else
-                log_error "Number of workers must be a positive integer." >&2
+                log_error "Number of workers must be a positive integer."
             fi
         else
-            log_error "Invalid input '$N8N_WORKER_COUNT_CANDIDATE'. Please enter a positive integer (e.g., 1, 2)." >&2
+            log_error "Invalid input '$N8N_WORKER_COUNT_CANDIDATE'. Please enter a positive integer (e.g., 1, 2)."
         fi
     done
 fi
@@ -137,16 +129,11 @@ bash "$SCRIPT_DIR/generate_n8n_workers.sh"
 # ----------------------------------------------------------------
 # If Cloudflare Tunnel is selected (based on COMPOSE_PROFILES), prompt for the token and write to .env
 COMPOSE_PROFILES_VALUE="$(read_env_var COMPOSE_PROFILES)"
-cloudflare_selected=0
-if [[ "$COMPOSE_PROFILES_VALUE" == *"cloudflare-tunnel"* ]]; then
-    cloudflare_selected=1
-fi
+# Set COMPOSE_PROFILES for is_profile_active to work
+COMPOSE_PROFILES="$COMPOSE_PROFILES_VALUE"
 
-if [ $cloudflare_selected -eq 1 ]; then
-    existing_cf_token=""
-    if grep -q "^CLOUDFLARE_TUNNEL_TOKEN=" "$ENV_FILE"; then
-        existing_cf_token=$(grep "^CLOUDFLARE_TUNNEL_TOKEN=" "$ENV_FILE" | cut -d'=' -f2- | sed 's/^\"//' | sed 's/\"$//')
-    fi
+if is_profile_active "cloudflare-tunnel"; then
+    existing_cf_token="$(read_env_var CLOUDFLARE_TUNNEL_TOKEN)"
 
     if [ -n "$existing_cf_token" ]; then
         log_info "Cloudflare Tunnel token found in .env; reusing it."
@@ -154,15 +141,11 @@ if [ $cloudflare_selected -eq 1 ]; then
     else
         require_whiptail
         input_cf_token=$(wt_input "Cloudflare Tunnel Token" "Enter your Cloudflare Tunnel token (leave empty to skip)." "") || true
-        token_to_write="$input_cf_token"
 
         # Update the .env with the token (may be empty if user skipped)
-        if grep -q "^CLOUDFLARE_TUNNEL_TOKEN=" "$ENV_FILE"; then
-            sed -i.bak "/^CLOUDFLARE_TUNNEL_TOKEN=/d" "$ENV_FILE"
-        fi
-        echo "CLOUDFLARE_TUNNEL_TOKEN=\"$token_to_write\"" >> "$ENV_FILE"
+        write_env_var "CLOUDFLARE_TUNNEL_TOKEN" "$input_cf_token"
 
-        if [ -n "$token_to_write" ]; then
+        if [ -n "$input_cf_token" ]; then
             log_success "Cloudflare Tunnel token saved to .env."
             echo ""
             echo "🔒 After confirming the tunnel works, consider closing ports 80, 443, and 7687 in your firewall."
@@ -176,7 +159,7 @@ fi
 # ----------------------------------------------------------------
 # Safety: If Supabase is present, remove Dify from COMPOSE_PROFILES (no prompts)
 # ----------------------------------------------------------------
-if [[ -n "$COMPOSE_PROFILES_VALUE" && "$COMPOSE_PROFILES_VALUE" == *"supabase"* ]]; then
+if is_profile_active "supabase"; then
   IFS=',' read -r -a profiles_array <<< "$COMPOSE_PROFILES_VALUE"
   new_profiles=()
   for p in "${profiles_array[@]}"; do
@@ -199,5 +182,8 @@ write_env_var "POSTGRES_HOST" "db"
 # ----------------------------------------------------------------
 
 log_success "Service configuration complete. .env updated at $ENV_FILE"
+
+# Cleanup any .bak files
+cleanup_bak_files "$PROJECT_ROOT"
 
 exit 0

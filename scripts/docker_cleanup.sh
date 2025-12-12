@@ -1,13 +1,24 @@
 #!/bin/bash
+# =============================================================================
+# docker_cleanup.sh - Complete Docker system cleanup
+# =============================================================================
+# Aggressively cleans up the Docker system to reclaim disk space.
+# WARNING: This action is irreversible!
+#
+# Removes:
+#   - All stopped containers
+#   - All networks not used by at least one container
+#   - All unused images (not just dangling ones)
+#   - All unused volumes
+#   - All build cache
+#
+# Usage: make clean  OR  sudo bash scripts/docker_cleanup.sh
+# =============================================================================
 
 set -e
 
 # Source the utilities file
 source "$(dirname "$0")/utils.sh"
-
-# This script is intended for cleaning up the Docker system.
-# It removes all unused containers, images, networks, and volumes.
-# Use with caution, as this action is irreversible.
 
 log_info "Starting Docker cleanup..."
 
