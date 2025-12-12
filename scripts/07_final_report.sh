@@ -1,44 +1,36 @@
 #!/bin/bash
+# =============================================================================
+# 07_final_report.sh - Post-installation summary and credentials display
+# =============================================================================
+# Generates and displays the final installation report after all services
+# are running.
+#
+# Actions:
+#   - Generates welcome page data (via generate_welcome_page.sh)
+#   - Displays Welcome Page URL and credentials
+#   - Shows next steps for configuring individual services
+#   - Provides guidance for first-run setup of n8n, Portainer, Flowise, etc.
+#
+# The Welcome Page serves as a central dashboard with all service credentials
+# and access URLs, protected by basic auth.
+#
+# Usage: bash scripts/07_final_report.sh
+# =============================================================================
 
 set -e
 
-# Source the utilities file
+# Source the utilities file and initialize paths
 source "$(dirname "$0")/utils.sh"
-
-# Get the directory where the script resides
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." &> /dev/null && pwd )"
-ENV_FILE="$PROJECT_ROOT/.env"
-
-# Check if .env file exists
-if [ ! -f "$ENV_FILE" ]; then
-    log_error "The .env file ('$ENV_FILE') was not found."
-    exit 1
-fi
+init_paths
 
 # Load environment variables from .env file
-set -a
-source "$ENV_FILE"
-set +a
+load_env || exit 1
 
 # Generate welcome page data
 if [ -f "$SCRIPT_DIR/generate_welcome_page.sh" ]; then
     log_info "Generating welcome page..."
     bash "$SCRIPT_DIR/generate_welcome_page.sh" || log_warning "Failed to generate welcome page"
 fi
-
-# Function to check if a profile is active
-is_profile_active() {
-    local profile_to_check="$1"
-    if [ -z "$COMPOSE_PROFILES" ]; then
-        return 1
-    fi
-    if [[ ",$COMPOSE_PROFILES," == *",$profile_to_check,"* ]]; then
-        return 0
-    else
-        return 1
-    fi
-}
 
 echo
 echo "======================================================================="

@@ -1,43 +1,33 @@
 #!/bin/bash
-# Генерирует docker-compose.n8n-workers.yml с N парами worker-runner
-# Использование: N8N_WORKER_COUNT=3 bash scripts/generate_n8n_workers.sh
+# Generates docker-compose.n8n-workers.yml with N worker-runner pairs
+# Usage: N8N_WORKER_COUNT=3 bash scripts/generate_n8n_workers.sh
 #
-# Этот скрипт идемпотентен - при повторном запуске файл перезаписывается
+# This script is idempotent - file is overwritten on each run
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+# Source the utilities file and initialize paths
+source "$(dirname "$0")/utils.sh"
+init_paths
 
-# Source utilities if available
-if [[ -f "$SCRIPT_DIR/utils.sh" ]]; then
-    source "$SCRIPT_DIR/utils.sh"
-else
-    # Fallback logging functions
-    log_info() { echo "[INFO] $*"; }
-    log_warning() { echo "[WARN] $*"; }
-    log_error() { echo "[ERROR] $*" >&2; }
-fi
-
-# Загрузить N8N_WORKER_COUNT из .env если не задан
-if [[ -z "${N8N_WORKER_COUNT:-}" ]] && [[ -f "$PROJECT_DIR/.env" ]]; then
-    # Strip quotes (single and double) from the value
-    N8N_WORKER_COUNT=$(grep -E "^N8N_WORKER_COUNT=" "$PROJECT_DIR/.env" | cut -d'=' -f2 | tr -d '"'"'" || echo "1")
+# Load N8N_WORKER_COUNT from .env if not set
+if [[ -z "${N8N_WORKER_COUNT:-}" ]] && [[ -f "$ENV_FILE" ]]; then
+    N8N_WORKER_COUNT=$(read_env_var "N8N_WORKER_COUNT" || echo "1")
 fi
 N8N_WORKER_COUNT=${N8N_WORKER_COUNT:-1}
 
-# Валидация N8N_WORKER_COUNT
+# Validate N8N_WORKER_COUNT
 if ! [[ "$N8N_WORKER_COUNT" =~ ^[1-9][0-9]*$ ]]; then
     log_error "N8N_WORKER_COUNT must be a positive integer, got: '$N8N_WORKER_COUNT'"
     exit 1
 fi
 
-OUTPUT_FILE="$PROJECT_DIR/docker-compose.n8n-workers.yml"
+OUTPUT_FILE="$PROJECT_ROOT/docker-compose.n8n-workers.yml"
 
 log_info "Generating n8n worker-runner pairs configuration..."
 log_info "N8N_WORKER_COUNT=$N8N_WORKER_COUNT"
 
-# Перезаписываем файл (идемпотентно)
+# Overwrite file (idempotent)
 cat > "$OUTPUT_FILE" << 'EOF'
 # Auto-generated file for n8n worker-runner pairs
 # Regenerate with: bash scripts/generate_n8n_workers.sh

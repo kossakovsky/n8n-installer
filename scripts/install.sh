@@ -1,4 +1,19 @@
 #!/bin/bash
+# =============================================================================
+# install.sh - Main installation orchestrator for n8n-install
+# =============================================================================
+# This script runs the complete installation process by sequentially executing
+# 7 installation steps:
+#   1. System Preparation - updates packages, installs utilities, configures firewall
+#   2. Docker Installation - installs Docker and Docker Compose
+#   3. Secret Generation - creates .env file with secure passwords and secrets
+#   4. Service Wizard - interactive service selection using whiptail
+#   5. Service Configuration - prompts for API keys and service-specific settings
+#   6. Service Launch - starts all selected services via Docker Compose
+#   7. Final Report - displays credentials and access URLs
+#
+# Usage: sudo bash scripts/install.sh
+# =============================================================================
 
 set -e
 
@@ -28,8 +43,8 @@ if [[ "$current_path" == *"/n8n-install/n8n-install" ]]; then
     fi
 fi
 
-# Get the directory where this script is located (which is the scripts directory)
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# Initialize paths using utils.sh helper
+init_paths
 
 # Check if all required scripts exist and are executable in the current directory
 required_scripts=(
@@ -82,31 +97,31 @@ fi
 
 # Run installation steps sequentially using their full paths
 
-log_info "========== STEP 1: System Preparation =========="
+log_header "STEP 1: System Preparation"
 bash "$SCRIPT_DIR/01_system_preparation.sh" || { log_error "System Preparation failed"; exit 1; }
 log_success "System preparation complete!"
 
-log_info "========== STEP 2: Installing Docker =========="
+log_header "STEP 2: Installing Docker"
 bash "$SCRIPT_DIR/02_install_docker.sh" || { log_error "Docker Installation failed"; exit 1; }
 log_success "Docker installation complete!"
 
-log_info "========== STEP 3: Generating Secrets and Configuration =========="
+log_header "STEP 3: Generating Secrets and Configuration"
 bash "$SCRIPT_DIR/03_generate_secrets.sh" || { log_error "Secret/Config Generation failed"; exit 1; }
 log_success "Secret/Config Generation complete!"
 
-log_info "========== STEP 4: Running Service Selection Wizard =========="
+log_header "STEP 4: Running Service Selection Wizard"
 bash "$SCRIPT_DIR/04_wizard.sh" || { log_error "Service Selection Wizard failed"; exit 1; }
 log_success "Service Selection Wizard complete!"
 
-log_info "========== STEP 5: Configure Services =========="
+log_header "STEP 5: Configure Services"
 bash "$SCRIPT_DIR/05_configure_services.sh" || { log_error "Configure Services failed"; exit 1; }
 log_success "Configure Services complete!"
 
-log_info "========== STEP 6: Running Services =========="
+log_header "STEP 6: Running Services"
 bash "$SCRIPT_DIR/06_run_services.sh" || { log_error "Running Services failed"; exit 1; }
 log_success "Running Services complete!"
 
-log_info "========== STEP 7: Generating Final Report =========="
+log_header "STEP 7: Generating Final Report"
 # --- Installation Summary ---
 log_info "Installation Summary. The following steps were performed by the scripts:"
 log_success "- System updated and basic utilities installed"

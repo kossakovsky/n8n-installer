@@ -4,20 +4,14 @@
 
 set -e
 
-# Source the utilities file
+# Source the utilities file and initialize paths
 source "$(dirname "$0")/utils.sh"
+init_paths
 
-# Get the directory where the script resides
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." &> /dev/null && pwd )"
-ENV_FILE="$PROJECT_ROOT/.env"
 OUTPUT_FILE="$PROJECT_ROOT/welcome/data.json"
 
-# Check if .env file exists
-if [ ! -f "$ENV_FILE" ]; then
-    log_error "The .env file ('$ENV_FILE') was not found."
-    exit 1
-fi
+# Load environment variables from .env file
+load_env || exit 1
 
 # Ensure welcome directory exists
 mkdir -p "$PROJECT_ROOT/welcome"
@@ -26,31 +20,6 @@ mkdir -p "$PROJECT_ROOT/welcome"
 if [ -f "$OUTPUT_FILE" ]; then
     rm -f "$OUTPUT_FILE"
 fi
-
-# Load environment variables from .env file
-set -a
-source "$ENV_FILE"
-set +a
-
-# Function to check if a profile is active
-is_profile_active() {
-    local profile_to_check="$1"
-    if [ -z "$COMPOSE_PROFILES" ]; then
-        return 1
-    fi
-    if [[ ",$COMPOSE_PROFILES," == *",$profile_to_check,"* ]]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Function to escape JSON strings
-json_escape() {
-    local str="$1"
-    # Escape backslashes, double quotes, and control characters
-    printf '%s' "$str" | sed 's/\\/\\\\/g; s/"/\\"/g; s/	/\\t/g' | tr -d '\n\r'
-}
 
 # Start building JSON
 GENERATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")

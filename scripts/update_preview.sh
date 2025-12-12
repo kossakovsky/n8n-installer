@@ -5,31 +5,12 @@
 
 set -e
 
-# Source the utilities file
+# Source the utilities file and initialize paths
 source "$(dirname "$0")/utils.sh"
-
-# Get the directory where the script resides
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." &> /dev/null && pwd )"
-ENV_FILE="$PROJECT_ROOT/.env"
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Check if .env file exists
-if [ ! -f "$ENV_FILE" ]; then
-    log_error "The .env file ('$ENV_FILE') was not found."
-    exit 1
-fi
+init_paths
 
 # Load environment variables
-set -a
-source "$ENV_FILE"
-set +a
+load_env || exit 1
 
 echo ""
 echo "========================================"
@@ -101,7 +82,7 @@ check_image_update "caddy" "caddy:2-alpine"
 echo ""
 
 # Check n8n if profile is active
-if [[ ",$COMPOSE_PROFILES," == *",n8n,"* ]]; then
+if is_profile_active "n8n"; then
     echo "n8n Services:"
     echo "-------------"
     check_image_update "n8n" "docker.n8n.io/n8nio/n8n:${N8N_VERSION:-latest}"
@@ -110,7 +91,7 @@ if [[ ",$COMPOSE_PROFILES," == *",n8n,"* ]]; then
 fi
 
 # Check monitoring if profile is active
-if [[ ",$COMPOSE_PROFILES," == *",monitoring,"* ]]; then
+if is_profile_active "monitoring"; then
     echo "Monitoring Services:"
     echo "--------------------"
     check_image_update "grafana" "grafana/grafana:latest"
@@ -121,28 +102,28 @@ if [[ ",$COMPOSE_PROFILES," == *",monitoring,"* ]]; then
 fi
 
 # Check other common services
-if [[ ",$COMPOSE_PROFILES," == *",flowise,"* ]]; then
+if is_profile_active "flowise"; then
     echo "Flowise:"
     echo "--------"
     check_image_update "flowise" "flowiseai/flowise:latest"
     echo ""
 fi
 
-if [[ ",$COMPOSE_PROFILES," == *",open-webui,"* ]]; then
+if is_profile_active "open-webui"; then
     echo "Open WebUI:"
     echo "-----------"
     check_image_update "open-webui" "ghcr.io/open-webui/open-webui:main"
     echo ""
 fi
 
-if [[ ",$COMPOSE_PROFILES," == *",portainer,"* ]]; then
+if is_profile_active "portainer"; then
     echo "Portainer:"
     echo "----------"
     check_image_update "portainer" "portainer/portainer-ce:latest"
     echo ""
 fi
 
-if [[ ",$COMPOSE_PROFILES," == *",langfuse,"* ]]; then
+if is_profile_active "langfuse"; then
     echo "Langfuse:"
     echo "---------"
     check_image_update "langfuse-web" "langfuse/langfuse:latest"
@@ -150,28 +131,28 @@ if [[ ",$COMPOSE_PROFILES," == *",langfuse,"* ]]; then
     echo ""
 fi
 
-if [[ ",$COMPOSE_PROFILES," == *",cpu,"* ]] || [[ ",$COMPOSE_PROFILES," == *",gpu-nvidia,"* ]] || [[ ",$COMPOSE_PROFILES," == *",gpu-amd,"* ]]; then
+if is_profile_active "cpu" || is_profile_active "gpu-nvidia" || is_profile_active "gpu-amd"; then
     echo "Ollama:"
     echo "-------"
     check_image_update "ollama" "ollama/ollama:latest"
     echo ""
 fi
 
-if [[ ",$COMPOSE_PROFILES," == *",qdrant,"* ]]; then
+if is_profile_active "qdrant"; then
     echo "Qdrant:"
     echo "-------"
     check_image_update "qdrant" "qdrant/qdrant:latest"
     echo ""
 fi
 
-if [[ ",$COMPOSE_PROFILES," == *",searxng,"* ]]; then
+if is_profile_active "searxng"; then
     echo "SearXNG:"
     echo "--------"
     check_image_update "searxng" "searxng/searxng:latest"
     echo ""
 fi
 
-if [[ ",$COMPOSE_PROFILES," == *",postgresus,"* ]]; then
+if is_profile_active "postgresus"; then
     echo "Postgresus:"
     echo "-----------"
     check_image_update "postgresus" "ghcr.io/postgresus/postgresus:latest"

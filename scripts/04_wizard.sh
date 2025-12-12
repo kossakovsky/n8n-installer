@@ -1,39 +1,31 @@
 #!/bin/bash
+# =============================================================================
+# 04_wizard.sh - Interactive service selection wizard
+# =============================================================================
+# Guides the user through selecting which services to install using whiptail.
+#
+# Features:
+#   - Quick Start mode: pre-configured set (n8n + monitoring + backups)
+#   - Custom mode: multi-screen selection grouped by category
+#     - Core Services (n8n, Flowise, Dify, etc.)
+#     - AI & ML Services (Ollama with CPU/GPU, ComfyUI, etc.)
+#     - Databases & Vector Stores (Qdrant, Weaviate, Neo4j, etc.)
+#     - Infrastructure & Monitoring (Grafana, Prometheus, Portainer, etc.)
+#   - Preserves previously selected services on re-run
+#   - Updates COMPOSE_PROFILES in .env file
+#
+# Usage: bash scripts/04_wizard.sh
+# =============================================================================
 
-# Script to guide user through service selection
-
-# Source utility functions, if any, assuming it's in the same directory
-# and .env is in the parent directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-ENV_FILE="$PROJECT_ROOT/.env"
-
-# Source the utilities file
+# Source the utilities file and initialize paths
 source "$(dirname "$0")/utils.sh"
+init_paths
 
-# UTILS_SCRIPT="$SCRIPT_DIR/utils.sh" # Uncomment if utils.sh contains relevant functions
+# Verify whiptail is available
+require_whiptail
 
-# if [ -f "$UTILS_SCRIPT" ]; then
-#     source "$UTILS_SCRIPT"
-# fi
-
-# Function to check if whiptail is installed
-check_whiptail() {
-    if ! command -v whiptail &> /dev/null; then
-        log_error "'whiptail' is not installed."
-        log_info "This tool is required for the interactive service selection."
-        log_info "On Debian/Ubuntu, you can install it using: sudo apt-get install whiptail"
-        log_info "Please install whiptail and try again."
-        exit 1
-    fi
-}
-
-# Call the check
-check_whiptail
-
-# Store original DEBIAN_FRONTEND and set to dialog for whiptail
-ORIGINAL_DEBIAN_FRONTEND="$DEBIAN_FRONTEND"
-export DEBIAN_FRONTEND=dialog
+# Set DEBIAN_FRONTEND for whiptail
+save_debian_frontend
 
 # --- Quick Start Pack Selection ---
 # First screen: choose between Quick Start Pack or Custom Selection
@@ -57,27 +49,11 @@ if [ "$PACK_CHOICE" == "quick" ]; then
     # Base Pack profiles
     COMPOSE_PROFILES_VALUE="n8n,monitoring,postgresus,portainer"
 
-    # Ensure .env file exists
-    if [ ! -f "$ENV_FILE" ]; then
-        touch "$ENV_FILE"
-    fi
-
-    # Remove existing COMPOSE_PROFILES line if it exists
-    if grep -q "^COMPOSE_PROFILES=" "$ENV_FILE"; then
-        sed -i.bak "\|^COMPOSE_PROFILES=|d" "$ENV_FILE"
-    fi
-
-    # Add the new COMPOSE_PROFILES line
-    echo "COMPOSE_PROFILES=${COMPOSE_PROFILES_VALUE}" >> "$ENV_FILE"
+    # Update COMPOSE_PROFILES in .env
+    update_compose_profiles "$COMPOSE_PROFILES_VALUE"
     log_info "The following Docker Compose profiles will be active: ${COMPOSE_PROFILES_VALUE}"
 
-    # Restore original DEBIAN_FRONTEND
-    if [ -n "$ORIGINAL_DEBIAN_FRONTEND" ]; then
-        export DEBIAN_FRONTEND="$ORIGINAL_DEBIAN_FRONTEND"
-    else
-        unset DEBIAN_FRONTEND
-    fi
-
+    restore_debian_frontend
     exit 0
 fi
 
@@ -166,11 +142,7 @@ CHOICES=$(whiptail --title "Service Selection Wizard" --checklist \
   3>&1 1>&2 2>&3)
 
 # Restore original DEBIAN_FRONTEND
-if [ -n "$ORIGINAL_DEBIAN_FRONTEND" ]; then
-  export DEBIAN_FRONTEND="$ORIGINAL_DEBIAN_FRONTEND"
-else
-  unset DEBIAN_FRONTEND
-fi
+restore_debian_frontend
 
 # Exit if user pressed Cancel or Esc
 exitstatus=$?
@@ -178,13 +150,7 @@ if [ $exitstatus -ne 0 ]; then
     log_info "Service selection cancelled by user. Exiting wizard."
     log_info "No changes made to service profiles. Default services will be used."
     # Set COMPOSE_PROFILES to empty to ensure only core services run
-    if [ ! -f "$ENV_FILE" ]; then
-        touch "$ENV_FILE"
-    fi
-    if grep -q "^COMPOSE_PROFILES=" "$ENV_FILE"; then
-        sed -i.bak "/^COMPOSE_PROFILES=/d" "$ENV_FILE"
-    fi
-    echo "COMPOSE_PROFILES=" >> "$ENV_FILE"
+    update_compose_profiles ""
     exit 0
 fi
 
@@ -297,28 +263,14 @@ else
 fi
 
 # Update or add COMPOSE_PROFILES in .env file
-# Ensure .env file exists (it should have been created by 03_generate_secrets.sh or exist from previous run)
-if [ ! -f "$ENV_FILE" ]; then
-    log_warning "'.env' file not found at $ENV_FILE. Creating it."
-    touch "$ENV_FILE"
-fi
-
-
-# Remove existing COMPOSE_PROFILES line if it exists
-if grep -q "^COMPOSE_PROFILES=" "$ENV_FILE"; then
-    # Using a different delimiter for sed because a profile name might contain '/' (unlikely here)
-    sed -i.bak "\|^COMPOSE_PROFILES=|d" "$ENV_FILE"
-fi
-
-# Add the new COMPOSE_PROFILES line
-echo "COMPOSE_PROFILES=${COMPOSE_PROFILES_VALUE}" >> "$ENV_FILE"
+update_compose_profiles "$COMPOSE_PROFILES_VALUE"
 if [ -z "$COMPOSE_PROFILES_VALUE" ]; then
     log_info "Only core services (Caddy, Postgres, Redis) will be started."
 else
     log_info "The following Docker Compose profiles will be active: ${COMPOSE_PROFILES_VALUE}"
 fi
 
-# Make the script executable (though install.sh calls it with bash)
-chmod +x "$SCRIPT_DIR/04_wizard.sh"
+# Cleanup any .bak files created by sed
+cleanup_bak_files "$PROJECT_ROOT"
 
 exit 0

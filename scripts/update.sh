@@ -1,16 +1,24 @@
 #!/bin/bash
+# =============================================================================
+# update.sh - Main update orchestrator
+# =============================================================================
+# Performs a full system and service update:
+#   1. Pulls latest changes from the git repository (git reset --hard + pull)
+#   2. Updates Ubuntu system packages (apt-get update && upgrade)
+#   3. Delegates to apply_update.sh for service updates
+#
+# This two-stage approach ensures apply_update.sh itself gets updated before
+# running, so new update logic is always applied.
+#
+# Usage: make update  OR  sudo bash scripts/update.sh
+# =============================================================================
 
 set -e
 
-# Source the utilities file
+# Source the utilities file and initialize paths
 source "$(dirname "$0")/utils.sh"
+init_paths
 
-# Set the compose command explicitly to use docker compose subcommand
-
-# Navigate to the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-# Project root directory (one level up from scripts)
-PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." &> /dev/null && pwd )"
 # Path to the apply_update.sh script
 APPLY_UPDATE_SCRIPT="$SCRIPT_DIR/apply_update.sh"
 
