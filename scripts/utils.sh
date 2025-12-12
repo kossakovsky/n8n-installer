@@ -192,7 +192,9 @@ require_file() {
 # Usage: ensure_file_exists "/path/to/file"
 ensure_file_exists() {
     local file="$1"
-    [[ ! -f "$file" ]] && touch "$file"
+    if [[ ! -f "$file" ]]; then
+        touch "$file"
+    fi
 }
 
 #=============================================================================
