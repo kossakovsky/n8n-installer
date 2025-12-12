@@ -1,6 +1,7 @@
 /**
  * n8n-install Welcome Page
  * Dynamic rendering of services and credentials from data.json
+ * Supabase-inspired design
  */
 
 (function() {
@@ -26,7 +27,7 @@
             name: 'Open WebUI',
             description: 'ChatGPT-like Interface',
             icon: 'AI',
-            color: 'bg-green-500',
+            color: 'bg-emerald-500',
             category: 'ai'
         },
         'grafana': {
@@ -227,9 +228,25 @@
         }
     };
 
+    // Make commands data
+    const COMMANDS = [
+        { cmd: 'make status', desc: 'Show container status' },
+        { cmd: 'make logs', desc: 'View logs (all services)' },
+        { cmd: 'make logs s=<service>', desc: 'View logs for specific service' },
+        { cmd: 'make monitor', desc: 'Live CPU/memory monitoring' },
+        { cmd: 'make restarts', desc: 'Show restart count per container' },
+        { cmd: 'make doctor', desc: 'Run system diagnostics' },
+        { cmd: 'make update', desc: 'Update system and services' },
+        { cmd: 'make update-preview', desc: 'Preview available updates' },
+        { cmd: 'make clean', desc: 'Remove unused Docker resources' },
+        { cmd: 'make switch-beta', desc: 'Switch to beta (develop branch)' },
+        { cmd: 'make switch-stable', desc: 'Switch to stable (main branch)' }
+    ];
+
     // DOM Elements
     const servicesContainer = document.getElementById('services-container');
     const quickstartContainer = document.getElementById('quickstart-container');
+    const commandsContainer = document.getElementById('commands-container');
     const domainInfo = document.getElementById('domain-info');
     const errorToast = document.getElementById('error-toast');
     const errorMessage = document.getElementById('error-message');
@@ -258,16 +275,16 @@
         container.className = 'flex items-center gap-1';
 
         const passwordSpan = document.createElement('span');
-        passwordSpan.className = 'font-mono text-sm select-all';
+        passwordSpan.className = 'font-mono text-sm select-all text-gray-300';
         passwordSpan.textContent = '*'.repeat(Math.min(password.length, 12));
         passwordSpan.dataset.password = password;
         passwordSpan.dataset.hidden = 'true';
 
         // Toggle visibility button (eye icon)
         const toggleBtn = document.createElement('button');
-        toggleBtn.className = 'p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500';
+        toggleBtn.className = 'p-1.5 rounded-lg hover:bg-surface-400 transition-colors focus:outline-none focus:ring-2 focus:ring-brand/50';
         toggleBtn.innerHTML = `
-            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 text-gray-500 hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
             </svg>
@@ -292,12 +309,12 @@
 
         // Copy button
         const copyBtn = document.createElement('button');
-        copyBtn.className = 'p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500';
+        copyBtn.className = 'p-1.5 rounded-lg hover:bg-surface-400 transition-colors focus:outline-none focus:ring-2 focus:ring-brand/50';
         copyBtn.innerHTML = `
-            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400 copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 text-gray-500 hover:text-brand transition-colors copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
             </svg>
-            <svg class="w-4 h-4 text-green-500 check-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 text-brand check-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
         `;
@@ -336,11 +353,11 @@
             name: key,
             description: '',
             icon: key.substring(0, 2).toUpperCase(),
-            color: 'bg-slate-500'
+            color: 'bg-gray-600'
         };
 
         const card = document.createElement('div');
-        card.className = 'bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5 hover:shadow-lg transition-shadow';
+        card.className = 'bg-surface-100 rounded-xl border border-surface-400 p-5 hover:border-brand/30 hover:bg-surface-200 transition-all';
 
         // Build credentials section
         let credentialsHtml = '';
@@ -349,8 +366,8 @@
 
             if (creds.note) {
                 credentialsHtml = `
-                    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
-                        <p class="text-sm text-gray-500 dark:text-gray-400 italic">${escapeHtml(creds.note)}</p>
+                    <div class="mt-4 pt-4 border-t border-surface-400">
+                        <p class="text-sm text-gray-500 italic">${escapeHtml(creds.note)}</p>
                     </div>
                 `;
             } else {
@@ -358,29 +375,29 @@
                 if (creds.username) {
                     fields.push(`
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-500 dark:text-gray-400 text-sm">Username:</span>
-                            <span class="font-mono text-sm select-all">${escapeHtml(creds.username)}</span>
+                            <span class="text-gray-500 text-sm">Username:</span>
+                            <span class="font-mono text-sm select-all text-gray-300">${escapeHtml(creds.username)}</span>
                         </div>
                     `);
                 }
                 if (creds.password) {
                     fields.push(`
                         <div class="flex justify-between items-center" id="pwd-${key}">
-                            <span class="text-gray-500 dark:text-gray-400 text-sm">Password:</span>
+                            <span class="text-gray-500 text-sm">Password:</span>
                         </div>
                     `);
                 }
                 if (creds.api_key) {
                     fields.push(`
                         <div class="flex justify-between items-center" id="api-${key}">
-                            <span class="text-gray-500 dark:text-gray-400 text-sm">API Key:</span>
+                            <span class="text-gray-500 text-sm">API Key:</span>
                         </div>
                     `);
                 }
 
                 if (fields.length > 0) {
                     credentialsHtml = `
-                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 space-y-2">
+                        <div class="mt-4 pt-4 border-t border-surface-400 space-y-2">
                             ${fields.join('')}
                         </div>
                     `;
@@ -395,13 +412,13 @@
             const extra = serviceData.extra;
 
             if (extra.internal_api) {
-                extraItems.push(`<span class="text-xs text-gray-400 dark:text-gray-500">Internal: ${escapeHtml(extra.internal_api)}</span>`);
+                extraItems.push(`<span class="text-xs text-gray-600 font-mono">Internal: ${escapeHtml(extra.internal_api)}</span>`);
             }
             if (extra.workers) {
-                extraItems.push(`<span class="text-xs text-gray-400 dark:text-gray-500">Workers: ${escapeHtml(extra.workers)}</span>`);
+                extraItems.push(`<span class="text-xs text-gray-600">Workers: ${escapeHtml(extra.workers)}</span>`);
             }
             if (extra.recommendation) {
-                extraItems.push(`<span class="text-xs text-amber-600 dark:text-amber-400">${escapeHtml(extra.recommendation)}</span>`);
+                extraItems.push(`<span class="text-xs text-brand">${escapeHtml(extra.recommendation)}</span>`);
             }
 
             if (extraItems.length > 0) {
@@ -411,21 +428,21 @@
 
         card.innerHTML = `
             <div class="flex items-start gap-4">
-                <div class="${metadata.color} w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                <div class="${metadata.color} w-11 h-11 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-lg">
                     ${metadata.icon}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h3 class="font-semibold text-lg">${escapeHtml(metadata.name)}</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">${escapeHtml(metadata.description)}</p>
+                    <h3 class="font-semibold text-white">${escapeHtml(metadata.name)}</h3>
+                    <p class="text-sm text-gray-500 mb-2">${escapeHtml(metadata.description)}</p>
                     ${serviceData.hostname ? `
                         <a href="https://${escapeHtml(serviceData.hostname)}" target="_blank" rel="noopener"
-                           class="text-blue-500 hover:text-blue-600 text-sm font-medium inline-flex items-center gap-1 group">
+                           class="text-brand hover:text-brand-400 text-sm font-medium inline-flex items-center gap-1 group transition-colors">
                             ${escapeHtml(serviceData.hostname)}
                             <svg class="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                             </svg>
                         </a>
-                    ` : '<span class="text-sm text-gray-400 dark:text-gray-500 italic">Internal service</span>'}
+                    ` : '<span class="text-sm text-gray-600 italic">Internal service</span>'}
                     ${extraHtml}
                 </div>
             </div>
@@ -463,7 +480,7 @@
 
         if (!services || Object.keys(services).length === 0) {
             servicesContainer.innerHTML = `
-                <div class="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">
+                <div class="col-span-full text-center py-12 text-gray-500">
                     <p>No services configured. Run the installer to set up services.</p>
                 </div>
             `;
@@ -500,20 +517,44 @@
 
         steps.forEach(item => {
             const stepEl = document.createElement('div');
-            stepEl.className = 'flex items-start gap-4 p-4 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700';
+            stepEl.className = 'flex items-start gap-4 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 transition-all';
 
             stepEl.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+                <div class="w-8 h-8 rounded-full bg-brand/20 border border-brand/30 text-brand flex items-center justify-center font-semibold text-sm flex-shrink-0">
                     ${item.step}
                 </div>
                 <div>
-                    <h4 class="font-semibold">${escapeHtml(item.title)}</h4>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">${escapeHtml(item.description)}</p>
+                    <h4 class="font-semibold text-white">${escapeHtml(item.title)}</h4>
+                    <p class="text-sm text-gray-500">${escapeHtml(item.description)}</p>
                 </div>
             `;
 
             quickstartContainer.appendChild(stepEl);
         });
+    }
+
+    /**
+     * Render make commands
+     */
+    function renderCommands() {
+        commandsContainer.innerHTML = '';
+
+        const grid = document.createElement('div');
+        grid.className = 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3';
+
+        COMMANDS.forEach(item => {
+            const cmdEl = document.createElement('div');
+            cmdEl.className = 'flex flex-col gap-1 p-3 rounded-lg bg-surface-200/50 border border-surface-400 hover:border-brand/30 transition-all';
+
+            cmdEl.innerHTML = `
+                <code class="text-brand font-mono text-sm">${escapeHtml(item.cmd)}</code>
+                <span class="text-gray-500 text-xs">${escapeHtml(item.desc)}</span>
+            `;
+
+            grid.appendChild(cmdEl);
+        });
+
+        commandsContainer.appendChild(grid);
     }
 
     /**
@@ -530,6 +571,9 @@
      * Load data and render page
      */
     async function init() {
+        // Always render commands (static content)
+        renderCommands();
+
         try {
             const response = await fetch('data.json');
 
@@ -559,12 +603,12 @@
 
             // Show error in UI
             servicesContainer.innerHTML = `
-                <div class="col-span-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+                <div class="col-span-full bg-red-900/20 border border-red-800/50 rounded-xl p-6 text-center">
                     <svg class="w-12 h-12 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
-                    <h3 class="font-semibold text-red-700 dark:text-red-400 mb-2">Unable to load service data</h3>
-                    <p class="text-sm text-red-600 dark:text-red-300">Make sure the installation completed successfully and data.json was generated.</p>
+                    <h3 class="font-semibold text-red-400 mb-2">Unable to load service data</h3>
+                    <p class="text-sm text-red-300/80">Make sure the installation completed successfully and data.json was generated.</p>
                 </div>
             `;
 
