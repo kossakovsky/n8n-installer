@@ -46,24 +46,6 @@ echo "                    Installation Complete!"
 echo "======================================================================="
 echo
 
-# --- Make Commands ---
-echo "================================= Make Commands ========================="
-echo
-echo "  make logs              View logs (all services)"
-echo "  make logs s=<service>  View logs for specific service"
-echo "  make status            Show container status"
-echo "  make monitor           Live CPU/memory monitoring"
-echo "  make restarts          Show restart count per container"
-echo
-echo "  make update            Update system and services"
-echo "  make update-preview    Preview available updates (dry-run)"
-echo "  make doctor            Run system diagnostics"
-echo "  make clean             Remove unused Docker resources"
-echo
-echo "  make switch-beta       Switch to beta (develop branch)"
-echo "  make switch-stable     Switch to stable (main branch)"
-echo
-
 # --- Welcome Page ---
 echo "================================= Welcome Page =========================="
 echo
@@ -88,12 +70,20 @@ echo "1. Visit your Welcome Page to view all service credentials"
 echo "   https://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}"
 echo
 echo "2. Store the Welcome Page credentials securely"
-echo "   (Username: ${WELCOME_USERNAME:-<not_set>})"
 echo
 echo "3. Configure services as needed:"
+if is_profile_active "n8n"; then
 echo "   - n8n: Complete first-run setup with your email"
+fi
+if is_profile_active "portainer"; then
 echo "   - Portainer: Create admin account on first login"
+fi
+if is_profile_active "flowise"; then
+echo "   - Flowise: Register and create your account"
+fi
+if is_profile_active "open-webui"; then
 echo "   - Open WebUI: Register your account"
+fi
 echo
 echo "4. Run 'make doctor' if you experience any issues"
 echo
