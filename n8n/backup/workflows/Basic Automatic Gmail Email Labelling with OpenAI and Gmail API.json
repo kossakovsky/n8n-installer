@@ -345,5 +345,6 @@
   },
   "name": "Basic Automatic Gmail Email Labelling with OpenAI and Gmail API",
   "active": false,
-  "id": "cYIpbNTLhAJfozEL"
+  "id": "cYIpbNTLhAJfozEL",
+  "versionId": "0a1f834e-9c72-4ba8-9d2e-256e8b60e522"
 }

@@ -1149,5 +1149,6 @@
   },
   "name": "Customer Insights with Qdrant, Python and Information Extractor",
   "active": false,
-  "id": "7Bar6ORj8APCx3u5"
+  "id": "7Bar6ORj8APCx3u5",
+  "versionId": "a6814cf1-bf48-46e9-b7ca-5a875e0ca494"
 }

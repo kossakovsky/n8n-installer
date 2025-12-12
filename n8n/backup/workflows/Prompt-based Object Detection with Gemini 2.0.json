@@ -366,5 +366,6 @@
   },
   "name": "Prompt-based Object Detection with Gemini 2.0",
   "active": false,
-  "id": "NCycwanObsgyZsa3"
+  "id": "NCycwanObsgyZsa3",
+  "versionId": "75819e11-c896-4f8e-9882-1a4f425d2e7c"
 }

@@ -682,5 +682,6 @@
   },
   "name": "Telegram Bot with Supabase memory and OpenAI assistant integration",
   "active": false,
-  "id": "Kf5J7w6ZLiCTN0CH"
+  "id": "Kf5J7w6ZLiCTN0CH",
+  "versionId": "57a5947b-760d-45f2-b99e-046448dc8b7c"
 }

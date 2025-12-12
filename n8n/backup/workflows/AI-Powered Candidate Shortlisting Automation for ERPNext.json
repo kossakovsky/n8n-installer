@@ -1077,5 +1077,6 @@
   },
   "name": "AI-Powered Candidate Shortlisting Automation for ERPNext",
   "active": false,
-  "id": "09JNqwSkKKXokPNb"
+  "id": "09JNqwSkKKXokPNb",
+  "versionId": "f1da1a3e-9553-4968-904b-df99512fcb60"
 }

@@ -456,5 +456,6 @@
   },
   "name": "Enhance Customer Chat by Buffering Messages with Twilio and Redis",
   "active": false,
-  "id": "JTIjPTorMWEL36NG"
+  "id": "JTIjPTorMWEL36NG",
+  "versionId": "2827788a-f05c-4c61-9ae2-d66895b9440c"
 }

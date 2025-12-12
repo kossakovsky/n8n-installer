@@ -404,5 +404,6 @@
   },
   "name": "ChatGPT Automatic Code Review in Gitlab MR",
   "active": false,
-  "id": "I4sNpp1NqFjgCU7R"
+  "id": "I4sNpp1NqFjgCU7R",
+  "versionId": "63fe4f8c-530e-4456-9fa0-ae951f2c1cc0"
 }

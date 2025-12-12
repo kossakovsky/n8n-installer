@@ -1535,5 +1535,6 @@
   },
   "name": "Email Subscription Service with n8n Forms, Airtable and AI",
   "active": false,
-  "id": "3TzzRYEjblSRB7a9"
+  "id": "3TzzRYEjblSRB7a9",
+  "versionId": "2399e624-ce83-474f-888c-4a01e93d948b"
 }
