@@ -44,6 +44,7 @@ init_paths() {
 _log() {
     local level="$1"
     local message="$2"
+    echo ""
     echo "[$level] $(date +%H:%M:%S): $message"
 }
 
@@ -67,6 +68,7 @@ log_error() {
 log_header() {
     local message="$1"
     echo ""
+    echo ""
     echo "========== $message =========="
 }
 
@@ -80,18 +82,22 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 print_ok() {
+    echo ""
     echo -e "  ${GREEN}[OK]${NC} $1"
 }
 
 print_error() {
+    echo ""
     echo -e "  ${RED}[ERROR]${NC} $1"
 }
 
 print_warning() {
+    echo ""
     echo -e "  ${YELLOW}[WARNING]${NC} $1"
 }
 
 print_info() {
+    echo ""
     echo -e "  ${BLUE}[INFO]${NC} $1"
 }
 
