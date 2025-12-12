@@ -264,6 +264,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy-addon:/etc/caddy/addons:ro
+      - ./welcome:/srv/welcome:ro
       - caddy-data:/data:rw
       - caddy-config:/config:rw
     environment:
@@ -306,6 +307,9 @@ services:
       - SUPABASE_HOSTNAME=${SUPABASE_HOSTNAME}
       - WEAVIATE_HOSTNAME=${WEAVIATE_HOSTNAME}
       - WEBUI_HOSTNAME=${WEBUI_HOSTNAME}
+      - WELCOME_HOSTNAME=${WELCOME_HOSTNAME}
+      - WELCOME_PASSWORD_HASH=${WELCOME_PASSWORD_HASH}
+      - WELCOME_USERNAME=${WELCOME_USERNAME}
     cap_drop:
       - ALL
     cap_add:

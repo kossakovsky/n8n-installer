@@ -148,6 +148,16 @@ https://{$NEO4J_HOSTNAME}:7687 {
     reverse_proxy docling:5001
 }
 
+# Welcome Page (Post-install dashboard)
+{$WELCOME_HOSTNAME} {
+    basic_auth {
+        {$WELCOME_USERNAME} {$WELCOME_PASSWORD_HASH}
+    }
+    root * /srv/welcome
+    file_server
+    try_files {path} /index.html
+}
+
 import /etc/caddy/addons/*.conf
 
 # # SearXNG
