@@ -38,9 +38,6 @@ make logs s=<service>  # View logs for specific service
 make status            # Show container status
 make monitor           # Live CPU/memory monitoring
 make restarts          # Show restart count per container
-
-make switch-beta       # Switch to beta (develop branch)
-make switch-stable     # Switch to stable (main branch)
 ```
 
 
