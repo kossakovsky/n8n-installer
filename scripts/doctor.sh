@@ -28,15 +28,11 @@ count_error() {
     ERRORS=$((ERRORS + 1))
 }
 
-echo ""
-echo "========================================"
-echo "  n8n-install System Diagnostics"
-echo "========================================"
-echo ""
+# Header
+log_box "n8n-install System Diagnostics"
 
 # Check if .env file exists
-echo "Configuration:"
-echo "--------------"
+log_subheader "Configuration"
 
 if [ -f "$ENV_FILE" ]; then
     count_ok ".env file exists"
@@ -64,16 +60,12 @@ if [ -f "$ENV_FILE" ]; then
     fi
 else
     count_error ".env file not found at $ENV_FILE"
-    echo ""
-    echo "Run 'make install' to set up the environment."
+    print_info "Run 'make install' to set up the environment."
     exit 1
 fi
 
-echo ""
-
 # Check Docker
-echo "Docker:"
-echo "-------"
+log_subheader "Docker"
 
 if command -v docker &> /dev/null; then
     count_ok "Docker is installed"
@@ -93,11 +85,8 @@ else
     count_warning "Docker Compose is not available"
 fi
 
-echo ""
-
 # Check disk space
-echo "Disk Space:"
-echo "-----------"
+log_subheader "Disk Space"
 
 DISK_USAGE=$(df -h / | awk 'NR==2 {print $5}' | tr -d '%')
 DISK_AVAIL=$(df -h / | awk 'NR==2 {print $4}')
@@ -116,11 +105,8 @@ if [ -n "$DOCKER_DISK" ]; then
     print_info "Docker using: $DOCKER_DISK"
 fi
 
-echo ""
-
 # Check memory
-echo "Memory:"
-echo "-------"
+log_subheader "Memory"
 
 if command -v free &> /dev/null; then
     MEM_TOTAL=$(free -h | awk '/^Mem:/ {print $2}')
@@ -139,11 +125,8 @@ else
     print_info "Memory info not available (free command not found)"
 fi
 
-echo ""
-
 # Check containers
-echo "Containers:"
-echo "-----------"
+log_subheader "Containers"
 
 RUNNING=$(docker ps -q 2>/dev/null | wc -l)
 TOTAL=$(docker ps -aq 2>/dev/null | wc -l)
@@ -181,11 +164,8 @@ else
     count_ok "No unhealthy containers"
 fi
 
-echo ""
-
 # Check DNS resolution
-echo "DNS Resolution:"
-echo "---------------"
+log_subheader "DNS Resolution"
 
 check_dns() {
     local hostname="$1"
@@ -212,11 +192,8 @@ else
     print_info "Skipping DNS checks (no domain configured)"
 fi
 
-echo ""
-
 # Check SSL (Caddy)
-echo "SSL/Caddy:"
-echo "----------"
+log_subheader "SSL/Caddy"
 
 if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "caddy"; then
     count_ok "Caddy container is running"
@@ -231,11 +208,8 @@ else
     count_warning "Caddy container is not running"
 fi
 
-echo ""
-
 # Check key services
-echo "Key Services:"
-echo "-------------"
+log_subheader "Key Services"
 
 check_service() {
     local container="$1"
@@ -263,26 +237,24 @@ if is_profile_active "monitoring"; then
     check_service "prometheus" "9090"
 fi
 
-echo ""
-
 # Summary
-echo "========================================"
-echo "  Summary"
-echo "========================================"
+log_box "Summary"
 echo ""
-
-echo -e "  ${GREEN}OK:${NC} $OK"
-echo -e "  ${YELLOW}Warnings:${NC} $WARNINGS"
-echo -e "  ${RED}Errors:${NC} $ERRORS"
+echo -e "  ${GREEN}OK:${NC}       ${BOLD}$OK${NC}"
+echo -e "  ${YELLOW}Warnings:${NC} ${BOLD}$WARNINGS${NC}"
+echo -e "  ${RED}Errors:${NC}   ${BOLD}$ERRORS${NC}"
 echo ""
 
 if [ $ERRORS -gt 0 ]; then
-    echo -e "${RED}Some issues were found. Please review the errors above.${NC}"
+    echo -e "  ${BG_RED}${WHITE} ISSUES FOUND ${NC}"
+    echo -e "  ${RED}Please review the errors above and take action.${NC}"
     exit 1
 elif [ $WARNINGS -gt 0 ]; then
-    echo -e "${YELLOW}System is mostly healthy with some warnings.${NC}"
+    echo -e "  ${BG_YELLOW}${WHITE} MOSTLY HEALTHY ${NC}"
+    echo -e "  ${YELLOW}System is functional with some warnings.${NC}"
     exit 0
 else
-    echo -e "${GREEN}System is healthy!${NC}"
+    echo -e "  ${BG_GREEN}${WHITE} HEALTHY ${NC}"
+    echo -e "  ${GREEN}All checks passed successfully!${NC}"
     exit 0
 fi

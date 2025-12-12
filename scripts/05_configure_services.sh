@@ -27,12 +27,10 @@ init_paths
 # Ensure .env exists
 ensure_file_exists "$ENV_FILE"
 
-log_info "Configuring service options in .env..."
-
-
 # ----------------------------------------------------------------
 # Prompt for OpenAI API key (optional) using .env value as source of truth
 # ----------------------------------------------------------------
+log_subheader "OpenAI API Key"
 EXISTING_OPENAI_API_KEY="$(read_env_var OPENAI_API_KEY)"
 OPENAI_API_KEY=""
 if [[ -z "$EXISTING_OPENAI_API_KEY" ]]; then
@@ -50,6 +48,7 @@ fi
 # ----------------------------------------------------------------
 # Logic for n8n workflow import (RUN_N8N_IMPORT)
 # ----------------------------------------------------------------
+log_subheader "n8n Workflow Import"
 final_run_n8n_import_decision="false"
 require_whiptail
 if wt_yesno "Import n8n Workflows" "Import ~300 ready-made n8n workflows now? This can take ~30 minutes." "no"; then
@@ -65,7 +64,7 @@ write_env_var "RUN_N8N_IMPORT" "$final_run_n8n_import_decision"
 # ----------------------------------------------------------------
 # Prompt for number of n8n workers
 # ----------------------------------------------------------------
-log_info "Configuring n8n worker count..."
+log_subheader "n8n Worker Configuration"
 EXISTING_N8N_WORKER_COUNT="$(read_env_var N8N_WORKER_COUNT)"
 require_whiptail
 if [[ -n "$EXISTING_N8N_WORKER_COUNT" ]]; then
@@ -126,12 +125,12 @@ bash "$SCRIPT_DIR/generate_n8n_workers.sh"
 # ----------------------------------------------------------------
 # Cloudflare Tunnel Token (if cloudflare-tunnel profile is active)
 # ----------------------------------------------------------------
-# If Cloudflare Tunnel is selected (based on COMPOSE_PROFILES), prompt for the token and write to .env
 COMPOSE_PROFILES_VALUE="$(read_env_var COMPOSE_PROFILES)"
 # Set COMPOSE_PROFILES for is_profile_active to work
 COMPOSE_PROFILES="$COMPOSE_PROFILES_VALUE"
 
 if is_profile_active "cloudflare-tunnel"; then
+    log_subheader "Cloudflare Tunnel"
     existing_cf_token="$(read_env_var CLOUDFLARE_TUNNEL_TOKEN)"
 
     if [ -n "$existing_cf_token" ]; then

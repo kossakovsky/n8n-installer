@@ -26,6 +26,7 @@ init_paths
 cd "$PROJECT_ROOT"
 
 # Check required files
+log_subheader "Pre-flight Checks"
 require_file "$ENV_FILE" ".env file not found in project root."
 require_file "$PROJECT_ROOT/docker-compose.yml" "docker-compose.yml file not found in project root."
 require_file "$PROJECT_ROOT/Caddyfile" "Caddyfile not found in project root. Reverse proxy might not work."
@@ -43,6 +44,7 @@ if [ ! -x "$PROJECT_ROOT/start_services.py" ]; then
   chmod +x "$PROJECT_ROOT/start_services.py"
 fi
 
+log_subheader "Starting Services"
 log_info "Launching services using start_services.py..."
 # Execute start_services.py
 "$PROJECT_ROOT/start_services.py"
