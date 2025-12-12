@@ -64,7 +64,7 @@ if is_profile_active "n8n"; then
     SERVICES_ARRAY+=("    \"n8n\": {
       \"hostname\": \"$(json_escape "$N8N_HOSTNAME")\",
       \"credentials\": {
-        \"note\": \"Use the email you provided during installation\"
+        \"note\": \"Create your account on first login\"
       },
       \"extra\": {
         \"workers\": \"$N8N_WORKER_COUNT_VAL\"
@@ -77,8 +77,7 @@ if is_profile_active "flowise"; then
     SERVICES_ARRAY+=("    \"flowise\": {
       \"hostname\": \"$(json_escape "$FLOWISE_HOSTNAME")\",
       \"credentials\": {
-        \"username\": \"$(json_escape "$FLOWISE_USERNAME")\",
-        \"password\": \"$(json_escape "$FLOWISE_PASSWORD")\"
+        \"note\": \"Create your account on first login\"
       }
     }")
 fi
@@ -417,8 +416,7 @@ if is_profile_active "n8n" || is_profile_active "langfuse"; then
         \"password\": \"$(json_escape "$REDIS_AUTH")\"
       },
       \"extra\": {
-        \"internal_host\": \"${REDIS_HOST:-redis}\",
-        \"internal_port\": \"${REDIS_PORT:-6379}\"
+        \"internal_url\": \"${REDIS_HOST:-redis}:${REDIS_PORT:-6379}\"
       }
     }")
 fi
@@ -475,6 +473,77 @@ for i in "${!SERVICES_ARRAY[@]}"; do
     SERVICES_JSON+="${SERVICES_ARRAY[$i]}"
 done
 
+# Build quick_start array based on active profiles
+declare -a QUICK_START_ARRAY
+STEP_NUM=1
+
+# Step 1: Log into primary service (n8n or Flowise)
+if is_profile_active "n8n"; then
+    QUICK_START_ARRAY+=("    {
+      \"step\": $STEP_NUM,
+      \"title\": \"Log into n8n\",
+      \"description\": \"Create your account on first login\"
+    }")
+    ((STEP_NUM++))
+elif is_profile_active "flowise"; then
+    QUICK_START_ARRAY+=("    {
+      \"step\": $STEP_NUM,
+      \"title\": \"Log into Flowise\",
+      \"description\": \"Create your account on first login\"
+    }")
+    ((STEP_NUM++))
+fi
+
+# Step 2: Create first workflow (if n8n active)
+if is_profile_active "n8n"; then
+    QUICK_START_ARRAY+=("    {
+      \"step\": $STEP_NUM,
+      \"title\": \"Create your first workflow\",
+      \"description\": \"Start with Manual Trigger + HTTP Request nodes\"
+    }")
+    ((STEP_NUM++))
+fi
+
+# Step 3: Explore examples
+if is_profile_active "n8n"; then
+    QUICK_START_ARRAY+=("    {
+      \"step\": $STEP_NUM,
+      \"title\": \"Explore community workflows\",
+      \"description\": \"300+ examples available in imported workflows\"
+    }")
+    ((STEP_NUM++))
+fi
+
+# Step 4: Monitor system (if monitoring active)
+if is_profile_active "monitoring"; then
+    QUICK_START_ARRAY+=("    {
+      \"step\": $STEP_NUM,
+      \"title\": \"Monitor your system\",
+      \"description\": \"Use Grafana to track performance metrics\"
+    }")
+    ((STEP_NUM++))
+fi
+
+# Step 5: Configure database backups (if postgresus active)
+if is_profile_active "postgresus"; then
+    QUICK_START_ARRAY+=("    {
+      \"step\": $STEP_NUM,
+      \"title\": \"Configure database backups\",
+      \"description\": \"Set up Postgresus for automated PostgreSQL backups\"
+    }")
+    ((STEP_NUM++))
+fi
+
+# Join quick_start array
+QUICK_START_JSON=""
+for i in "${!QUICK_START_ARRAY[@]}"; do
+    if [ $i -gt 0 ]; then
+        QUICK_START_JSON+=",
+"
+    fi
+    QUICK_START_JSON+="${QUICK_START_ARRAY[$i]}"
+done
+
 # Write final JSON with proper formatting
 cat > "$OUTPUT_FILE" << EOF
 {
@@ -482,7 +551,10 @@ cat > "$OUTPUT_FILE" << EOF
   "generated_at": "$GENERATED_AT",
   "services": {
 $SERVICES_JSON
-  }
+  },
+  "quick_start": [
+$QUICK_START_JSON
+  ]
 }
 EOF
 

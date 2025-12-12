@@ -301,10 +301,16 @@
             passwordSpan.dataset.hidden = 'true';
         };
 
-        toggleBtn.addEventListener('mousedown', showPassword);
+        toggleBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            showPassword();
+        });
         toggleBtn.addEventListener('mouseup', hidePassword);
         toggleBtn.addEventListener('mouseleave', hidePassword);
-        toggleBtn.addEventListener('touchstart', showPassword);
+        toggleBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            showPassword();
+        });
         toggleBtn.addEventListener('touchend', hidePassword);
 
         // Copy button
@@ -413,6 +419,9 @@
 
             if (extra.internal_api) {
                 extraItems.push(`<span class="text-xs text-gray-600 font-mono">Internal: ${escapeHtml(extra.internal_api)}</span>`);
+            }
+            if (extra.internal_url) {
+                extraItems.push(`<span class="text-xs text-gray-600 font-mono">Internal: ${escapeHtml(extra.internal_url)}</span>`);
             }
             if (extra.workers) {
                 extraItems.push(`<span class="text-xs text-gray-600">Workers: ${escapeHtml(extra.workers)}</span>`);
