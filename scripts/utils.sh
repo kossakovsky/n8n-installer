@@ -22,6 +22,39 @@
 DOMAIN_PLACEHOLDER="yourdomain.com"
 
 #=============================================================================
+# WHIPTAIL THEME (NEWT_COLORS)
+#=============================================================================
+# Dark theme with green/cyan accents on black background
+# Format: element=foreground,background
+# Colors: black, red, green, yellow, blue, magenta, cyan, white
+# Prefix with "bright" for bright variants (e.g., brightgreen)
+export NEWT_COLORS='
+root=white,black
+border=brightgreen,black
+window=white,black
+shadow=black,black
+title=brightgreen,black
+button=black,brightgreen
+actbutton=black,brightcyan
+compactbutton=white,black
+checkbox=brightgreen,black
+actcheckbox=black,brightgreen
+entry=brightcyan,black
+disentry=gray,black
+label=white,black
+listbox=white,black
+actlistbox=black,brightgreen
+sellistbox=brightcyan,black
+actsellistbox=black,brightcyan
+textbox=white,black
+acttextbox=brightgreen,black
+emptyscale=black,black
+fullscale=brightgreen,black
+helpline=brightcyan,black
+roottext=brightgreen,black
+'
+
+#=============================================================================
 # PATH INITIALIZATION
 #=============================================================================
 
@@ -65,21 +98,77 @@ log_error() {
 }
 
 # Display a header for major sections
+# Usage: log_header "Section Title"
 log_header() {
     local message="$1"
+    local width=60
+    local padding=$(( (width - ${#message} - 2) / 2 ))
+    local pad_left=$(printf '%*s' "$padding" '' | tr ' ' '=')
+    local pad_right=$(printf '%*s' "$((width - ${#message} - 2 - padding))" '' | tr ' ' '=')
+
     echo ""
     echo ""
-    echo "========== $message =========="
+    echo -e "${BRIGHT_GREEN}${pad_left}${NC} ${BOLD}${WHITE}${message}${NC} ${BRIGHT_GREEN}${pad_right}${NC}"
+}
+
+# Display a sub-header for sections
+# Usage: log_subheader "Sub Section"
+log_subheader() {
+    local message="$1"
+    echo ""
+    echo -e "${CYAN}--- ${message} ---${NC}"
+}
+
+# Display a divider line
+# Usage: log_divider
+log_divider() {
+    echo ""
+    echo -e "${DIM}${GREEN}$(printf '%.0s-' {1..60})${NC}"
+}
+
+# Display text in a box (for important messages)
+# Usage: log_box "Important message"
+log_box() {
+    local message="$1"
+    local len=${#message}
+    local border=$(printf '%*s' "$((len + 4))" '' | tr ' ' '=')
+
+    echo ""
+    echo -e "${BRIGHT_GREEN}+${border}+${NC}"
+    echo -e "${BRIGHT_GREEN}|${NC}  ${BOLD}${WHITE}${message}${NC}  ${BRIGHT_GREEN}|${NC}"
+    echo -e "${BRIGHT_GREEN}+${border}+${NC}"
 }
 
 #=============================================================================
 # COLOR OUTPUT (for diagnostics and previews)
 #=============================================================================
+# Basic colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+WHITE='\033[1;37m'
+GRAY='\033[0;90m'
+NC='\033[0m' # No Color / Reset
+
+# Text styles
+BOLD='\033[1m'
+DIM='\033[2m'
+RESET='\033[0m'
+
+# Bright colors
+BRIGHT_RED='\033[1;31m'
+BRIGHT_GREEN='\033[1;32m'
+BRIGHT_YELLOW='\033[1;33m'
+BRIGHT_BLUE='\033[1;34m'
+BRIGHT_CYAN='\033[1;36m'
+
+# Background colors (for badges/labels)
+BG_RED='\033[41m'
+BG_GREEN='\033[42m'
+BG_YELLOW='\033[43m'
 
 print_ok() {
     echo ""
@@ -99,6 +188,85 @@ print_warning() {
 print_info() {
     echo ""
     echo -e "  ${BLUE}[INFO]${NC} $1"
+}
+
+#=============================================================================
+# PROGRESS INDICATORS
+#=============================================================================
+
+# Spinner animation frames
+SPINNER_FRAMES=('|' '/' '-' '\')
+SPINNER_PID=""
+
+# Start spinner with message
+# Usage: start_spinner "Loading..."
+start_spinner() {
+    local message="$1"
+    local i=0
+
+    # Don't start if not in terminal or already running
+    [[ ! -t 1 ]] && return
+    [[ -n "$SPINNER_PID" ]] && return
+
+    (
+        while true; do
+            printf "\r  ${GREEN}${SPINNER_FRAMES[$i]}${NC} ${message}  "
+            i=$(( (i + 1) % 4 ))
+            sleep 0.1
+        done
+    ) &
+    SPINNER_PID=$!
+    disown
+}
+
+# Stop spinner and clear line
+# Usage: stop_spinner
+stop_spinner() {
+    [[ -z "$SPINNER_PID" ]] && return
+
+    kill "$SPINNER_PID" 2>/dev/null
+    wait "$SPINNER_PID" 2>/dev/null
+    SPINNER_PID=""
+
+    # Clear the spinner line
+    printf "\r%*s\r" 80 ""
+}
+
+# Show step progress (e.g., Step 3/7)
+# Usage: show_step 3 7 "Installing Docker"
+show_step() {
+    local current=$1
+    local total=$2
+    local description="$3"
+
+    echo ""
+    echo -e "${BRIGHT_GREEN}[${current}/${total}]${NC} ${BOLD}${description}${NC}"
+    echo -e "${DIM}$(printf '%.0s.' {1..50})${NC}"
+}
+
+# Show a simple progress bar
+# Usage: show_progress 50 100 "Downloading"
+show_progress() {
+    local current=$1
+    local total=$2
+    local label="${3:-Progress}"
+    local width=40
+    local percent=$(( current * 100 / total ))
+    local filled=$(( current * width / total ))
+    local empty=$(( width - filled ))
+
+    local bar_filled=$(printf '%*s' "$filled" '' | tr ' ' '#')
+    local bar_empty=$(printf '%*s' "$empty" '' | tr ' ' '-')
+
+    printf "\r  ${label}: ${GREEN}[${bar_filled}${GRAY}${bar_empty}${GREEN}]${NC} ${WHITE}%3d%%${NC}" "$percent"
+}
+
+# Complete progress bar with message
+# Usage: complete_progress "Download complete"
+complete_progress() {
+    local message="${1:-Done}"
+    printf "\r%*s\r" 80 ""
+    echo -e "  ${GREEN}[OK]${NC} ${message}"
 }
 
 #=============================================================================
@@ -308,57 +476,130 @@ require_whiptail() {
     fi
 }
 
-# Input box
+# Get adaptive terminal size for whiptail dialogs
+# Usage: eval "$(wt_get_size)"
+# Sets: WT_HEIGHT, WT_WIDTH, WT_LIST_HEIGHT
+wt_get_size() {
+    local term_lines term_cols
+    term_lines=$(tput lines 2>/dev/null || echo 24)
+    term_cols=$(tput cols 2>/dev/null || echo 80)
+
+    # Calculate dimensions with margins
+    local height=$((term_lines - 4))
+    local width=$((term_cols - 4))
+
+    # Apply min/max constraints
+    [[ $height -lt 10 ]] && height=10
+    [[ $height -gt 40 ]] && height=40
+    [[ $width -lt 60 ]] && width=60
+    [[ $width -gt 120 ]] && width=120
+
+    # List height for checklists/menus (leave room for title, prompt, buttons)
+    local list_height=$((height - 8))
+    [[ $list_height -lt 5 ]] && list_height=5
+
+    echo "WT_HEIGHT=$height WT_WIDTH=$width WT_LIST_HEIGHT=$list_height"
+}
+
+# Input box with adaptive sizing
 # Usage: result=$(wt_input "Title" "Prompt" "default")
 # Returns 0 on OK, 1 on Cancel
 wt_input() {
     local title="$1"
     local prompt="$2"
     local default_value="$3"
+    eval "$(wt_get_size)"
     local result
-    result=$(whiptail --title "$title" --inputbox "$prompt" 15 80 "$default_value" 3>&1 1>&2 2>&3)
+    result=$(whiptail --title "$title" --inputbox "$prompt" "$WT_HEIGHT" "$WT_WIDTH" "$default_value" 3>&1 1>&2 2>&3)
     local status=$?
-    if [ $status -ne 0 ]; then
-        return 1
-    fi
+    [[ $status -ne 0 ]] && return 1
     echo "$result"
     return 0
 }
 
-# Password box
+# Password box with adaptive sizing
 # Usage: result=$(wt_password "Title" "Prompt")
 # Returns 0 on OK, 1 on Cancel
 wt_password() {
     local title="$1"
     local prompt="$2"
+    eval "$(wt_get_size)"
     local result
-    result=$(whiptail --title "$title" --passwordbox "$prompt" 15 80 3>&1 1>&2 2>&3)
+    result=$(whiptail --title "$title" --passwordbox "$prompt" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
     local status=$?
-    if [ $status -ne 0 ]; then
-        return 1
-    fi
+    [[ $status -ne 0 ]] && return 1
     echo "$result"
     return 0
 }
 
-# Yes/No box
+# Yes/No box with adaptive sizing
 # Usage: wt_yesno "Title" "Prompt" "default" (default: yes|no)
 # Returns 0 for Yes, 1 for No/Cancel
 wt_yesno() {
     local title="$1"
     local prompt="$2"
     local default_choice="$3"
+    eval "$(wt_get_size)"
+    local height=$((WT_HEIGHT < 12 ? WT_HEIGHT : 12))
     if [ "$default_choice" = "yes" ]; then
-        whiptail --title "$title" --yesno "$prompt" 10 80
+        whiptail --title "$title" --yesno "$prompt" "$height" "$WT_WIDTH"
     else
-        whiptail --title "$title" --defaultno --yesno "$prompt" 10 80
+        whiptail --title "$title" --defaultno --yesno "$prompt" "$height" "$WT_WIDTH"
     fi
 }
 
-# Message box
+# Message box with adaptive sizing
 # Usage: wt_msg "Title" "Message"
 wt_msg() {
     local title="$1"
     local message="$2"
-    whiptail --title "$title" --msgbox "$message" 10 80
+    eval "$(wt_get_size)"
+    local height=$((WT_HEIGHT < 12 ? WT_HEIGHT : 12))
+    whiptail --title "$title" --msgbox "$message" "$height" "$WT_WIDTH"
+}
+
+# Checklist (multiple selection) with adaptive sizing
+# Usage: result=$(wt_checklist "Title" "Prompt" "tag1" "desc1" "ON" "tag2" "desc2" "OFF" ...)
+# Returns: space-separated quoted tags, e.g., "tag1" "tag2"
+wt_checklist() {
+    local title="$1"
+    local prompt="$2"
+    shift 2
+    eval "$(wt_get_size)"
+    whiptail --title "$title" --checklist "$prompt" "$WT_HEIGHT" "$WT_WIDTH" "$WT_LIST_HEIGHT" "$@" 3>&1 1>&2 2>&3
+}
+
+# Radiolist (single selection) with adaptive sizing
+# Usage: result=$(wt_radiolist "Title" "Prompt" "default_item" "tag1" "desc1" "ON" ...)
+# Returns: selected tag
+wt_radiolist() {
+    local title="$1"
+    local prompt="$2"
+    local default_item="$3"
+    shift 3
+    eval "$(wt_get_size)"
+    whiptail --title "$title" --default-item "$default_item" --radiolist "$prompt" "$WT_HEIGHT" "$WT_WIDTH" "$WT_LIST_HEIGHT" "$@" 3>&1 1>&2 2>&3
+}
+
+# Menu (item selection) with adaptive sizing
+# Usage: result=$(wt_menu "Title" "Prompt" "tag1" "desc1" "tag2" "desc2" ...)
+# Returns: selected tag
+wt_menu() {
+    local title="$1"
+    local prompt="$2"
+    shift 2
+    eval "$(wt_get_size)"
+    whiptail --title "$title" --menu "$prompt" "$WT_HEIGHT" "$WT_WIDTH" "$WT_LIST_HEIGHT" "$@" 3>&1 1>&2 2>&3
+}
+
+# Safe parser for whiptail checklist results (replaces eval)
+# Usage: wt_parse_choices "$CHOICES" result_array
+# Parses quoted output like: "tag1" "tag2" "tag3"
+wt_parse_choices() {
+    local choices="$1"
+    local -n arr="$2"
+    arr=()
+    # Remove quotes and split by spaces
+    local cleaned="${choices//\"/}"
+    read -ra arr <<< "$cleaned"
 }

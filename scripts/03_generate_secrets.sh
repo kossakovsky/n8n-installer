@@ -118,6 +118,8 @@ if [ -f "$OUTPUT_FILE" ]; then
 fi
 
 # Install Caddy
+log_subheader "Installing Caddy"
+log_info "Adding Caddy repository and installing..."
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --yes --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
 apt install -y caddy
@@ -126,7 +128,9 @@ apt install -y caddy
 require_command "caddy" "Caddy installation failed. Please check the installation logs above."
 
 require_whiptail
+
 # Prompt for the domain name
+log_subheader "Domain Configuration"
 DOMAIN="" # Initialize DOMAIN variable
 
 # Try to get domain from existing .env file first
@@ -162,6 +166,7 @@ else
 fi
 
 # Prompt for user email
+log_subheader "Email Configuration"
 if [[ -z "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
     wt_msg "Email Required" "Please enter your email address. It will be used for logins and Let's Encrypt SSL."
 fi
@@ -190,6 +195,7 @@ fi
 
 
 
+log_subheader "Secret Generation"
 log_info "Generating secrets and creating .env file..."
 
 # --- Helper Functions ---

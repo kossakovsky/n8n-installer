@@ -98,18 +98,16 @@ while [ $idx -lt ${#base_services_data[@]} ]; do
     idx=$((idx + 2))
 done
 
-# Use whiptail to display the checklist
-num_services=$(( ${#services[@]} / 3 ))
-CHOICES=$(whiptail --title "Service Selection Wizard" --checklist \
-  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." 32 90 $num_services \
-  "${services[@]}" \
-  3>&1 1>&2 2>&3)
+# Use whiptail to display the checklist (with adaptive sizing)
+CHOICES=$(wt_checklist "Service Selection Wizard" \
+  "Choose the services you want to deploy.\nUse ARROW KEYS to navigate, SPACEBAR to select/deselect, ENTER to confirm." \
+  "${services[@]}")
+exitstatus=$?
 
 # Restore original DEBIAN_FRONTEND
 restore_debian_frontend
 
 # Exit if user pressed Cancel or Esc
-exitstatus=$?
 if [ $exitstatus -ne 0 ]; then
     log_info "Service selection cancelled by user. Exiting wizard."
     log_info "No changes made to service profiles. Default services will be used."
@@ -124,10 +122,9 @@ ollama_selected=0
 ollama_profile=""
 
 if [ -n "$CHOICES" ]; then
-    # Whiptail returns a string like "tag1" "tag2" "tag3"
-    # We need to remove quotes and convert to an array
+    # Parse whiptail output safely (without eval)
     temp_choices=()
-    eval "temp_choices=($CHOICES)"
+    wt_parse_choices "$CHOICES" temp_choices
 
     for choice in "${temp_choices[@]}"; do
         if [ "$choice" == "ollama" ]; then
@@ -141,11 +138,11 @@ fi
 # Enforce mutual exclusivity between Dify and Supabase (compact)
 if printf '%s\n' "${selected_profiles[@]}" | grep -qx "dify" && \
    printf '%s\n' "${selected_profiles[@]}" | grep -qx "supabase"; then
-    CHOSEN_EXCLUSIVE=$(whiptail --title "Conflict: Dify and Supabase" --default-item "supabase" --radiolist \
-      "Dify and Supabase are mutually exclusive. Choose which one to keep." 15 78 2 \
+    CHOSEN_EXCLUSIVE=$(wt_radiolist "Conflict: Dify and Supabase" \
+      "Dify and Supabase are mutually exclusive. Choose which one to keep." \
+      "supabase" \
       "dify" "Keep Dify (AI App Platform)" OFF \
-      "supabase" "Keep Supabase (Backend as a Service)" ON \
-      3>&1 1>&2 2>&3)
+      "supabase" "Keep Supabase (Backend as a Service)" ON)
     [ -z "$CHOSEN_EXCLUSIVE" ] && CHOSEN_EXCLUSIVE="supabase"
 
     to_remove=$([ "$CHOSEN_EXCLUSIVE" = "dify" ] && echo "supabase" || echo "dify")
@@ -187,10 +184,10 @@ if [ $ollama_selected -eq 1 ]; then
         "gpu-nvidia" "NVIDIA GPU (Requires NVIDIA drivers & CUDA)" "$ollama_hw_on_gpu_nvidia"
         "gpu-amd" "AMD GPU (Requires ROCm drivers)" "$ollama_hw_on_gpu_amd"
     )
-    CHOSEN_OLLAMA_PROFILE=$(whiptail --title "Ollama Hardware Profile" --default-item "$default_ollama_hardware" --radiolist \
-      "Choose the hardware profile for Ollama. This will be added to your Docker Compose profiles." 15 78 3 \
-      "${ollama_hardware_options[@]}" \
-      3>&1 1>&2 2>&3)
+    CHOSEN_OLLAMA_PROFILE=$(wt_radiolist "Ollama Hardware Profile" \
+      "Choose the hardware profile for Ollama. This will be added to your Docker Compose profiles." \
+      "$default_ollama_hardware" \
+      "${ollama_hardware_options[@]}")
 
     ollama_exitstatus=$?
     if [ $ollama_exitstatus -eq 0 ] && [ -n "$CHOSEN_OLLAMA_PROFILE" ]; then
@@ -209,19 +206,19 @@ if [ ${#selected_profiles[@]} -eq 0 ]; then
     log_info "No optional services selected."
     COMPOSE_PROFILES_VALUE=""
 else
-    log_info "You have selected the following service profiles to be deployed:"
+    log_info "Selected service profiles:"
     # Join the array into a comma-separated string
     COMPOSE_PROFILES_VALUE=$(IFS=,; echo "${selected_profiles[*]}")
     for profile in "${selected_profiles[@]}"; do
         # Check if the current profile is an Ollama hardware profile that was chosen
         if [[ "$profile" == "cpu" || "$profile" == "gpu-nvidia" || "$profile" == "gpu-amd" ]]; then
-            if [ "$profile" == "$ollama_profile" ]; then # ollama_profile stores the CHOSEN_OLLAMA_PROFILE from this wizard run
-                 echo "  - Ollama ($profile profile)"
-            else # This handles a (highly unlikely) non-Ollama service named "cpu", "gpu-nvidia", or "gpu-amd"
-                 echo "  - $profile"
+            if [ "$profile" == "$ollama_profile" ]; then
+                 echo -e "  ${GREEN}*${NC} Ollama ($profile profile)"
+            else
+                 echo -e "  ${GREEN}*${NC} $profile"
             fi
         else
-            echo "  - $profile"
+            echo -e "  ${GREEN}*${NC} $profile"
         fi
     done
 fi

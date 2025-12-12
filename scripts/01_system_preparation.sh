@@ -21,10 +21,12 @@ init_paths
 export DEBIAN_FRONTEND=noninteractive
 
 # System Update
+log_subheader "System Update"
 log_info "Updating package list and upgrading the system..."
 apt update -y && apt upgrade -y
 
 # Installing Basic Utilities
+log_subheader "Installing Utilities"
 log_info "Installing standard CLI tools..."
 apt install -y \
   htop git curl make unzip ufw fail2ban python3 psmisc whiptail \
@@ -32,7 +34,8 @@ apt install -y \
   debian-keyring debian-archive-keyring apt-transport-https python3-pip python3-dotenv python3-yaml
 
 # Configuring Firewall (UFW)
-log_info "Configuring firewall (UFW)..."
+log_subheader "Firewall (UFW)"
+log_info "Configuring firewall..."
 echo "y" | ufw reset
 ufw --force enable
 ufw default deny incoming
@@ -44,7 +47,8 @@ ufw reload
 ufw status
 
 # Configuring Fail2Ban
-log_info "Enabling brute-force protection (Fail2Ban)..."
+log_subheader "Fail2Ban"
+log_info "Enabling brute-force protection..."
 systemctl enable fail2ban
 sleep 1
 systemctl start fail2ban
@@ -54,12 +58,14 @@ sleep 1
 fail2ban-client status sshd
 
 # Automatic Security Updates
+log_subheader "Security Updates"
 log_info "Enabling automatic security updates..."
 apt install -y unattended-upgrades
 # Automatic confirmation for dpkg-reconfigure
 echo "y" | dpkg-reconfigure --priority=low unattended-upgrades
 
 # Configure vm.max_map_count for Elasticsearch (required for RAGFlow)
+log_subheader "Kernel Parameters"
 log_info "Configuring vm.max_map_count for Elasticsearch..."
 CURRENT_VALUE=$(sysctl -n vm.max_map_count 2>/dev/null || echo "0")
 if [[ "$CURRENT_VALUE" -lt 262144 ]]; then

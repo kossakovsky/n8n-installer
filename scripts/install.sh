@@ -97,42 +97,42 @@ fi
 
 # Run installation steps sequentially using their full paths
 
-log_header "STEP 1: System Preparation"
+show_step 1 7 "System Preparation"
 bash "$SCRIPT_DIR/01_system_preparation.sh" || { log_error "System Preparation failed"; exit 1; }
 log_success "System preparation complete!"
 
-log_header "STEP 2: Installing Docker"
+show_step 2 7 "Installing Docker"
 bash "$SCRIPT_DIR/02_install_docker.sh" || { log_error "Docker Installation failed"; exit 1; }
 log_success "Docker installation complete!"
 
-log_header "STEP 3: Generating Secrets and Configuration"
+show_step 3 7 "Generating Secrets and Configuration"
 bash "$SCRIPT_DIR/03_generate_secrets.sh" || { log_error "Secret/Config Generation failed"; exit 1; }
 log_success "Secret/Config Generation complete!"
 
-log_header "STEP 4: Running Service Selection Wizard"
+show_step 4 7 "Running Service Selection Wizard"
 bash "$SCRIPT_DIR/04_wizard.sh" || { log_error "Service Selection Wizard failed"; exit 1; }
 log_success "Service Selection Wizard complete!"
 
-log_header "STEP 5: Configure Services"
+show_step 5 7 "Configure Services"
 bash "$SCRIPT_DIR/05_configure_services.sh" || { log_error "Configure Services failed"; exit 1; }
 log_success "Configure Services complete!"
 
-log_header "STEP 6: Running Services"
+show_step 6 7 "Running Services"
 bash "$SCRIPT_DIR/06_run_services.sh" || { log_error "Running Services failed"; exit 1; }
 log_success "Running Services complete!"
 
-log_header "STEP 7: Generating Final Report"
+show_step 7 7 "Generating Final Report"
 # --- Installation Summary ---
-log_info "Installation Summary. The following steps were performed by the scripts:"
-log_success "- System updated and basic utilities installed"
-log_success "- Firewall (UFW) configured and enabled"
-log_success "- Fail2Ban activated for brute-force protection"
-log_success "- Automatic security updates enabled"
-log_success "- Docker and Docker Compose installed"
-log_success "- '.env' generated with secure passwords and secrets"
-log_success "- Services launched via Docker Compose"
+log_info "Installation Summary:"
+echo -e "  ${GREEN}*${NC} System updated and basic utilities installed"
+echo -e "  ${GREEN}*${NC} Firewall (UFW) configured and enabled"
+echo -e "  ${GREEN}*${NC} Fail2Ban activated for brute-force protection"
+echo -e "  ${GREEN}*${NC} Automatic security updates enabled"
+echo -e "  ${GREEN}*${NC} Docker and Docker Compose installed"
+echo -e "  ${GREEN}*${NC} '.env' generated with secure passwords and secrets"
+echo -e "  ${GREEN}*${NC} Services launched via Docker Compose"
 
 bash "$SCRIPT_DIR/07_final_report.sh" || { log_error "Final Report Generation failed"; exit 1; }
-log_success "Final Report Generation complete!"
+log_success "Installation complete!"
 
 exit 0 

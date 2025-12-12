@@ -21,7 +21,6 @@ source "$(dirname "$0")/utils.sh"
 # 1. Preparing the environment
 export DEBIAN_FRONTEND=noninteractive
 APT_OPTIONS="-o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef -y"
-log_info "Preparing Docker installation..."
 
 # Configuration for apt retry logic
 APT_RETRY_COUNT=10
@@ -62,6 +61,7 @@ run_apt_with_retry() {
 
 
 # Check if Docker is already installed
+log_subheader "Docker Check"
 if command -v docker &> /dev/null; then
     log_info "Docker is already installed."
     docker --version
@@ -92,6 +92,7 @@ if command -v docker &> /dev/null; then
 fi
 
 # 2. Updating and installing dependencies
+log_subheader "Dependencies"
 log_info "Installing necessary dependencies..."
 run_apt_with_retry update -qq
 run_apt_with_retry install -qq $APT_OPTIONS \
@@ -101,19 +102,21 @@ run_apt_with_retry install -qq $APT_OPTIONS \
   lsb-release || { log_error "Failed to install dependencies."; exit 1; }
 
 # 3. Adding Docker's GPG key
+log_subheader "Docker Repository"
 log_info "Adding Docker's GPG key..."
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
 
 # 4. Adding the Docker repository
-log_info "Adding the official Docker repository..."
+log_info "Adding the official Docker APT repository..."
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 # 5. Installing Docker and Docker Compose
+log_subheader "Docker Installation"
 log_info "Installing Docker Engine and Compose Plugin..."
 run_apt_with_retry update -qq
 run_apt_with_retry install -qq $APT_OPTIONS \
@@ -124,7 +127,7 @@ run_apt_with_retry install -qq $APT_OPTIONS \
   docker-compose-plugin || { log_error "Failed to install Docker packages."; exit 1; }
 
 # 6. Adding the user to the Docker group
-# Use SUDO_USER to get the original user who invoked sudo
+log_subheader "User Configuration"
 ORIGINAL_USER=${SUDO_USER:-$(whoami)}
 log_info "Adding user '$ORIGINAL_USER' to the docker group..."
 if id "$ORIGINAL_USER" &>/dev/null; then

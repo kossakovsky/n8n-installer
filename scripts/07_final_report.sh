@@ -32,54 +32,73 @@ if [ -f "$SCRIPT_DIR/generate_welcome_page.sh" ]; then
     bash "$SCRIPT_DIR/generate_welcome_page.sh" || log_warning "Failed to generate welcome page"
 fi
 
-echo
-echo "======================================================================="
-echo "                    Installation Complete!"
-echo "======================================================================="
-echo
+# Helper function to print a divider line
+print_line() {
+    echo -e "${DIM}${GREEN}$(printf '%.0s-' {1..70})${NC}"
+}
 
-# --- Welcome Page ---
-echo "================================= Welcome Page =========================="
-echo
-echo "All your service credentials are available on the Welcome Page:"
-echo
-echo "  URL:      https://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}"
-echo "  Username: ${WELCOME_USERNAME:-<not_set>}"
-echo "  Password: ${WELCOME_PASSWORD:-<not_set>}"
-echo
-echo "The Welcome Page displays:"
-echo "  - All installed services with their hostnames"
-echo "  - Login credentials (username/password/API keys)"
-echo "  - Internal URLs for service-to-service communication"
-echo
+# Helper function to print a credential row
+print_credential() {
+    local label="$1"
+    local value="$2"
+    printf "  ${CYAN}%-12s${NC} ${WHITE}%s${NC}\n" "$label:" "$value"
+}
 
-# --- Next Steps ---
-echo "======================================================================="
-echo "                          Next Steps"
-echo "======================================================================="
-echo
-echo "1. Visit your Welcome Page to view all service credentials"
-echo "   https://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}"
-echo
-echo "2. Store the Welcome Page credentials securely"
-echo
-echo "3. Configure services as needed:"
+# Helper function to print section header
+print_section() {
+    local title="$1"
+    echo ""
+    echo -e "${BOLD}${BRIGHT_GREEN}  $title${NC}"
+    echo -e "  ${DIM}$(printf '%.0s-' {1..40})${NC}"
+}
+
+# Clear screen for clean presentation
+clear
+
+# Header
+log_box "Installation Complete"
+
+# --- Welcome Page Section ---
+print_section "Welcome Page"
+echo ""
+echo -e "  ${WHITE}All your service credentials are available here:${NC}"
+echo ""
+print_credential "URL" "https://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}"
+print_credential "Username" "${WELCOME_USERNAME:-<not_set>}"
+print_credential "Password" "${WELCOME_PASSWORD:-<not_set>}"
+echo ""
+echo -e "  ${DIM}The Welcome Page shows all installed services with their${NC}"
+echo -e "  ${DIM}hostnames, credentials, and internal URLs.${NC}"
+
+# --- Next Steps Section ---
+print_section "Next Steps"
+echo ""
+echo -e "  ${WHITE}1.${NC} Visit your Welcome Page to view all credentials"
+echo -e "     ${CYAN}https://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}${NC}"
+echo ""
+echo -e "  ${WHITE}2.${NC} Store the Welcome Page credentials securely"
+echo ""
+echo -e "  ${WHITE}3.${NC} Configure services as needed:"
 if is_profile_active "n8n"; then
-echo "   - n8n: Complete first-run setup with your email"
+    echo -e "     ${GREEN}*${NC} ${WHITE}n8n${NC}: Complete first-run setup with your email"
 fi
 if is_profile_active "portainer"; then
-echo "   - Portainer: Create admin account on first login"
+    echo -e "     ${GREEN}*${NC} ${WHITE}Portainer${NC}: Create admin account on first login"
 fi
 if is_profile_active "flowise"; then
-echo "   - Flowise: Register and create your account"
+    echo -e "     ${GREEN}*${NC} ${WHITE}Flowise${NC}: Register and create your account"
 fi
 if is_profile_active "open-webui"; then
-echo "   - Open WebUI: Register your account"
+    echo -e "     ${GREEN}*${NC} ${WHITE}Open WebUI${NC}: Register your account"
 fi
-echo
-echo "4. Run 'make doctor' if you experience any issues"
-echo
-echo "======================================================================="
-echo
-log_info "Thank you for using n8n-install!"
-echo
+echo ""
+echo -e "  ${WHITE}4.${NC} Run ${CYAN}make doctor${NC} if you experience any issues"
+
+# --- Footer ---
+echo ""
+print_line
+echo ""
+echo -e "  ${BRIGHT_GREEN}Thank you for using n8n-install!${NC}"
+echo ""
+print_line
+echo ""
