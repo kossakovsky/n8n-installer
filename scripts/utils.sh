@@ -614,8 +614,8 @@ PRESERVE_DIRS=("python-runner")
 
 # Backup preserved directories before git reset
 # Usage: backup_path=$(backup_preserved_dirs) || exit 1
-# Returns: 0 on success (prints backup path), 1 on failure
-# Default backup location: secure temp directory via mktemp
+# Returns: 0 on success (prints backup path to stdout), 1 on failure
+# NOTE: All logs go to stderr to keep stdout clean for the return value
 backup_preserved_dirs() {
     local backup_base=""
     local has_content=0
@@ -636,7 +636,7 @@ backup_preserved_dirs() {
 
     # Create secure temporary directory
     backup_base=$(mktemp -d /tmp/n8n-install-backup.XXXXXXXXXX) || {
-        log_error "Failed to create backup directory"
+        echo "[ERROR] Failed to create backup directory" >&2
         return 1
     }
     chmod 700 "$backup_base"
@@ -645,15 +645,15 @@ backup_preserved_dirs() {
     for dir in "${PRESERVE_DIRS[@]}"; do
         # Validate directory name (no path traversal)
         if [[ "$dir" =~ \.\.|^/ ]]; then
-            log_error "Invalid directory name in PRESERVE_DIRS: $dir"
+            echo "[ERROR] Invalid directory name in PRESERVE_DIRS: $dir" >&2
             rm -rf "$backup_base"
             return 1
         fi
 
         if [ -d "$PROJECT_ROOT/$dir" ] && [ -n "$(ls -A "$PROJECT_ROOT/$dir" 2>/dev/null)" ]; then
-            log_info "Backing up $dir/ before git reset..."
+            echo "[INFO] Backing up $dir/ before git reset..." >&2
             if ! cp -rp "$PROJECT_ROOT/$dir" "$backup_base/$dir"; then
-                log_error "Failed to backup $dir/. Aborting to prevent data loss."
+                echo "[ERROR] Failed to backup $dir/. Aborting to prevent data loss." >&2
                 rm -rf "$backup_base"
                 return 1
             fi
