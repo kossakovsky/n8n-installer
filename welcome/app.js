@@ -630,12 +630,12 @@
      */
     function createBottomSection(creds, extra) {
         const section = document.createElement('div');
-        section.className = 'mt-4 pt-4 border-t border-surface-400 space-y-0';
+        section.className = 'mt-4 pt-4 border-t border-surface-400 space-y-1';
 
         // Handle credentials note (special case - just show note text)
         if (creds && creds.note) {
             const noteP = document.createElement('p');
-            noteP.className = 'text-sm text-gray-500 italic';
+            noteP.className = 'text-sm text-gray-500 italic whitespace-pre-line';
             noteP.textContent = creds.note;
             section.appendChild(noteP);
         }
@@ -687,8 +687,7 @@
      */
     function createCardHeader(metadata, serviceData) {
         const header = document.createElement('div');
-        // Fixed min-height so border is always at the same position (accounts for external + internal URLs)
-        header.className = 'flex items-start gap-4 min-h-[104px]';
+        header.className = 'flex items-start gap-4';
 
         // Icon
         const iconDiv = document.createElement('div');
