@@ -93,13 +93,8 @@ fi
 if is_profile_active "postgresus"; then
     SERVICES_ARRAY+=("    \"postgresus\": {
       \"hostname\": \"$(json_escape "$POSTGRESUS_HOSTNAME")\",
-      \"credentials\": {},
-      \"extra\": {
-        \"pg_host\": \"postgres\",
-        \"pg_port\": \"${POSTGRES_PORT:-5432}\",
-        \"pg_user\": \"$(json_escape "${POSTGRES_USER:-postgres}")\",
-        \"pg_password\": \"$(json_escape "$POSTGRES_PASSWORD")\",
-        \"pg_db\": \"$(json_escape "${POSTGRES_DB:-postgres}")\"
+      \"credentials\": {
+        \"note\": \"PostgreSQL credentials are shown in the PostgreSQL card\"
       }
     }")
 fi
@@ -409,12 +404,7 @@ if is_profile_active "python-runner"; then
     SERVICES_ARRAY+=("    \"python-runner\": {
       \"hostname\": null,
       \"credentials\": {
-        \"note\": \"Internal service only\"
-      },
-      \"extra\": {
-        \"mounted_dir\": \"./python-runner -> /app\",
-        \"entry_file\": \"/app/main.py\",
-        \"logs_command\": \"docker compose -p localai logs -f python-runner\"
+        \"note\": \"Mount: ./python-runner → /app\\nEntry: /app/main.py\\nLogs: make logs s=python-runner\"
       }
     }")
 fi
