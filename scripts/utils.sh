@@ -25,34 +25,34 @@ DOMAIN_PLACEHOLDER="yourdomain.com"
 #=============================================================================
 # WHIPTAIL THEME (NEWT_COLORS)
 #=============================================================================
-# Supabase-style dark theme with green accents on black background
+# Solarized Dark theme with blue/cyan accents
 # Format: element=foreground,background
 # Colors: black, red, green, yellow, blue, magenta, cyan, white
-# Prefix with "bright" for bright variants (e.g., brightgreen)
+# Prefix with "bright" for bright variants (e.g., brightblue)
 export NEWT_COLORS='
 root=white,black
-border=brightgreen,black
+border=blue,black
 window=white,black
 shadow=black,black
-title=brightgreen,black
-button=black,brightgreen
-actbutton=black,brightgreen
+title=brightblue,black
+button=black,blue
+actbutton=black,cyan
 compactbutton=white,black
-checkbox=brightgreen,black
-actcheckbox=black,brightgreen
-entry=brightgreen,black
+checkbox=blue,black
+actcheckbox=black,cyan
+entry=cyan,black
 disentry=gray,black
 label=white,black
 listbox=white,black
-actlistbox=black,brightgreen
-sellistbox=brightgreen,black
-actsellistbox=black,brightgreen
+actlistbox=black,blue
+sellistbox=cyan,black
+actsellistbox=black,cyan
 textbox=white,black
-acttextbox=brightgreen,black
+acttextbox=blue,black
 emptyscale=black,black
-fullscale=brightgreen,black
-helpline=brightgreen,black
-roottext=brightgreen,black
+fullscale=blue,black
+helpline=blue,black
+roottext=blue,black
 '
 
 #=============================================================================
