@@ -527,8 +527,8 @@
         // Copy button (reusing the component)
         const copyBtn = createCopyButton(password);
 
-        container.appendChild(passwordSpan);
         container.appendChild(toggleBtn);
+        container.appendChild(passwordSpan);
         container.appendChild(copyBtn);
 
         return container;
@@ -565,62 +565,121 @@
     }
 
     /**
-     * Create credentials section for a service card
+     * Mapping of extra fields to display labels
+     * Fields not in this map are skipped (internal_api, internal_url shown in header)
      */
-    function createCredentialsSection(creds) {
-        const section = document.createElement('div');
-        section.className = 'mt-4 pt-4 border-t border-surface-400 space-y-2';
+    const EXTRA_FIELD_LABELS = {
+        workers: { label: 'Workers', isSecret: false },
+        mounted_dir: { label: 'Mount', isSecret: false },
+        entry_file: { label: 'Entry', isSecret: false },
+        logs_command: { label: 'Logs', isSecret: false },
+        dashboard: { label: 'Dashboard', isLink: true },
+        docs: { label: 'Docs', isLink: true },
+        api_endpoint: { label: 'API', isLink: true },
+        admin: { label: 'Admin', isLink: true },
+        ui: { label: 'UI', isLink: true },
+        service_role_key: { label: 'Service Key', isSecret: true },
+        bolt_port: { label: 'Bolt Port', isSecret: false },
+        pg_host: { label: 'PG Host', isSecret: false },
+        pg_port: { label: 'PG Port', isSecret: false },
+        pg_user: { label: 'PG User', isSecret: false },
+        pg_password: { label: 'PG Password', isSecret: true },
+        pg_db: { label: 'PG Database', isSecret: false },
+        swagger_user: { label: 'Swagger User', isSecret: false },
+        swagger_pass: { label: 'Swagger Pass', isSecret: true },
+        internal_host: { label: 'Internal Host', isSecret: false },
+        internal_port: { label: 'Internal Port', isSecret: false },
+        database: { label: 'Database', isSecret: false }
+    };
 
-        if (creds.note) {
+    /**
+     * Create a link row with label and "Link" text + icon
+     */
+    function createLinkRow(label, url) {
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center';
+
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'text-gray-500 text-sm';
+        labelSpan.textContent = `${label}:`;
+        row.appendChild(labelSpan);
+
+        // Container to align with other rows that have copy buttons
+        const valueContainer = document.createElement('div');
+        valueContainer.className = 'flex items-center gap-1 pr-2';
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.className = 'text-brand hover:text-brand-400 text-sm font-medium inline-flex items-center gap-1 group transition-colors';
+        link.innerHTML = `
+            Link
+            ${Icons.externalLink('w-3 h-3 group-hover:translate-x-0.5 transition-transform')}
+        `;
+        valueContainer.appendChild(link);
+        row.appendChild(valueContainer);
+
+        return row;
+    }
+
+    /**
+     * Create bottom section with credentials and extra info
+     * @param {Object} creds - Credentials object
+     * @param {Object} extra - Extra data object
+     */
+    function createBottomSection(creds, extra) {
+        const section = document.createElement('div');
+        section.className = 'mt-4 pt-4 border-t border-surface-400 space-y-0';
+
+        // Handle credentials note (special case - just show note text)
+        if (creds && creds.note) {
             const noteP = document.createElement('p');
             noteP.className = 'text-sm text-gray-500 italic';
             noteP.textContent = creds.note;
             section.appendChild(noteP);
-            return section;
         }
 
-        if (creds.username) {
-            section.appendChild(createCredentialRow('Username', creds.username, false));
+        // Add credential fields
+        if (creds) {
+            if (creds.username) {
+                section.appendChild(createCredentialRow('Username', creds.username, false));
+            }
+            if (creds.password) {
+                section.appendChild(createCredentialRow('Password', creds.password, true));
+            }
+            if (creds.api_key) {
+                section.appendChild(createCredentialRow('API Key', creds.api_key, true));
+            }
         }
-        if (creds.password) {
-            section.appendChild(createCredentialRow('Password', creds.password, true));
-        }
-        if (creds.api_key) {
-            section.appendChild(createCredentialRow('API Key', creds.api_key, true));
+
+        // Add extra fields (skip internal_api/internal_url - shown in header)
+        if (extra) {
+            for (const [key, value] of Object.entries(extra)) {
+                // Skip fields shown in header
+                if (key === 'internal_api' || key === 'internal_url') continue;
+
+                // Handle recommendation as plain italic text (like credentials.note)
+                if (key === 'recommendation' && value) {
+                    const noteP = document.createElement('p');
+                    noteP.className = 'text-sm text-gray-500 italic';
+                    noteP.textContent = value;
+                    section.appendChild(noteP);
+                    continue;
+                }
+
+                const fieldConfig = EXTRA_FIELD_LABELS[key];
+                if (fieldConfig && value) {
+                    if (fieldConfig.isLink) {
+                        section.appendChild(createLinkRow(fieldConfig.label, value));
+                    } else {
+                        section.appendChild(createCredentialRow(fieldConfig.label, value, fieldConfig.isSecret));
+                    }
+                }
+            }
         }
 
         return section;
-    }
-
-    /**
-     * Create extra info section (internal URLs, etc.)
-     * @param {Object} extra - Extra data object
-     * @param {boolean} skipInternalUrls - Skip internal_api/internal_url (shown in header)
-     */
-    function createExtraSection(extra, skipInternalUrls = false) {
-        const items = [];
-
-        if (!skipInternalUrls) {
-            if (extra.internal_api) {
-                items.push(`<span class="text-xs text-gray-600 font-mono">Internal: ${escapeHtml(extra.internal_api)}</span>`);
-            }
-            if (extra.internal_url) {
-                items.push(`<span class="text-xs text-gray-600 font-mono">Internal: ${escapeHtml(extra.internal_url)}</span>`);
-            }
-        }
-        if (extra.workers) {
-            items.push(`<span class="text-xs text-gray-600">Workers: ${escapeHtml(extra.workers)}</span>`);
-        }
-        if (extra.recommendation) {
-            items.push(`<span class="text-xs text-brand">${escapeHtml(extra.recommendation)}</span>`);
-        }
-
-        if (items.length === 0) return null;
-
-        const container = document.createElement('div');
-        container.className = 'mt-2 flex flex-wrap gap-2';
-        container.innerHTML = items.join('');
-        return container;
     }
 
     /**
@@ -696,12 +755,6 @@
             content.appendChild(internalSpan);
         }
 
-        // Extra info (excluding internal URLs which are now shown above)
-        if (serviceData.extra) {
-            const extraSection = createExtraSection(serviceData.extra, true);
-            if (extraSection) content.appendChild(extraSection);
-        }
-
         // Make icon clickable if docsUrl is available
         if (metadata.docsUrl) {
             const iconLink = document.createElement('a');
@@ -738,10 +791,15 @@
         const header = createCardHeader(metadata, serviceData);
         card.appendChild(header);
 
-        // Credentials section
-        if (serviceData.credentials && Object.keys(serviceData.credentials).length > 0) {
-            const credsSection = createCredentialsSection(serviceData.credentials);
-            card.appendChild(credsSection);
+        // Bottom section with credentials and extra info
+        const hasCredentials = serviceData.credentials && Object.keys(serviceData.credentials).length > 0;
+        const hasExtra = serviceData.extra && Object.keys(serviceData.extra).some(
+            key => key !== 'internal_api' && key !== 'internal_url' && EXTRA_FIELD_LABELS[key]
+        );
+
+        if (hasCredentials || hasExtra) {
+            const bottomSection = createBottomSection(serviceData.credentials, serviceData.extra);
+            card.appendChild(bottomSection);
         }
 
         return card;

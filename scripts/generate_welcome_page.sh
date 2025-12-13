@@ -93,9 +93,7 @@ fi
 if is_profile_active "postgresus"; then
     SERVICES_ARRAY+=("    \"postgresus\": {
       \"hostname\": \"$(json_escape "$POSTGRESUS_HOSTNAME")\",
-      \"credentials\": {
-        \"note\": \"Uses PostgreSQL credentials from .env\"
-      },
+      \"credentials\": {},
       \"extra\": {
         \"pg_host\": \"postgres\",
         \"pg_port\": \"${POSTGRES_PORT:-5432}\",
@@ -414,6 +412,8 @@ if is_profile_active "python-runner"; then
         \"note\": \"Internal service only\"
       },
       \"extra\": {
+        \"mounted_dir\": \"./python-runner -> /app\",
+        \"entry_file\": \"/app/main.py\",
         \"logs_command\": \"docker compose -p localai logs -f python-runner\"
       }
     }")
