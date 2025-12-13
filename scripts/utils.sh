@@ -12,6 +12,7 @@
 #   - Validation helpers: require_command, require_file, ensure_file_exists
 #   - Profile management: is_profile_active, update_compose_profiles
 #   - Doctor output helpers: print_ok, print_warning, print_error
+#   - Directory preservation: backup_preserved_dirs, restore_preserved_dirs
 #
 # Usage: source "$(dirname "$0")/utils.sh" && init_paths
 # =============================================================================
@@ -602,4 +603,121 @@ wt_parse_choices() {
     # Remove quotes and split by spaces
     local cleaned="${choices//\"/}"
     read -ra arr <<< "$cleaned"
+}
+
+#=============================================================================
+# DIRECTORY PRESERVATION (for git updates)
+#=============================================================================
+# Directories containing user-customizable content that should survive git reset.
+# Used by update.sh to backup before git operations and restore after.
+PRESERVE_DIRS=("python-runner")
+
+# Backup preserved directories before git reset
+# Usage: backup_path=$(backup_preserved_dirs) || exit 1
+# Returns: 0 on success (prints backup path), 1 on failure
+# Default backup location: secure temp directory via mktemp
+backup_preserved_dirs() {
+    local backup_base=""
+    local has_content=0
+
+    # Check if any directories need backup
+    for dir in "${PRESERVE_DIRS[@]}"; do
+        if [ -d "$PROJECT_ROOT/$dir" ] && [ -n "$(ls -A "$PROJECT_ROOT/$dir" 2>/dev/null)" ]; then
+            has_content=1
+            break
+        fi
+    done
+
+    # No content to backup
+    if [ $has_content -eq 0 ]; then
+        echo ""
+        return 0
+    fi
+
+    # Create secure temporary directory
+    backup_base=$(mktemp -d /tmp/n8n-install-backup.XXXXXXXXXX) || {
+        log_error "Failed to create backup directory"
+        return 1
+    }
+    chmod 700 "$backup_base"
+
+    # Backup each directory
+    for dir in "${PRESERVE_DIRS[@]}"; do
+        # Validate directory name (no path traversal)
+        if [[ "$dir" =~ \.\.|^/ ]]; then
+            log_error "Invalid directory name in PRESERVE_DIRS: $dir"
+            rm -rf "$backup_base"
+            return 1
+        fi
+
+        if [ -d "$PROJECT_ROOT/$dir" ] && [ -n "$(ls -A "$PROJECT_ROOT/$dir" 2>/dev/null)" ]; then
+            log_info "Backing up $dir/ before git reset..."
+            if ! cp -rp "$PROJECT_ROOT/$dir" "$backup_base/$dir"; then
+                log_error "Failed to backup $dir/. Aborting to prevent data loss."
+                rm -rf "$backup_base"
+                return 1
+            fi
+        fi
+    done
+
+    echo "$backup_base"
+    return 0
+}
+
+# Restore preserved directories after git pull
+# Usage: restore_preserved_dirs <backup_base_path>
+# Returns: 0 on success, 1 on failure
+restore_preserved_dirs() {
+    local backup_base="$1"
+
+    # Nothing to restore
+    if [ -z "$backup_base" ]; then
+        return 0
+    fi
+
+    if [ ! -d "$backup_base" ]; then
+        log_warning "Backup directory not found: $backup_base"
+        return 0
+    fi
+
+    # Safety checks for PROJECT_ROOT
+    if [ -z "$PROJECT_ROOT" ]; then
+        log_error "PROJECT_ROOT is not set. Refusing to restore."
+        return 1
+    fi
+
+    if [ "$PROJECT_ROOT" = "/" ] || [ "$PROJECT_ROOT" = "/root" ] || [ "$PROJECT_ROOT" = "/home" ]; then
+        log_error "PROJECT_ROOT is set to a dangerous path: $PROJECT_ROOT"
+        return 1
+    fi
+
+    for dir in "${PRESERVE_DIRS[@]}"; do
+        # Validate directory name
+        if [[ "$dir" =~ \.\.|^/ ]] || [ -z "$dir" ]; then
+            log_error "Invalid directory name: $dir"
+            continue
+        fi
+
+        if [ -d "$backup_base/$dir" ]; then
+            log_info "Restoring $dir/ after git pull..."
+
+            # Remove the git-restored version
+            if [ -d "$PROJECT_ROOT/$dir" ]; then
+                if ! rm -rf "$PROJECT_ROOT/$dir"; then
+                    log_error "Failed to remove $PROJECT_ROOT/$dir"
+                    return 1
+                fi
+            fi
+
+            # Restore from backup
+            if ! mv "$backup_base/$dir" "$PROJECT_ROOT/$dir"; then
+                log_error "Failed to restore $dir/ from backup"
+                return 1
+            fi
+        fi
+    done
+
+    # Cleanup backup directory
+    rm -rf "$backup_base"
+    return 0
 }
