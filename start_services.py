@@ -194,7 +194,7 @@ def stop_existing_containers():
     if os.path.exists(n8n_workers_compose_path):
         cmd.extend(["-f", n8n_workers_compose_path])
 
-    cmd.extend(["down", "--remove-orphans"])
+    cmd.extend(["down"])
     run_command(cmd)
 
 def start_supabase():
@@ -229,28 +229,15 @@ def start_local_ai():
     if os.path.exists(n8n_workers_compose_path):
         compose_files.extend(["-f", n8n_workers_compose_path])
 
-    # Include Supabase compose file if enabled (prevents --remove-orphans from killing Supabase containers)
-    if is_supabase_enabled():
-        supabase_compose_path = os.path.join("supabase", "docker", "docker-compose.yml")
-        if os.path.exists(supabase_compose_path):
-            compose_files.extend(["-f", supabase_compose_path])
-
-    # Include Dify compose file if enabled (prevents --remove-orphans from killing Dify containers)
-    if is_dify_enabled():
-        dify_compose_path = os.path.join("dify", "docker", "docker-compose.yaml")
-        if os.path.exists(dify_compose_path):
-            compose_files.extend(["-f", dify_compose_path])
-
     # Explicitly build services and pull newer base images first.
     print("Checking for newer base images and building services...")
     build_cmd = ["docker", "compose", "-p", "localai"] + compose_files + ["build", "--pull"]
     run_command(build_cmd)
 
     # Now, start the services using the newly built images. No --build needed as we just built.
-    # Use --remove-orphans to clean up containers from profiles that are no longer active
     # Use --wait to wait for containers to be healthy before returning
     print("Starting containers...")
-    up_cmd = ["docker", "compose", "-p", "localai"] + compose_files + ["up", "-d", "--remove-orphans", "--wait"]
+    up_cmd = ["docker", "compose", "-p", "localai"] + compose_files + ["up", "-d", "--wait"]
     run_command(up_cmd)
 
 def generate_searxng_secret_key():
