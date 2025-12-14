@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,14 +45,23 @@
     </script>
     <style>
         /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 10px; height: 10px; }
-        ::-webkit-scrollbar-track { background: rgba(17, 17, 17, 0.8); border-radius: 5px; }
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(17, 17, 17, 0.8);
+            border-radius: 5px;
+        }
+
         ::-webkit-scrollbar-thumb {
             background: linear-gradient(135deg, #3ECF8E 0%, #24B374 100%);
             border-radius: 5px;
             border: 2px solid transparent;
             background-clip: padding-box;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #47DF97 0%, #3ECF8E 100%);
             background-clip: padding-box;
@@ -59,8 +69,15 @@
 
         /* Pulse glow for status indicator */
         @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(62, 207, 142, 0.7); }
-            50% { box-shadow: 0 0 0 8px rgba(62, 207, 142, 0); }
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(62, 207, 142, 0.7);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(62, 207, 142, 0);
+            }
         }
 
         .status-pulse {
@@ -70,14 +87,12 @@
         /* Gradient line divider */
         .gradient-line {
             height: 1px;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(62, 207, 142, 0.3) 20%,
-                rgba(62, 207, 142, 0.5) 50%,
-                rgba(62, 207, 142, 0.3) 80%,
-                transparent
-            );
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(62, 207, 142, 0.3) 20%,
+                    rgba(62, 207, 142, 0.5) 50%,
+                    rgba(62, 207, 142, 0.3) 80%,
+                    transparent);
             opacity: 0.5;
         }
 
@@ -85,15 +100,19 @@
            REDUCED MOTION SUPPORT
            ============================================ */
         @media (prefers-reduced-motion: reduce) {
-            .status-pulse { animation: none; }
+            .status-pulse {
+                animation: none;
+            }
         }
     </style>
 </head>
+
 <body class="bg-surface-bg text-gray-100 min-h-screen antialiased">
     <div class="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <!-- Header -->
         <header class="text-center mb-16">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-200 border border-surface-400 text-sm text-gray-400 mb-6">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-200 border border-surface-400 text-sm text-gray-400 mb-6">
                 <span class="w-2 h-2 rounded-full bg-brand status-pulse"></span>
                 System Online
             </div>
@@ -109,11 +128,15 @@
         <!-- Services Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center" data-section-icon="server"></div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center"
+                    data-section-icon="server"></div>
                 <h2 class="text-2xl font-semibold text-white">Your Services</h2>
             </div>
             <div id="services-container" class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 <!-- Services will be injected here by JavaScript -->
+                <div class="animate-pulse bg-surface-200 rounded-xl h-48 border border-surface-400"></div>
+                <div class="animate-pulse bg-surface-200 rounded-xl h-48 border border-surface-400"></div>
+                <div class="animate-pulse bg-surface-200 rounded-xl h-48 border border-surface-400"></div>
                 <div class="animate-pulse bg-surface-200 rounded-xl h-48 border border-surface-400"></div>
                 <div class="animate-pulse bg-surface-200 rounded-xl h-48 border border-surface-400"></div>
                 <div class="animate-pulse bg-surface-200 rounded-xl h-48 border border-surface-400"></div>
@@ -125,11 +148,14 @@
         <!-- Quick Start Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center" data-section-icon="bolt"></div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center"
+                    data-section-icon="bolt"></div>
                 <h2 class="text-2xl font-semibold text-white">Quick Start</h2>
             </div>
             <div id="quickstart-container" class="space-y-3">
                 <!-- Quick start steps will be injected here -->
+                <div class="animate-pulse bg-surface-200 rounded-xl h-20 border border-surface-400"></div>
+                <div class="animate-pulse bg-surface-200 rounded-xl h-20 border border-surface-400"></div>
                 <div class="animate-pulse bg-surface-200 rounded-xl h-20 border border-surface-400"></div>
                 <div class="animate-pulse bg-surface-200 rounded-xl h-20 border border-surface-400"></div>
             </div>
@@ -140,11 +166,14 @@
         <!-- Update Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center" data-section-icon="refresh"></div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center"
+                    data-section-icon="refresh"></div>
                 <h2 class="text-2xl font-semibold text-white">Keeping Up to Date</h2>
             </div>
-            <div class="bg-surface-100 rounded-xl border border-surface-400 p-6 hover:border-brand/30 hover:bg-surface-200 transition-all">
-                <p class="text-gray-300 mb-4">Keep your services up to date with the latest features and security patches:</p>
+            <div
+                class="bg-surface-100 rounded-xl border border-surface-400 p-6 hover:border-brand/30 hover:bg-surface-200 transition-all">
+                <p class="text-gray-300 mb-4">Keep your services up to date with the latest features and security
+                    patches:</p>
                 <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                     <code class="text-brand font-mono text-sm bg-surface-200 px-2 py-1 rounded w-fit">make update</code>
                     <span class="text-gray-400 text-sm">Update all services to the latest versions</span>
@@ -157,7 +186,8 @@
         <!-- Commands Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center" data-section-icon="terminal"></div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center"
+                    data-section-icon="terminal"></div>
                 <h2 class="text-2xl font-semibold text-white">Useful Commands</h2>
             </div>
             <div id="commands-container" class="bg-surface-100 rounded-xl border border-surface-400 p-6">
@@ -171,36 +201,45 @@
         <!-- Documentation Section -->
         <section class="mb-16">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center" data-section-icon="book"></div>
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center"
+                    data-section-icon="book"></div>
                 <h2 class="text-2xl font-semibold text-white">Documentation</h2>
             </div>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <a href="https://docs.n8n.io/" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all group">
+                    class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all group">
                     <span class="text-gray-300 group-hover:text-brand transition-colors">n8n Docs</span>
-                    <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                 </a>
                 <a href="https://docs.n8n.io/advanced-ai/intro-tutorial/" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all group">
+                    class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all group">
                     <span class="text-gray-300 group-hover:text-brand transition-colors">AI Tutorial</span>
-                    <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                 </a>
                 <a href="https://n8n.io/workflows/" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all group">
+                    class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all group">
                     <span class="text-gray-300 group-hover:text-brand transition-colors">Templates</span>
-                    <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                 </a>
                 <a href="https://github.com/kossakovsky/n8n-install" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all group">
+                    class="flex items-center gap-3 p-4 bg-surface-100 rounded-xl border border-surface-400 hover:border-brand/30 hover:bg-surface-200 transition-all group">
                     <span class="text-gray-300 group-hover:text-brand transition-colors">GitHub</span>
-                    <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-brand transition-colors" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                 </a>
             </div>
@@ -210,10 +249,12 @@
 
         <!-- Footer -->
         <footer class="text-center text-sm text-gray-500 pt-8">
-            <p>Powered with ❤️  by <a href="https://github.com/kossakovsky" target="_blank" rel="noopener" class="text-brand hover:text-brand-400 transition-colors">Yury Kossakovsky</a></p>
+            <p>Powered with ❤️ by <a href="https://github.com/kossakovsky" target="_blank" rel="noopener"
+                    class="text-brand hover:text-brand-400 transition-colors">Yury Kossakovsky</a></p>
         </footer>
     </div>
 
     <script src="app.js"></script>
 </body>
+
 </html>
