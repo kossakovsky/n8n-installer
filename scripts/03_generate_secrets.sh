@@ -69,6 +69,7 @@ declare -A VARS_TO_GENERATE=(
     ["NEO4J_AUTH_USERNAME"]="fixed:neo4j" # Added Neo4j username
     ["NEXTAUTH_SECRET"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
     ["PADDLEOCR_PASSWORD"]="password:32" # Added PaddleOCR basic auth password
+    ["PG_META_CRYPTO_KEY"]="alphanum:32"
     ["POSTGRES_NON_ROOT_PASSWORD"]="password:32"
     ["POSTGRES_PASSWORD"]="password:32"
     ["PROMETHEUS_PASSWORD"]="password:32" # Added Prometheus password
