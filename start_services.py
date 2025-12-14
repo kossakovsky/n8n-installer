@@ -229,6 +229,18 @@ def start_local_ai():
     if os.path.exists(n8n_workers_compose_path):
         compose_files.extend(["-f", n8n_workers_compose_path])
 
+    # Include Supabase compose file if enabled (prevents --remove-orphans from killing Supabase containers)
+    if is_supabase_enabled():
+        supabase_compose_path = os.path.join("supabase", "docker", "docker-compose.yml")
+        if os.path.exists(supabase_compose_path):
+            compose_files.extend(["-f", supabase_compose_path])
+
+    # Include Dify compose file if enabled (prevents --remove-orphans from killing Dify containers)
+    if is_dify_enabled():
+        dify_compose_path = os.path.join("dify", "docker", "docker-compose.yaml")
+        if os.path.exists(dify_compose_path):
+            compose_files.extend(["-f", dify_compose_path])
+
     # Explicitly build services and pull newer base images first.
     print("Checking for newer base images and building services...")
     build_cmd = ["docker", "compose", "-p", "localai"] + compose_files + ["build", "--pull"]
