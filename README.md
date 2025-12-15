@@ -283,6 +283,10 @@ The project includes a Makefile for simplified command execution:
 
 Run `make help` for the full list of available commands.
 
+## Community Ports
+
+- [n8n-installer-arch](https://github.com/ndrewpj/n8n-installer-arch) by [@ndrewpj](https://github.com/ndrewpj) - Adapted for Arch-based Linux distributions (Arch Linux, CachyOS, Manjaro)
+
 ## Important Links
 
 - Based on a project by [coleam00](https://github.com/coleam00/local-ai-packaged)
