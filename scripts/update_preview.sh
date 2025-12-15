@@ -79,8 +79,8 @@ check_image_update "caddy" "caddy:2-alpine"
 # Check n8n if profile is active
 if is_profile_active "n8n"; then
     log_subheader "n8n Services"
-    check_image_update "n8n" "docker.n8n.io/n8nio/n8n:${N8N_VERSION:-stable}"
-    check_image_update "n8n-runner" "n8nio/runners:${N8N_VERSION:-stable}"
+    check_image_update "n8n" "docker.n8n.io/n8nio/n8n:stable"
+    check_image_update "n8n-runner" "n8nio/runners:stable"
 fi
 
 # Check monitoring if profile is active

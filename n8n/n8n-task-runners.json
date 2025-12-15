@@ -18,7 +18,6 @@
                 "N8N_RUNNERS_TASK_TIMEOUT",
                 "N8N_RUNNERS_MAX_CONCURRENCY",
                 "N8N_SENTRY_DSN",
-                "N8N_VERSION",
                 "ENVIRONMENT",
                 "DEPLOYMENT_NAME",
                 "HOME"
@@ -44,7 +43,6 @@
                 "N8N_RUNNERS_TASK_TIMEOUT",
                 "N8N_RUNNERS_MAX_CONCURRENCY",
                 "N8N_SENTRY_DSN",
-                "N8N_VERSION",
                 "ENVIRONMENT",
                 "DEPLOYMENT_NAME"
             ],
