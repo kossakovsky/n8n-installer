@@ -1,5 +1,4 @@
-ARG N8N_VERSION=stable
-FROM n8nio/runners:${N8N_VERSION}
+FROM n8nio/runners:stable
 
 USER root
 
