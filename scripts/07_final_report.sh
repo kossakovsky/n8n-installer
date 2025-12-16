@@ -56,7 +56,7 @@ print_section() {
 clear
 
 # Header
-log_box "Installation Complete"
+log_box "Installation/Update Complete"
 
 # --- Welcome Page Section ---
 print_section "Welcome Page"
