@@ -3,7 +3,7 @@
 # install.sh - Main installation orchestrator for n8n-install
 # =============================================================================
 # This script runs the complete installation process by sequentially executing
-# 7 installation steps:
+# 8 installation steps:
 #   1. System Preparation - updates packages, installs utilities, configures firewall
 #   2. Docker Installation - installs Docker and Docker Compose
 #   3. Secret Generation - creates .env file with secure passwords and secrets
@@ -11,6 +11,7 @@
 #   5. Service Configuration - prompts for API keys and service-specific settings
 #   6. Service Launch - starts all selected services via Docker Compose
 #   7. Final Report - displays credentials and access URLs
+#   8. Fix Permissions - ensures correct file ownership for the invoking user
 #
 # Usage: sudo bash scripts/install.sh
 # =============================================================================
@@ -55,6 +56,7 @@ required_scripts=(
     "05_configure_services.sh"
     "06_run_services.sh"
     "07_final_report.sh"
+    "08_fix_permissions.sh"
 )
 
 missing_scripts=()
@@ -97,31 +99,31 @@ fi
 
 # Run installation steps sequentially using their full paths
 
-show_step 1 7 "System Preparation"
+show_step 1 8 "System Preparation"
 bash "$SCRIPT_DIR/01_system_preparation.sh" || { log_error "System Preparation failed"; exit 1; }
 log_success "System preparation complete!"
 
-show_step 2 7 "Installing Docker"
+show_step 2 8 "Installing Docker"
 bash "$SCRIPT_DIR/02_install_docker.sh" || { log_error "Docker Installation failed"; exit 1; }
 log_success "Docker installation complete!"
 
-show_step 3 7 "Generating Secrets and Configuration"
+show_step 3 8 "Generating Secrets and Configuration"
 bash "$SCRIPT_DIR/03_generate_secrets.sh" || { log_error "Secret/Config Generation failed"; exit 1; }
 log_success "Secret/Config Generation complete!"
 
-show_step 4 7 "Running Service Selection Wizard"
+show_step 4 8 "Running Service Selection Wizard"
 bash "$SCRIPT_DIR/04_wizard.sh" || { log_error "Service Selection Wizard failed"; exit 1; }
 log_success "Service Selection Wizard complete!"
 
-show_step 5 7 "Configure Services"
+show_step 5 8 "Configure Services"
 bash "$SCRIPT_DIR/05_configure_services.sh" || { log_error "Configure Services failed"; exit 1; }
 log_success "Configure Services complete!"
 
-show_step 6 7 "Running Services"
+show_step 6 8 "Running Services"
 bash "$SCRIPT_DIR/06_run_services.sh" || { log_error "Running Services failed"; exit 1; }
 log_success "Running Services complete!"
 
-show_step 7 7 "Generating Final Report"
+show_step 7 8 "Generating Final Report"
 # --- Installation Summary ---
 log_info "Installation Summary:"
 echo -e "  ${GREEN}*${NC} System updated and basic utilities installed"
@@ -133,6 +135,12 @@ echo -e "  ${GREEN}*${NC} '.env' generated with secure passwords and secrets"
 echo -e "  ${GREEN}*${NC} Services launched via Docker Compose"
 
 bash "$SCRIPT_DIR/07_final_report.sh" || { log_error "Final Report Generation failed"; exit 1; }
+log_success "Final Report generated!"
+
+show_step 8 8 "Fixing File Permissions"
+bash "$SCRIPT_DIR/08_fix_permissions.sh" || { log_error "Fix Permissions failed"; exit 1; }
+log_success "File permissions fixed!"
+
 log_success "Installation complete!"
 
-exit 0 
+exit 0

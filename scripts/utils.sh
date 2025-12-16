@@ -606,6 +606,91 @@ wt_parse_choices() {
 }
 
 #=============================================================================
+# LEGACY CONTAINER CLEANUP
+#=============================================================================
+
+# Remove legacy n8n worker containers from previous naming convention
+# Old format: localai-n8n-worker-N (N = 1-10)
+# New format: n8n-worker-N (managed by docker-compose.n8n-workers.yml)
+# Usage: cleanup_legacy_n8n_workers
+cleanup_legacy_n8n_workers() {
+    local removed_count=0
+    local container_name
+
+    log_info "Checking for legacy n8n worker containers..."
+
+    for i in {1..10}; do
+        container_name="localai-n8n-worker-$i"
+
+        # Check if container exists (running or stopped)
+        if docker ps -a --format '{{.Names}}' | grep -q "^${container_name}$"; then
+            log_info "Removing legacy container: $container_name"
+            docker stop "$container_name" 2>/dev/null || true
+            docker rm -f "$container_name" 2>/dev/null || true
+            removed_count=$((removed_count + 1))
+        fi
+    done
+
+    if [ $removed_count -gt 0 ]; then
+        log_success "Removed $removed_count legacy n8n worker container(s)"
+    else
+        log_info "No legacy n8n worker containers found"
+    fi
+}
+
+#=============================================================================
+# USER DETECTION
+#=============================================================================
+
+# Get the real user who invoked the script (even when running with sudo)
+# Usage: real_user=$(get_real_user)
+# Returns: username of the real user, or "root" if cannot determine
+get_real_user() {
+    # Try SUDO_USER first (set by sudo)
+    if [[ -n "${SUDO_USER:-}" && "$SUDO_USER" != "root" ]]; then
+        echo "$SUDO_USER"
+        return 0
+    fi
+
+    # Try logname (gets login name)
+    local logname_user
+    logname_user=$(logname 2>/dev/null) || true
+    if [[ -n "$logname_user" && "$logname_user" != "root" ]]; then
+        echo "$logname_user"
+        return 0
+    fi
+
+    # Try who am i (gets TTY user)
+    local who_user
+    who_user=$(who am i 2>/dev/null | awk '{print $1}') || true
+    if [[ -n "$who_user" && "$who_user" != "root" ]]; then
+        echo "$who_user"
+        return 0
+    fi
+
+    # Check if we're in a user's home directory
+    local current_dir="$PWD"
+    if [[ "$current_dir" =~ ^/home/([^/]+) ]]; then
+        local home_user="${BASH_REMATCH[1]}"
+        if id "$home_user" &>/dev/null; then
+            echo "$home_user"
+            return 0
+        fi
+    fi
+
+    # Fallback to current user
+    whoami
+}
+
+# Get the home directory of the real user
+# Usage: real_home=$(get_real_user_home)
+get_real_user_home() {
+    local real_user
+    real_user=$(get_real_user)
+    eval echo "~$real_user"
+}
+
+#=============================================================================
 # DIRECTORY PRESERVATION (for git updates)
 #=============================================================================
 # Directories containing user-customizable content that should survive git reset.
