@@ -58,6 +58,9 @@ bash "$SCRIPT_DIR/05_configure_services.sh" || {
 }
 log_success "Service configuration completed."
 
+# Clean up legacy n8n worker containers from old naming convention
+cleanup_legacy_n8n_workers
+
 # Pull latest versions of selected containers based on updated .env
 log_info "Pulling latest versions of selected containers..."
 COMPOSE_FILES_FOR_PULL=("-f" "$PROJECT_ROOT/docker-compose.yml")
