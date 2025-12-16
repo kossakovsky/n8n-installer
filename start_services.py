@@ -10,6 +10,7 @@ so they appear together in Docker Desktop.
 import os
 import subprocess
 import shutil
+import time
 import platform
 import yaml
 from dotenv import dotenv_values
@@ -204,7 +205,7 @@ def start_supabase():
         return
     print("Starting Supabase services...")
     run_command([
-        "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d", "--wait", "--wait-timeout", "180"
+        "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d"
     ])
 
 def start_dify():
@@ -214,7 +215,7 @@ def start_dify():
         return
     print("Starting Dify services...")
     run_command([
-        "docker", "compose", "-p", "localai", "-f", "dify/docker/docker-compose.yaml", "up", "-d", "--wait", "--wait-timeout", "180"
+        "docker", "compose", "-p", "localai", "-f", "dify/docker/docker-compose.yaml", "up", "-d"
     ])
 
 def start_local_ai():
@@ -235,9 +236,8 @@ def start_local_ai():
     run_command(build_cmd)
 
     # Now, start the services using the newly built images. No --build needed as we just built.
-    # Use --wait to wait for containers to be healthy before returning
     print("Starting containers...")
-    up_cmd = ["docker", "compose", "-p", "localai"] + compose_files + ["up", "-d", "--wait", "--wait-timeout", "180"]
+    up_cmd = ["docker", "compose", "-p", "localai"] + compose_files + ["up", "-d"]
     run_command(up_cmd)
 
 def generate_searxng_secret_key():
@@ -397,13 +397,19 @@ def main():
     
     stop_existing_containers()
     
-    # Start Supabase first (--wait flag ensures it's ready before continuing)
+    # Start Supabase first
     if is_supabase_enabled():
         start_supabase()
+        # Give Supabase some time to initialize
+        print("Waiting for Supabase to initialize...")
+        time.sleep(10)
 
-    # Start Dify services (--wait flag ensures it's ready before continuing)
+    # Start Dify services
     if is_dify_enabled():
         start_dify()
+        # Give Dify some time to initialize
+        print("Waiting for Dify to initialize...")
+        time.sleep(10)
     
     # Then start the local AI services
     start_local_ai()
