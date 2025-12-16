@@ -229,7 +229,8 @@
             icon: 'QD',
             color: 'bg-[#DC244C]',
             category: 'database',
-            docsUrl: 'https://qdrant.tech/documentation'
+            docsUrl: 'https://qdrant.tech/documentation',
+            urlSuffix: '/dashboard'
         },
         'weaviate': {
             name: 'Weaviate',
@@ -725,13 +726,14 @@
 
         // External link (if hostname exists)
         if (serviceData.hostname) {
+            const urlSuffix = metadata.urlSuffix || '';
             const link = document.createElement('a');
-            link.href = `https://${serviceData.hostname}`;
+            link.href = `https://${serviceData.hostname}${urlSuffix}`;
             link.target = '_blank';
             link.rel = 'noopener';
             link.className = 'text-brand hover:text-brand-400 text-sm font-medium inline-flex items-center gap-1 group transition-colors';
             link.innerHTML = `
-                ${escapeHtml(serviceData.hostname)}
+                ${escapeHtml(serviceData.hostname)}${urlSuffix ? escapeHtml(urlSuffix) : ''}
                 ${Icons.externalLink('w-3 h-3 group-hover:translate-x-0.5 transition-transform')}
             `;
             content.appendChild(link);
