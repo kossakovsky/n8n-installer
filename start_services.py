@@ -204,7 +204,7 @@ def start_supabase():
         return
     print("Starting Supabase services...")
     run_command([
-        "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d", "--wait"
+        "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d", "--wait", "--wait-timeout", "180"
     ])
 
 def start_dify():
@@ -214,7 +214,7 @@ def start_dify():
         return
     print("Starting Dify services...")
     run_command([
-        "docker", "compose", "-p", "localai", "-f", "dify/docker/docker-compose.yaml", "up", "-d", "--wait"
+        "docker", "compose", "-p", "localai", "-f", "dify/docker/docker-compose.yaml", "up", "-d", "--wait", "--wait-timeout", "180"
     ])
 
 def start_local_ai():
@@ -237,7 +237,7 @@ def start_local_ai():
     # Now, start the services using the newly built images. No --build needed as we just built.
     # Use --wait to wait for containers to be healthy before returning
     print("Starting containers...")
-    up_cmd = ["docker", "compose", "-p", "localai"] + compose_files + ["up", "-d", "--wait"]
+    up_cmd = ["docker", "compose", "-p", "localai"] + compose_files + ["up", "-d", "--wait", "--wait-timeout", "180"]
     run_command(up_cmd)
 
 def generate_searxng_secret_key():
