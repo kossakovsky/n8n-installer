@@ -229,8 +229,7 @@
             icon: 'QD',
             color: 'bg-[#DC244C]',
             category: 'database',
-            docsUrl: 'https://qdrant.tech/documentation',
-            urlSuffix: '/dashboard'
+            docsUrl: 'https://qdrant.tech/documentation'
         },
         'weaviate': {
             name: 'Weaviate',
@@ -595,14 +594,20 @@
 
     /**
      * Create a link row with label and "Link" text + icon
+     * @param {string} label - Base label (e.g., "Dashboard", "Docs")
+     * @param {string} url - The URL to link to
+     * @param {string} serviceName - Optional service name to prefix label (e.g., "Qdrant")
      */
-    function createLinkRow(label, url) {
+    function createLinkRow(label, url, serviceName) {
         const row = document.createElement('div');
         row.className = 'flex justify-between items-center';
 
+        // Create service-specific label like "Qdrant Dashboard" instead of just "Dashboard"
+        const fullLabel = serviceName ? `${serviceName} ${label}` : label;
+
         const labelSpan = document.createElement('span');
         labelSpan.className = 'text-gray-500 text-sm';
-        labelSpan.textContent = `${label}:`;
+        labelSpan.textContent = `${fullLabel}:`;
         row.appendChild(labelSpan);
 
         // Container to align with other rows that have copy buttons
@@ -628,8 +633,9 @@
      * Create bottom section with credentials and extra info
      * @param {Object} creds - Credentials object
      * @param {Object} extra - Extra data object
+     * @param {string} serviceName - Service name for link labels
      */
-    function createBottomSection(creds, extra) {
+    function createBottomSection(creds, extra, serviceName) {
         const section = document.createElement('div');
         section.className = 'mt-4 pt-4 border-t border-surface-400 space-y-1';
 
@@ -672,7 +678,7 @@
                 const fieldConfig = EXTRA_FIELD_LABELS[key];
                 if (fieldConfig && value) {
                     if (fieldConfig.isLink) {
-                        section.appendChild(createLinkRow(fieldConfig.label, value));
+                        section.appendChild(createLinkRow(fieldConfig.label, value, serviceName));
                     } else {
                         section.appendChild(createCredentialRow(fieldConfig.label, value, fieldConfig.isSecret));
                     }
@@ -726,14 +732,13 @@
 
         // External link (if hostname exists)
         if (serviceData.hostname) {
-            const urlSuffix = metadata.urlSuffix || '';
             const link = document.createElement('a');
-            link.href = `https://${serviceData.hostname}${urlSuffix}`;
+            link.href = `https://${serviceData.hostname}`;
             link.target = '_blank';
             link.rel = 'noopener';
             link.className = 'text-brand hover:text-brand-400 text-sm font-medium inline-flex items-center gap-1 group transition-colors';
             link.innerHTML = `
-                ${escapeHtml(serviceData.hostname)}${urlSuffix ? escapeHtml(urlSuffix) : ''}
+                ${escapeHtml(serviceData.hostname)}
                 ${Icons.externalLink('w-3 h-3 group-hover:translate-x-0.5 transition-transform')}
             `;
             content.appendChild(link);
@@ -799,7 +804,7 @@
         );
 
         if (hasCredentials || hasExtra) {
-            const bottomSection = createBottomSection(serviceData.credentials, serviceData.extra);
+            const bottomSection = createBottomSection(serviceData.credentials, serviceData.extra, metadata.name);
             card.appendChild(bottomSection);
         }
 
