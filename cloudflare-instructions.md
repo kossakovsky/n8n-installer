@@ -1,6 +1,4 @@
-# Add this section to README.md after the "Quick Start" section
-
-## 🔒 Secure Access with Cloudflare Tunnel (Optional)
+# 🔒 Secure Access with Cloudflare Tunnel (Optional)
 
 Cloudflare Tunnel provides zero-trust access to your services without exposing any ports on your server. All traffic is routed through Cloudflare's secure network, providing DDoS protection and hiding your server's IP address.
 
@@ -8,7 +6,7 @@ Cloudflare Tunnel provides zero-trust access to your services without exposing a
 
 Cloudflare Tunnel **bypasses Caddy** and connects directly to your services. This means:
 - You get Cloudflare's security features (DDoS protection, Web Application Firewall, etc.)
-- You lose Caddy's authentication features (basic auth for Prometheus, Grafana, etc.)
+- You lose Caddy's authentication features (basic auth for Prometheus, ComfyUI, SearXNG, etc.)
 - Each service needs its own public hostname configuration in Cloudflare
 
 ### Benefits
@@ -22,38 +20,49 @@ Cloudflare Tunnel **bypasses Caddy** and connects directly to your services. Thi
 
 #### 1. Create a Cloudflare Tunnel
 
-1. Go to [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com/)
-2. Navigate to **Access** → **Tunnels**
+1. Go to [Cloudflare One Dashboard](https://one.dash.cloudflare.com/)
+2. Navigate to **Networks** → **Connectors** → **Cloudflare Tunnels**
 3. Click **Create a tunnel**
-4. Choose **Cloudflared** connector
-5. Name your tunnel (e.g., "n8n-install")
-6. Copy the tunnel token (you'll need this during installation)
+4. Choose **Cloudflared** connector and click **Next**
+5. Name your tunnel (e.g., "n8n-install") and click **Save tunnel**
+6. Copy the installation command shown - it contains your tunnel token
 
 #### 2. Configure Public Hostnames
 
-In the tunnel configuration, you need to create a public hostname for **each service** you want to expose. Click **Add a public hostname** for each entry:
+After creating the tunnel, go to the **Published application routes** tab to add public hostnames. For each service you want to expose, click **Add a public hostname** and configure:
 
-| Service        | Public Hostname           | Service URL                | Notes                          |
-| -------------- | ------------------------- | -------------------------- | ------------------------------ |
-| **n8n**        | n8n.yourdomain.com        | `http://n8n:5678`          | Workflow automation            |
-| **Flowise**    | flowise.yourdomain.com    | `http://flowise:3001`      | LangChain UI                   |
-| **Dify**       | dify.yourdomain.com       | `http://nginx:80`          | AI application platform        |
-| **Open WebUI** | webui.yourdomain.com      | `http://open-webui:8080`   | Chat interface                 |
-| **Langfuse**   | langfuse.yourdomain.com   | `http://langfuse-web:3000` | LLM observability              |
-| **Supabase**   | supabase.yourdomain.com   | `http://kong:8000`         | Backend as a Service           |
-| **Grafana**    | grafana.yourdomain.com    | `http://grafana:3000`      | Metrics dashboard (⚠️ No auth)  |
-| **Prometheus** | prometheus.yourdomain.com | `http://prometheus:9090`   | Metrics collection (⚠️ No auth) |
-| **Portainer**  | portainer.yourdomain.com  | `http://portainer:9000`    | Docker management              |
-| **Letta**      | letta.yourdomain.com      | `http://letta:8283`        | Memory management              |
-| **Weaviate**   | weaviate.yourdomain.com   | `http://weaviate:8080`     | Vector database                |
-| **Qdrant**     | qdrant.yourdomain.com     | `http://qdrant:6333`       | Vector database                |
-| **ComfyUI**    | comfyui.yourdomain.com    | `http://comfyui:8188`      | Image generation (⚠️ No auth)   |
-| **Neo4j**      | neo4j.yourdomain.com      | `http://neo4j:7474`        | Graph database                 |
-| **SearXNG**    | searxng.yourdomain.com    | `http://searxng:8080`      | Private search (⚠️ No auth)     |
+| Service            | Public Hostname               | Service URL                  | Auth Notes          |
+| ------------------ | ----------------------------- | ---------------------------- | ------------------- |
+| **n8n**            | n8n.yourdomain.com            | `http://n8n:5678`            | Built-in login      |
+| **Flowise**        | flowise.yourdomain.com        | `http://flowise:3001`        | Built-in login      |
+| **Open WebUI**     | webui.yourdomain.com          | `http://open-webui:8080`     | Built-in login      |
+| **Langfuse**       | langfuse.yourdomain.com       | `http://langfuse-web:3000`   | Built-in login      |
+| **Grafana**        | grafana.yourdomain.com        | `http://grafana:3000`        | Built-in login      |
+| **Prometheus**     | prometheus.yourdomain.com     | `http://prometheus:9090`     | ⚠️ Loses Caddy auth  |
+| **Portainer**      | portainer.yourdomain.com      | `http://portainer:9000`      | Built-in login      |
+| **Neo4j**          | neo4j.yourdomain.com          | `http://neo4j:7474`          | Built-in login      |
+| **ComfyUI**        | comfyui.yourdomain.com        | `http://comfyui:8188`        | ⚠️ Loses Caddy auth  |
+| **SearXNG**        | searxng.yourdomain.com        | `http://searxng:8080`        | ⚠️ Loses Caddy auth  |
+| **Letta**          | letta.yourdomain.com          | `http://letta:8283`          | No auth             |
+| **Weaviate**       | weaviate.yourdomain.com       | `http://weaviate:8080`       | API key recommended |
+| **Qdrant**         | qdrant.yourdomain.com         | `http://qdrant:6333`         | API key recommended |
+| **LightRAG**       | lightrag.yourdomain.com       | `http://lightrag:9621`       | No auth             |
+| **RAGApp**         | ragapp.yourdomain.com         | `http://ragapp:8000`         | ⚠️ Loses Caddy auth  |
+| **RagFlow**        | ragflow.yourdomain.com        | `http://ragflow:80`          | Built-in login      |
+| **Postiz**         | postiz.yourdomain.com         | `http://postiz:5000`         | Built-in login      |
+| **PostgreSUS**     | postgresus.yourdomain.com     | `http://postgresus:4005`     | No auth             |
+| **WAHA**           | waha.yourdomain.com           | `http://waha:3000`           | API key recommended |
+| **Docling**        | docling.yourdomain.com        | `http://docling:5001`        | ⚠️ Loses Caddy auth  |
+| **LibreTranslate** | libretranslate.yourdomain.com | `http://libretranslate:5000` | ⚠️ Loses Caddy auth  |
+| **PaddleOCR**      | paddleocr.yourdomain.com      | `http://paddleocr:8080`      | ⚠️ Loses Caddy auth  |
+| **Dify** ¹         | dify.yourdomain.com           | `http://nginx:80`            | Built-in login      |
+| **Supabase** ¹     | supabase.yourdomain.com       | `http://kong:8000`           | Built-in login      |
 
-**⚠️ Security Warning:** Services marked with "No auth" normally have basic authentication through Caddy. When using Cloudflare Tunnel, you should:
-- Enable [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/applications/) for these services, OR
-- Keep them internal only (don't create public hostnames for them)
+**⚠️ Security Warning:**
+- Services marked **"Loses Caddy auth"** have basic authentication via Caddy that is bypassed by the tunnel. Use [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/applications/) or keep them internal.
+- Services marked **"No auth"** have no protection at all - always use Cloudflare Access for these.
+- Services with **"Built-in login"** have their own authentication and are generally safe to expose.
+- Services with **"API key recommended"** should be configured with API keys in their settings.
 
 #### 3. DNS Configuration
 
@@ -106,14 +115,15 @@ You have two options for accessing your services:
 
 For services that lose Caddy's basic auth protection, you can add Cloudflare Access:
 
-1. In Cloudflare Zero Trust → Access → Applications
-2. Click **Add an application**
-3. Select **Self-hosted**
-4. Configure:
+1. In **Cloudflare One Dashboard** → **Access controls** → **Applications**
+2. Click **Add an application** → **Self-hosted**
+3. Configure:
    - **Application name**: e.g., "Prometheus"
-   - **Application domain**: `prometheus.yourdomain.com`
-   - **Identity providers**: Configure your preferred auth method
-5. Create access policies (who can access the service)
+   - **Session Duration**: Set token expiry time
+   - Click **Add public hostname** and select your domain
+4. Enable your preferred identity providers (Google, GitHub, etc.)
+5. Add access policies to control who can access the service
+6. Save the application
 
 ### 🛡️ Advanced Security with WAF Rules
 
@@ -121,18 +131,12 @@ Cloudflare's Web Application Firewall (WAF) allows you to create sophisticated s
 
 #### Creating IP Allow Lists
 
-1. **Go to Cloudflare Dashboard** → **Manage Account** → **Configurations** → **Lists**
+1. Go to **Cloudflare Dashboard** → **Settings** → **Lists**
 2. Click **Create new list**
 3. Configure:
-   - **List name**: `approved_IP_addresses`
+   - **List name**: `approved_ip_addresses` (lowercase letters, numbers, underscores only)
    - **Content type**: IP Address
-4. Add IP addresses:
-   ```
-   # Example entries:
-   1.2.3.4         # Office IP
-   5.6.7.0/24      # Partner network
-   10.0.0.0/8      # Internal network
-   ```
+4. Click **Create**, then **Add items** to add IP addresses manually or via CSV upload
 
 #### Protecting n8n Webhooks with WAF Rules
 
@@ -143,88 +147,50 @@ n8n webhooks need special consideration because they must be publicly accessible
 3. **Rule name**: "Protect n8n webhooks"
 4. **Expression Builder** or use **Edit expression**:
 
-**Example 1: Block all except approved IPs for entire domain**
-```
-(not ip.src in $approved_IP_addresses and http.host contains "yourdomain.com")
-```
-- **Action**: Block
-- **Description**: Blocks all traffic except from approved IPs
+**Example expressions:**
 
-**Example 2: Protect n8n but allow specific webhook paths**
-```
-(http.host eq "n8n.yourdomain.com" and not ip.src in $approved_IP_addresses and not http.request.uri.path contains "/webhook/")
-```
-- **Action**: Block
-- **Description**: Protects n8n UI but allows webhook endpoints
-
-**Example 3: Allow webhooks from specific services only**
-```
-(http.host eq "n8n.yourdomain.com" and http.request.uri.path contains "/webhook/" and not ip.src in $webhook_allowed_IPs)
-```
-- **Action**: Block
-- **Description**: Webhooks only accessible from specific service IPs
-
-**Example 4: Rate limiting for webhook endpoints**
-```
-(http.host eq "n8n.yourdomain.com" and http.request.uri.path contains "/webhook/")
-```
-- **Action**: Managed Challenge
-- **Description**: Add CAPTCHA if suspicious activity detected
+| Rule                                 | Expression                                                                                                                        | Action            |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Block all except approved IPs        | `(not ip.src in $approved_ip_addresses and http.host contains "yourdomain.com")`                                                  | Block             |
+| Protect UI, allow webhooks           | `(http.host eq "n8n.yourdomain.com" and not ip.src in $approved_ip_addresses and not http.request.uri.path contains "/webhook/")` | Block             |
+| Restrict webhooks to services        | `(http.host eq "n8n.yourdomain.com" and http.request.uri.path contains "/webhook/" and not ip.src in $webhook_allowed_ips)`       | Block             |
+| Challenge suspicious webhook traffic | `(http.host eq "n8n.yourdomain.com" and http.request.uri.path contains "/webhook/")`                                              | Managed Challenge |
 
 #### Common Security Rule Patterns
 
 | Use Case                             | Expression                                                                                                | Action                  | Notes                                  |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------------- | ----------------------- | -------------------------------------- |
-| **Protect webhooks (CRITICAL)**      | `(http.request.uri.path contains "/webhook" and not ip.src in $webhook_service_IPs)`                      | Block                   | Webhooks have NO auth - must restrict! |
-| **Protect all services**             | `(not ip.src in $approved_IP_addresses)`                                                                  | Block                   | Strictest - only approved IPs          |
+| **Protect webhooks (CRITICAL)**      | `(http.request.uri.path contains "/webhook" and not ip.src in $webhook_service_ips)`                      | Block                   | Webhooks have NO auth - must restrict! |
+| **Protect all services**             | `(not ip.src in $approved_ip_addresses)`                                                                  | Block                   | Strictest - only approved IPs          |
 | **Geographic restrictions**          | `(ip.geoip.country ne "US" and ip.geoip.country ne "GB")`                                                 | Block                   | Allow only specific countries          |
 | **Block bots on sensitive services** | `(http.host in {"prometheus.yourdomain.com" "grafana.yourdomain.com"} and cf.bot_management.score lt 30)` | Block                   | Blocks likely bots                     |
 | **Moderate UI protection**           | `(not http.request.uri.path contains "/webhook" and cf.threat_score gt 30)`                               | Managed Challenge       | UI has login, less strict              |
 | **Rate limit webhooks**              | `(http.request.uri.path contains "/webhook/")`                                                            | Rate Limit (10 req/min) | Additional webhook protection          |
-| **Separate webhook types**           | `(http.request.uri.path contains "/webhook/stripe" and not ip.src in $stripe_IPs)`                        | Block                   | Service-specific webhook protection    |
+| **Separate webhook types**           | `(http.request.uri.path contains "/webhook/stripe" and not ip.src in $stripe_ips)`                        | Block                   | Service-specific webhook protection    |
 
 #### Service-Specific Security Strategies
 
-**n8n (CRITICAL - Webhooks are the highest risk):**
-
-⚠️ **Important**: n8n webhooks have NO built-in authentication and can trigger powerful workflows. They need STRONGER protection than the UI (which has login protection).
-
+**n8n (CRITICAL):** Webhooks have NO auth and can trigger powerful workflows.
 ```
-# Rule 1: STRICT webhook protection - only allow from known service IPs
-(http.host eq "n8n.yourdomain.com" and 
- (http.request.uri.path contains "/webhook/" or 
-  http.request.uri.path contains "/webhook-test/") and 
- not ip.src in $webhook_service_IPs)
-Action: Block
-Note: webhook_service_IPs should ONLY contain verified service IPs (Stripe, GitHub, etc.)
-
-# Rule 2: Moderate UI protection - has login screen protection
-(http.host eq "n8n.yourdomain.com" and 
- not http.request.uri.path contains "/webhook" and
- cf.threat_score gt 30)
-Action: Managed Challenge
-Note: UI has login protection, so can be less strict than webhooks
-```
-
-**Why this approach:**
-- **Webhooks = No Auth** = Need IP allowlisting
-- **UI = Has Login** = Can use lighter protection
-- **Never expose webhooks broadly** - They can trigger database changes, send emails, call APIs
-
-**Flowise:**
-```
-# API endpoints from approved IPs, public chatbot access
-(http.host eq "flowise.yourdomain.com" and 
- http.request.uri.path contains "/api/" and 
- not ip.src in $api_allowed_IPs)
+# Webhook protection - only from known service IPs
+(http.host eq "n8n.yourdomain.com" and
+ http.request.uri.path contains "/webhook" and
+ not ip.src in $webhook_service_ips)
 Action: Block
 ```
 
-**Monitoring Services (Grafana/Prometheus):**
+**Flowise:** Protect API endpoints while allowing public chatbot access.
 ```
-# Strict IP allowlist for monitoring
-(http.host in {"grafana.yourdomain.com" "prometheus.yourdomain.com"} and 
- not ip.src in $monitoring_team_IPs)
+(http.host eq "flowise.yourdomain.com" and
+ http.request.uri.path contains "/api/" and
+ not ip.src in $api_allowed_ips)
+Action: Block
+```
+
+**Monitoring (Grafana/Prometheus):** Use strict IP allowlists.
+```
+(http.host in {"grafana.yourdomain.com" "prometheus.yourdomain.com"} and
+ not ip.src in $monitoring_team_ips)
 Action: Block
 ```
 
@@ -234,73 +200,21 @@ Create separate lists for different access levels:
 
 | List Name               | Purpose                     | Example IPs                   |
 | ----------------------- | --------------------------- | ----------------------------- |
-| `approved_IP_addresses` | General admin access        | Office IPs, VPN endpoints     |
-| `webhook_allowed_IPs`   | Services that call webhooks | Stripe, GitHub, Slack servers |
-| `monitoring_team_IPs`   | DevOps team access          | Team member home IPs          |
-| `api_consumer_IPs`      | Third-party API access      | Partner service IPs           |
+| `approved_ip_addresses` | General admin access        | Office IPs, VPN endpoints     |
+| `webhook_allowed_ips`   | Services that call webhooks | Stripe, GitHub, Slack servers |
+| `monitoring_team_ips`   | DevOps team access          | Team member home IPs          |
+| `api_consumer_ips`      | Third-party API access      | Partner service IPs           |
 
 #### Webhook Security Best Practices
 
-⚠️ **CRITICAL**: Webhooks are your biggest security risk! Unlike the UI which has login protection, webhooks have NO authentication and can directly execute workflows that might:
-- Access your database
-- Send emails/messages  
-- Call external APIs with your credentials
-- Modify data
-- Trigger financial transactions
+⚠️ **CRITICAL**: Webhooks have NO authentication and can execute powerful workflows. Always protect them with IP allowlists.
 
-**Essential Protection Steps:**
-
-1. **Never expose webhooks to the entire internet**
-   - Always use IP allowlists for webhook endpoints
-   - Only add IPs of services that legitimately need webhook access
-
-2. **Create strict webhook IP allowlists**:
-   ```
-   $webhook_service_IPs should only contain:
-   - GitHub webhook IPs: 192.30.252.0/22, 185.199.108.0/22, etc.
-   - Stripe webhook IPs: 3.18.12.63, 3.130.192.231, etc.
-   - Your specific partner/integration IPs
-   - Your monitoring service IPs
-   ```
-
-3. **Use webhook-specific paths** in n8n:
-   - Production: `/webhook/prod-[unique-id]`
-   - Testing: `/webhook-test/test-[unique-id]`
-   - Never use simple, guessable webhook URLs
-
-4. **Implement webhook signatures** in n8n workflows:
-   - Always verify HMAC signatures from services like GitHub/Stripe
-   - Add header validation in your n8n workflows
-   - Reject requests without proper signatures
-
-5. **Create separate rules for different webhook types**:
-   ```
-   # Stripe webhooks - only from Stripe's published IPs
-   (http.host eq "n8n.yourdomain.com" and 
-    http.request.uri.path contains "/webhook/stripe" and 
-    not ip.src in $stripe_webhook_IPs)
-   Action: Block
-   
-   # Internal webhooks - only from your infrastructure
-   (http.host eq "n8n.yourdomain.com" and 
-    http.request.uri.path contains "/webhook/internal" and 
-    not ip.src in $internal_system_IPs)
-   Action: Block
-   ```
-
-6. **Add rate limiting as additional protection**:
-   ```
-   # Rate limit even approved webhook IPs
-   (http.host eq "n8n.yourdomain.com" and 
-    http.request.uri.path contains "/webhook/")
-   Action: Rate Limit (10 requests per minute)
-   ```
-
-7. **Monitor webhook access closely**:
-   - Check Cloudflare Analytics → Security → Events regularly
-   - Set up alerts for blocked webhook attempts
-   - Review which IPs are trying to access your webhooks
-   - Investigate any unexpected webhook triggers
+**Key Protection Steps:**
+1. **Use IP allowlists** - Only allow IPs from services that need webhook access (GitHub, Stripe, etc.)
+2. **Use unique webhook paths** - e.g., `/webhook/prod-abc123` instead of guessable URLs
+3. **Verify signatures** - Check HMAC signatures from GitHub/Stripe in your n8n workflows
+4. **Add rate limiting** - Prevent abuse even from approved IPs
+5. **Monitor regularly** - Check Cloudflare Analytics → Security → Events for blocked attempts
 
 #### Testing Your Rules
 
@@ -325,10 +239,9 @@ Create separate lists for different access levels:
 
 #### Important Considerations
 
-- **Webhook IPs can change**: Services like GitHub, Stripe publish their webhook IP ranges - add these to your lists
+- **Webhook IPs can change**: Services like GitHub, Stripe publish their webhook IP ranges - keep your lists updated
 - **Development vs Production**: Consider separate rules for development environments
 - **Bypass for emergencies**: Keep a "break glass" rule you can quickly enable for emergency access
-- **API rate limits**: Implement rate limiting on webhook endpoints to prevent abuse
 - **Logging**: Enable logging on security rules to track access patterns
 
 ### Verifying Tunnel Connection
