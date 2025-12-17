@@ -22,8 +22,13 @@ export DEBIAN_FRONTEND=noninteractive
 
 # System Update
 log_subheader "System Update"
-log_info "Updating package list and upgrading the system..."
-apt update -y && apt upgrade -y
+log_info "Updating package list..."
+apt update -y
+log_info "Enabling universe repository..."
+apt install -y software-properties-common
+add-apt-repository universe -y
+log_info "Upgrading the system..."
+apt upgrade -y
 
 # Installing Basic Utilities
 log_subheader "Installing Utilities"
