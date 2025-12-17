@@ -98,6 +98,13 @@ bash "$RUN_SERVICES_SCRIPT" || { log_error "Failed to start services. Check logs
 
 log_success "Update application completed successfully!"
 
+# --- Fix file permissions ---
+log_info "Fixing file permissions..."
+bash "$SCRIPT_DIR/08_fix_permissions.sh" || {
+    log_warning "Failed to fix file permissions. This does not affect the update."
+}
+# --- End of Fix permissions ---
+
 # --- Display Final Report with Credentials ---
 bash "$SCRIPT_DIR/07_final_report.sh" || {
     log_warning "Failed to display the final report. This does not affect the update."
