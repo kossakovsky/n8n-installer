@@ -1,0 +1,82 @@
+# Example dynamic config (file provider) for Traefik
+# This is a scaffold to mirror the current Caddyfile; not yet used by the installer.
+
+http:
+  middlewares:
+    auth-prometheus:
+      basicAuth:
+        users:
+          - "${PROMETHEUS_USERNAME:?}:${PROMETHEUS_PASSWORD_HASH:?}"
+    auth-comfyui:
+      basicAuth:
+        users:
+          - "${COMFYUI_USERNAME:?}:${COMFYUI_PASSWORD_HASH:?}"
+    auth-welcome:
+      basicAuth:
+        users:
+          - "${WELCOME_USERNAME:?}:${WELCOME_PASSWORD_HASH:?}"
+
+  routers:
+    n8n:
+      rule: "Host(`${N8N_HOSTNAME}`)"
+      entryPoints: ["websecure"]
+      service: n8n-svc
+      tls:
+        certResolver: ${TRAEFIK_CERT_RESOLVER:-acme}
+
+    prometheus:
+      rule: "Host(`${PROMETHEUS_HOSTNAME}`)"
+      entryPoints: ["websecure"]
+      service: prometheus-svc
+      middlewares: ["auth-prometheus"]
+      tls:
+        certResolver: ${TRAEFIK_CERT_RESOLVER:-acme}
+
+    comfyui:
+      rule: "Host(`${COMFYUI_HOSTNAME}`)"
+      entryPoints: ["websecure"]
+      service: comfyui-svc
+      middlewares: ["auth-comfyui"]
+      tls:
+        certResolver: ${TRAEFIK_CERT_RESOLVER:-acme}
+
+    welcome:
+      rule: "Host(`${WELCOME_HOSTNAME}`)"
+      entryPoints: ["websecure"]
+      service: welcome-svc
+      middlewares: ["auth-welcome"]
+      tls:
+        certResolver: ${TRAEFIK_CERT_RESOLVER:-acme}
+
+  services:
+    n8n-svc:
+      loadBalancer:
+        servers:
+          - url: "http://n8n:5678"
+    prometheus-svc:
+      loadBalancer:
+        servers:
+          - url: "http://prometheus:9090"
+    comfyui-svc:
+      loadBalancer:
+        servers:
+          - url: "http://comfyui:8188"
+    welcome-svc:
+      loadBalancer:
+        servers:
+          - url: "http://welcome-web:80"
+
+tcp:
+  routers:
+    neo4j-bolt:
+      rule: "HostSNI(`${NEO4J_HOSTNAME}`)"
+      entryPoints: ["bolt"]
+      service: neo4j-bolt-svc
+      tls:
+        passthrough: true
+
+  services:
+    neo4j-bolt-svc:
+      loadBalancer:
+        servers:
+          - address: "neo4j:7687"
