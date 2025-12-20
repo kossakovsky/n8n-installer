@@ -36,6 +36,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Flowise**](https://flowiseai.com/) - A no-code/low-code AI agent builder that complements n8n perfectly, allowing you to create sophisticated AI applications with ease.
 
+✅ [**Gost**](https://github.com/go-gost/gost) - Versatile HTTP/HTTPS proxy for routing AI service outbound traffic through a central proxy point
+
 ✅ [**Gotenberg**](https://gotenberg.dev/) - A stateless API for converting HTML, Markdown, Word, Excel, and other documents to PDF, PNG, or JPEG. Available only within the Docker network for internal use by n8n workflows and other services.
 
 ✅ [**Grafana**](https://grafana.com/) - An open-source platform for visualizing monitoring data, helping you understand system performance at a glance.

@@ -44,6 +44,7 @@ base_services_data=(
     "docling" "Docling (Universal Document Converter to Markdown/JSON)"
     "dify" "Dify (AI Application Development Platform with LLMOps)"
     "flowise" "Flowise (AI Agent Builder)"
+    "gost" "Gost Proxy (HTTP/HTTPS proxy for AI services outbound traffic)"
     "gotenberg" "Gotenberg (Document Conversion API)"
     "langfuse" "Langfuse Suite (AI Observability - includes Clickhouse, Minio)"
     "letta" "Letta (Agent Server & SDK)"

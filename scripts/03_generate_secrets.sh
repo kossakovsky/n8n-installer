@@ -39,6 +39,36 @@ require_command "openssl" "Please ensure openssl is installed and available in y
 TEMPLATE_FILE="$PROJECT_ROOT/.env.example"
 OUTPUT_FILE="$PROJECT_ROOT/.env"
 
+# Variables that get assigned the user's email address
+EMAIL_VARS=(
+    "COMFYUI_USERNAME"
+    "DASHBOARD_USERNAME"
+    "DOCLING_USERNAME"
+    "FLOWISE_USERNAME"
+    "GOST_USERNAME"
+    "LANGFUSE_INIT_USER_EMAIL"
+    "LETSENCRYPT_EMAIL"
+    "LIGHTRAG_USERNAME"
+    "LT_USERNAME"
+    "PADDLEOCR_USERNAME"
+    "PROMETHEUS_USERNAME"
+    "RAGAPP_USERNAME"
+    "SEARXNG_USERNAME"
+    "WAHA_DASHBOARD_USERNAME"
+    "WEAVIATE_USERNAME"
+    "WELCOME_USERNAME"
+    "WHATSAPP_SWAGGER_USERNAME"
+)
+
+# All user input variables (EMAIL_VARS plus non-email vars)
+USER_INPUT_VARS=(
+    "${EMAIL_VARS[@]}"
+    "N8N_WORKER_COUNT"
+    "NEO4J_AUTH_USERNAME"
+    "OPENAI_API_KEY"
+    "RUN_N8N_IMPORT"
+)
+
 # Variables to generate: varName="type:length"
 # Types: password (alphanum), secret (base64), hex, base64, alphanum
 declare -A VARS_TO_GENERATE=(
@@ -49,6 +79,7 @@ declare -A VARS_TO_GENERATE=(
     ["DOCLING_PASSWORD"]="password:32"
     ["ENCRYPTION_KEY"]="hex:64" # Langfuse Encryption Key (32 bytes -> 64 hex chars)
     ["FLOWISE_PASSWORD"]="password:32"
+    ["GOST_PASSWORD"]="password:32"
     ["GRAFANA_ADMIN_PASSWORD"]="password:32"
     ["JWT_SECRET"]="base64:64" # 48 bytes -> 64 chars
     ["LANGFUSE_INIT_PROJECT_PUBLIC_KEY"]="langfuse_pk:32"
@@ -243,22 +274,10 @@ for key_from_existing in "${!existing_env_vars[@]}"; do
 done
 
 # Store user input values (potentially overwriting if user was re-prompted and gave new input)
-generated_values["FLOWISE_USERNAME"]="$USER_EMAIL"
-generated_values["DASHBOARD_USERNAME"]="$USER_EMAIL"
-generated_values["LETSENCRYPT_EMAIL"]="$USER_EMAIL"
-generated_values["PROMETHEUS_USERNAME"]="$USER_EMAIL"
-generated_values["SEARXNG_USERNAME"]="$USER_EMAIL"
-generated_values["LANGFUSE_INIT_USER_EMAIL"]="$USER_EMAIL"
-generated_values["WEAVIATE_USERNAME"]="$USER_EMAIL" # Set Weaviate username for Caddy
-generated_values["COMFYUI_USERNAME"]="$USER_EMAIL" # Set ComfyUI username for Caddy
-generated_values["RAGAPP_USERNAME"]="$USER_EMAIL" # Set RAGApp username for Caddy
-generated_values["PADDLEOCR_USERNAME"]="$USER_EMAIL" # Set PaddleOCR username for Caddy
-generated_values["LT_USERNAME"]="$USER_EMAIL" # Set LibreTranslate username for Caddy
-generated_values["LIGHTRAG_USERNAME"]="$USER_EMAIL" # Set LightRAG username for built-in auth
-generated_values["WAHA_DASHBOARD_USERNAME"]="$USER_EMAIL" # WAHA dashboard username default
-generated_values["WHATSAPP_SWAGGER_USERNAME"]="$USER_EMAIL" # WAHA swagger username default
-generated_values["DOCLING_USERNAME"]="$USER_EMAIL" # Set Docling username for Caddy
-generated_values["WELCOME_USERNAME"]="$USER_EMAIL" # Set Welcome page username for Caddy
+# Assign user email to all EMAIL_VARS
+for var in "${EMAIL_VARS[@]}"; do
+    generated_values["$var"]="$USER_EMAIL"
+done
 
 
 # Create a temporary file for processing
@@ -267,26 +286,9 @@ TEMP_FILES+=("$TMP_ENV_FILE")
 
 # Track whether our custom variables were found in the template
 declare -A found_vars
-found_vars["FLOWISE_USERNAME"]=0
-found_vars["DASHBOARD_USERNAME"]=0
-found_vars["LETSENCRYPT_EMAIL"]=0
-found_vars["RUN_N8N_IMPORT"]=0
-found_vars["PROMETHEUS_USERNAME"]=0
-found_vars["SEARXNG_USERNAME"]=0
-found_vars["OPENAI_API_KEY"]=0
-found_vars["LANGFUSE_INIT_USER_EMAIL"]=0
-found_vars["N8N_WORKER_COUNT"]=0
-found_vars["WEAVIATE_USERNAME"]=0
-found_vars["NEO4J_AUTH_USERNAME"]=0
-found_vars["COMFYUI_USERNAME"]=0
-found_vars["RAGAPP_USERNAME"]=0
-found_vars["PADDLEOCR_USERNAME"]=0
-found_vars["DOCLING_USERNAME"]=0
-found_vars["LT_USERNAME"]=0
-found_vars["LIGHTRAG_USERNAME"]=0
-found_vars["WAHA_DASHBOARD_USERNAME"]=0
-found_vars["WELCOME_USERNAME"]=0
-found_vars["WHATSAPP_SWAGGER_USERNAME"]=0
+for var in "${USER_INPUT_VARS[@]}"; do
+    found_vars["$var"]=0
+done
 
 # Read template, substitute domain, generate initial values
 while IFS= read -r line || [[ -n "$line" ]]; do
@@ -333,8 +335,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             # This 'else' block is for lines from template not covered by existing values or VARS_TO_GENERATE.
             # Check if it is one of the user input vars - these are handled by found_vars later if not in template.
             is_user_input_var=0 # Reset for each line
-    user_input_vars=("FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "OPENAI_API_KEY" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "LIGHTRAG_USERNAME" "WAHA_DASHBOARD_USERNAME" "WELCOME_USERNAME" "WHATSAPP_SWAGGER_USERNAME")
-            for uivar in "${user_input_vars[@]}"; do
+            for uivar in "${USER_INPUT_VARS[@]}"; do
                 if [[ "$varName" == "$uivar" ]]; then
                     is_user_input_var=1
                     # Mark as found if it's in template, value taken from generated_values if already set or blank
@@ -415,7 +416,7 @@ if [[ -z "${generated_values[SERVICE_ROLE_KEY]}" ]]; then
 fi
 
 # Add any custom variables that weren't found in the template
-for var in "FLOWISE_USERNAME" "DASHBOARD_USERNAME" "LETSENCRYPT_EMAIL" "RUN_N8N_IMPORT" "OPENAI_API_KEY" "PROMETHEUS_USERNAME" "SEARXNG_USERNAME" "LANGFUSE_INIT_USER_EMAIL" "N8N_WORKER_COUNT" "WEAVIATE_USERNAME" "NEO4J_AUTH_USERNAME" "COMFYUI_USERNAME" "RAGAPP_USERNAME" "PADDLEOCR_USERNAME" "LT_USERNAME" "LIGHTRAG_USERNAME" "WAHA_DASHBOARD_USERNAME" "WELCOME_USERNAME" "WHATSAPP_SWAGGER_USERNAME" "DOCLING_USERNAME"; do
+for var in "${USER_INPUT_VARS[@]}"; do
     if [[ ${found_vars["$var"]} -eq 0 && ${generated_values[$var]+_} ]]; then
         # Before appending, check if it's already in TMP_ENV_FILE to avoid duplicates
         if ! grep -q -E "^${var}=" "$TMP_ENV_FILE"; then
@@ -513,6 +514,17 @@ fi
 
 _update_or_add_env_var "WAHA_API_KEY_PLAIN" "${generated_values[WAHA_API_KEY_PLAIN]}"
 _update_or_add_env_var "WAHA_API_KEY" "${generated_values[WAHA_API_KEY]}"
+
+# Generate GOST_PROXY_URL if gost profile is active
+if is_profile_active "gost"; then
+    if [[ -n "${generated_values[GOST_PASSWORD]}" && -n "${generated_values[GOST_USERNAME]}" ]]; then
+        generated_values["GOST_PROXY_URL"]="http://${generated_values[GOST_USERNAME]}:${generated_values[GOST_PASSWORD]}@gost:8080"
+        _update_or_add_env_var "GOST_PROXY_URL" "${generated_values[GOST_PROXY_URL]}"
+    fi
+else
+    # Clear proxy URL if gost is not active
+    _update_or_add_env_var "GOST_PROXY_URL" ""
+fi
 
 # Hash passwords using caddy with bcrypt (consolidated loop)
 SERVICES_NEEDING_HASH=("PROMETHEUS" "SEARXNG" "COMFYUI" "PADDLEOCR" "RAGAPP" "LT" "DOCLING" "WELCOME")

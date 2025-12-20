@@ -343,6 +343,14 @@
             category: 'tools',
             docsUrl: 'https://docs.crawl4ai.com'
         },
+        'gost': {
+            name: 'Gost Proxy',
+            description: 'HTTP/HTTPS Proxy for Outbound Traffic',
+            icon: 'GP',
+            color: 'bg-[#4051B5]',
+            category: 'infra',
+            docsUrl: 'https://gost.run/en/'
+        },
         'gotenberg': {
             name: 'Gotenberg',
             description: 'PDF Generator API',

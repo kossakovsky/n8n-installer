@@ -422,6 +422,22 @@ if is_profile_active "cloudflare-tunnel"; then
     }")
 fi
 
+# Gost Proxy (internal only)
+if is_profile_active "gost"; then
+    SERVICES_ARRAY+=("    \"gost\": {
+      \"hostname\": null,
+      \"credentials\": {
+        \"username\": \"$(json_escape "$GOST_USERNAME")\",
+        \"password\": \"$(json_escape "$GOST_PASSWORD")\"
+      },
+      \"extra\": {
+        \"note\": \"Internal HTTP proxy for AI services\",
+        \"proxy_url\": \"$(json_escape "$GOST_PROXY_URL")\",
+        \"internal_api\": \"http://gost:8080\"
+      }
+    }")
+fi
+
 # Join array with commas and newlines
 SERVICES_JSON=""
 for i in "${!SERVICES_ARRAY[@]}"; do

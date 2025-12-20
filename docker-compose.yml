@@ -34,12 +34,22 @@ volumes:
   valkey-data:
   weaviate_data:
 
+# Shared proxy configuration for services that need outbound proxy support
+x-proxy-env: &proxy-env
+  HTTP_PROXY: ${GOST_PROXY_URL:-}
+  HTTPS_PROXY: ${GOST_PROXY_URL:-}
+  http_proxy: ${GOST_PROXY_URL:-}
+  https_proxy: ${GOST_PROXY_URL:-}
+  NO_PROXY: ${GOST_NO_PROXY:-}
+  no_proxy: ${GOST_NO_PROXY:-}
+
 x-n8n: &service-n8n
   build:
     context: ./n8n
     dockerfile: Dockerfile.n8n
     pull: true
   environment: &service-n8n-env
+    <<: *proxy-env
     DB_POSTGRESDB_DATABASE: postgres
     DB_POSTGRESDB_HOST: postgres
     DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
@@ -91,10 +101,10 @@ x-ollama: &service-ollama
   container_name: ollama
   restart: unless-stopped
   environment:
-    - OLLAMA_CONTEXT_LENGTH=8192
-    - OLLAMA_FLASH_ATTENTION=1
-    - OLLAMA_KV_CACHE_TYPE=q8_0
-    - OLLAMA_MAX_LOADED_MODELS=2
+    OLLAMA_CONTEXT_LENGTH: 8192
+    OLLAMA_FLASH_ATTENTION: 1
+    OLLAMA_KV_CACHE_TYPE: q8_0
+    OLLAMA_MAX_LOADED_MODELS: 2
   volumes:
     - ollama_storage:/root/.ollama
 
@@ -128,9 +138,10 @@ services:
     container_name: flowise
     profiles: ["flowise"]
     environment:
-      - PORT=3001
-      - FLOWISE_USERNAME=${FLOWISE_USERNAME}
-      - FLOWISE_PASSWORD=${FLOWISE_PASSWORD}
+      <<: *proxy-env
+      PORT: 3001
+      FLOWISE_USERNAME: ${FLOWISE_USERNAME}
+      FLOWISE_PASSWORD: ${FLOWISE_PASSWORD}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -143,7 +154,8 @@ services:
     container_name: open-webui
     profiles: ["open-webui"]
     environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
+      <<: *proxy-env
+      OLLAMA_BASE_URL: http://ollama:11434
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -225,7 +237,7 @@ services:
     volumes:
       - qdrant_storage:/qdrant/storage
     environment:
-      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY}
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY}
     expose:
       - "6333"
 
@@ -270,48 +282,48 @@ services:
       - caddy-data:/data:rw
       - caddy-config:/config:rw
     environment:
-      - COMFYUI_HOSTNAME=${COMFYUI_HOSTNAME}
-      - COMFYUI_PASSWORD_HASH=${COMFYUI_PASSWORD_HASH}
-      - COMFYUI_USERNAME=${COMFYUI_USERNAME}
-      - DIFY_HOSTNAME=${DIFY_HOSTNAME}
-      - DOCLING_HOSTNAME=${DOCLING_HOSTNAME}
-      - DOCLING_PASSWORD_HASH=${DOCLING_PASSWORD_HASH}
-      - DOCLING_USERNAME=${DOCLING_USERNAME}
-      - FLOWISE_HOSTNAME=${FLOWISE_HOSTNAME}
-      - GRAFANA_HOSTNAME=${GRAFANA_HOSTNAME}
-      - LANGFUSE_HOSTNAME=${LANGFUSE_HOSTNAME}
-      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-internal}
-      - LETTA_HOSTNAME=${LETTA_HOSTNAME}
-      - LIGHTRAG_HOSTNAME=${LIGHTRAG_HOSTNAME}
-      - LT_HOSTNAME=${LT_HOSTNAME}
-      - LT_USERNAME=${LT_USERNAME}
-      - LT_PASSWORD_HASH=${LT_PASSWORD_HASH}
-      - N8N_HOSTNAME=${N8N_HOSTNAME}
-      - NEO4J_HOSTNAME=${NEO4J_HOSTNAME}
-      - WAHA_HOSTNAME=${WAHA_HOSTNAME}
-      - PADDLEOCR_HOSTNAME=${PADDLEOCR_HOSTNAME}
-      - PADDLEOCR_PASSWORD_HASH=${PADDLEOCR_PASSWORD_HASH}
-      - PADDLEOCR_USERNAME=${PADDLEOCR_USERNAME}
-      - PORTAINER_HOSTNAME=${PORTAINER_HOSTNAME}
-      - POSTIZ_HOSTNAME=${POSTIZ_HOSTNAME}
-      - POSTGRESUS_HOSTNAME=${POSTGRESUS_HOSTNAME}
-      - PROMETHEUS_HOSTNAME=${PROMETHEUS_HOSTNAME}
-      - PROMETHEUS_PASSWORD_HASH=${PROMETHEUS_PASSWORD_HASH}
-      - PROMETHEUS_USERNAME=${PROMETHEUS_USERNAME}
-      - QDRANT_HOSTNAME=${QDRANT_HOSTNAME}
-      - RAGAPP_HOSTNAME=${RAGAPP_HOSTNAME}
-      - RAGFLOW_HOSTNAME=${RAGFLOW_HOSTNAME}
-      - RAGAPP_PASSWORD_HASH=${RAGAPP_PASSWORD_HASH}
-      - RAGAPP_USERNAME=${RAGAPP_USERNAME}
-      - SEARXNG_HOSTNAME=${SEARXNG_HOSTNAME}
-      - SEARXNG_PASSWORD_HASH=${SEARXNG_PASSWORD_HASH}
-      - SEARXNG_USERNAME=${SEARXNG_USERNAME}
-      - SUPABASE_HOSTNAME=${SUPABASE_HOSTNAME}
-      - WEAVIATE_HOSTNAME=${WEAVIATE_HOSTNAME}
-      - WEBUI_HOSTNAME=${WEBUI_HOSTNAME}
-      - WELCOME_HOSTNAME=${WELCOME_HOSTNAME}
-      - WELCOME_PASSWORD_HASH=${WELCOME_PASSWORD_HASH}
-      - WELCOME_USERNAME=${WELCOME_USERNAME}
+      COMFYUI_HOSTNAME: ${COMFYUI_HOSTNAME}
+      COMFYUI_PASSWORD_HASH: ${COMFYUI_PASSWORD_HASH}
+      COMFYUI_USERNAME: ${COMFYUI_USERNAME}
+      DIFY_HOSTNAME: ${DIFY_HOSTNAME}
+      DOCLING_HOSTNAME: ${DOCLING_HOSTNAME}
+      DOCLING_PASSWORD_HASH: ${DOCLING_PASSWORD_HASH}
+      DOCLING_USERNAME: ${DOCLING_USERNAME}
+      FLOWISE_HOSTNAME: ${FLOWISE_HOSTNAME}
+      GRAFANA_HOSTNAME: ${GRAFANA_HOSTNAME}
+      LANGFUSE_HOSTNAME: ${LANGFUSE_HOSTNAME}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-internal}
+      LETTA_HOSTNAME: ${LETTA_HOSTNAME}
+      LIGHTRAG_HOSTNAME: ${LIGHTRAG_HOSTNAME}
+      LT_HOSTNAME: ${LT_HOSTNAME}
+      LT_USERNAME: ${LT_USERNAME}
+      LT_PASSWORD_HASH: ${LT_PASSWORD_HASH}
+      N8N_HOSTNAME: ${N8N_HOSTNAME}
+      NEO4J_HOSTNAME: ${NEO4J_HOSTNAME}
+      WAHA_HOSTNAME: ${WAHA_HOSTNAME}
+      PADDLEOCR_HOSTNAME: ${PADDLEOCR_HOSTNAME}
+      PADDLEOCR_PASSWORD_HASH: ${PADDLEOCR_PASSWORD_HASH}
+      PADDLEOCR_USERNAME: ${PADDLEOCR_USERNAME}
+      PORTAINER_HOSTNAME: ${PORTAINER_HOSTNAME}
+      POSTIZ_HOSTNAME: ${POSTIZ_HOSTNAME}
+      POSTGRESUS_HOSTNAME: ${POSTGRESUS_HOSTNAME}
+      PROMETHEUS_HOSTNAME: ${PROMETHEUS_HOSTNAME}
+      PROMETHEUS_PASSWORD_HASH: ${PROMETHEUS_PASSWORD_HASH}
+      PROMETHEUS_USERNAME: ${PROMETHEUS_USERNAME}
+      QDRANT_HOSTNAME: ${QDRANT_HOSTNAME}
+      RAGAPP_HOSTNAME: ${RAGAPP_HOSTNAME}
+      RAGFLOW_HOSTNAME: ${RAGFLOW_HOSTNAME}
+      RAGAPP_PASSWORD_HASH: ${RAGAPP_PASSWORD_HASH}
+      RAGAPP_USERNAME: ${RAGAPP_USERNAME}
+      SEARXNG_HOSTNAME: ${SEARXNG_HOSTNAME}
+      SEARXNG_PASSWORD_HASH: ${SEARXNG_PASSWORD_HASH}
+      SEARXNG_USERNAME: ${SEARXNG_USERNAME}
+      SUPABASE_HOSTNAME: ${SUPABASE_HOSTNAME}
+      WEAVIATE_HOSTNAME: ${WEAVIATE_HOSTNAME}
+      WEBUI_HOSTNAME: ${WEBUI_HOSTNAME}
+      WELCOME_HOSTNAME: ${WELCOME_HOSTNAME}
+      WELCOME_PASSWORD_HASH: ${WELCOME_PASSWORD_HASH}
+      WELCOME_USERNAME: ${WELCOME_USERNAME}
     cap_drop:
       - ALL
     cap_add:
@@ -329,7 +341,27 @@ services:
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+  gost:
+    image: gogost/gost:latest
+    container_name: gost
+    profiles: ["gost"]
+    restart: unless-stopped
+    command:
+      - "-L"
+      - "http://${GOST_USERNAME}:${GOST_PASSWORD}@:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
     logging:
       driver: "json-file"
       options:
@@ -351,6 +383,7 @@ services:
       clickhouse:
         condition: service_healthy
     environment: &langfuse-worker-env
+      <<: *proxy-env
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/langfuse
       SALT: ${LANGFUSE_SALT}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
@@ -504,9 +537,9 @@ services:
     volumes:
       - ./searxng:/etc/searxng:rw
     environment:
-      - SEARXNG_BASE_URL=https://${SEARXNG_HOSTNAME:-localhost}/
-      - UWSGI_WORKERS=${SEARXNG_UWSGI_WORKERS:-4}
-      - UWSGI_THREADS=${SEARXNG_UWSGI_THREADS:-4}
+      SEARXNG_BASE_URL: https://${SEARXNG_HOSTNAME:-localhost}/
+      UWSGI_WORKERS: ${SEARXNG_UWSGI_WORKERS:-4}
+      UWSGI_THREADS: ${SEARXNG_UWSGI_THREADS:-4}
     # cap_drop: - ALL  # Temporarily commented out for first run
     cap_add:
       - CHOWN
@@ -606,8 +639,8 @@ services:
     profiles: ["monitoring"]
     restart: unless-stopped
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
-      - GF_PROVISIONING_PATH=/etc/grafana/provisioning
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_PROVISIONING_PATH: /etc/grafana/provisioning
     volumes:
       - grafana:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
@@ -625,6 +658,8 @@ services:
     shm_size: 1g # Recommended for browser operations
     env_file:
       - .env
+    environment:
+      <<: *proxy-env
     deploy:
       resources:
         limits:
@@ -637,7 +672,7 @@ services:
     profiles: ["gotenberg"]
     restart: unless-stopped
     environment:
-      - DISABLE_GOOGLE_CHROME=false
+      DISABLE_GOOGLE_CHROME: false
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/health"]
       interval: 30s
@@ -652,6 +687,7 @@ services:
     volumes:
       - letta_data:/var/lib/postgresql/data
     environment:
+      <<: *proxy-env
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
@@ -695,6 +731,8 @@ services:
     container_name: ragapp
     profiles: ["ragapp"]
     restart: unless-stopped
+    environment:
+      <<: *proxy-env
 
   portainer:
     image: portainer/portainer-ce:latest
@@ -711,6 +749,7 @@ services:
     profiles: ["postiz"]
     restart: always
     environment:
+      <<: *proxy-env
       BACKEND_INTERNAL_URL: http://postiz:3000
       DATABASE_URL: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?schema=postiz"
       DISABLE_REGISTRATION: ${POSTIZ_DISABLE_REGISTRATION}
@@ -778,7 +817,7 @@ services:
     profiles: ["comfyui"]
     restart: unless-stopped
     environment:
-      - CLI_ARGS=--listen 0.0.0.0 --cpu
+      CLI_ARGS: --listen 0.0.0.0 --cpu
     volumes:
       - comfyui_data:/home/runner
     healthcheck:
@@ -793,22 +832,22 @@ services:
     profiles: ["libretranslate"]
     restart: unless-stopped
     environment:
-      - LT_API_KEYS=${LT_API_KEYS:-false}
-      - LT_BATCH_LIMIT=${LT_BATCH_LIMIT:-}
-      - LT_CHAR_LIMIT=${LT_CHAR_LIMIT:-10000}
-      - LT_DEBUG=${LT_DEBUG:-false}
-      - LT_FRONTEND_LANGUAGE_SOURCE=${LT_FRONTEND_LANGUAGE_SOURCE:-auto}
-      - LT_FRONTEND_LANGUAGE_TARGET=${LT_FRONTEND_LANGUAGE_TARGET:-en}
-      - LT_FRONTEND_TIMEOUT=${LT_FRONTEND_TIMEOUT:-2000}
-      - LT_HOST=${LT_HOST:-0.0.0.0}
-      - LT_LOAD_ONLY=${LT_LOAD_ONLY:-}
-      - LT_METRICS=${LT_METRICS:-false}
-      - LT_PORT=${LT_PORT:-5000}
-      - LT_REQ_LIMIT=${LT_REQ_LIMIT:-}
-      - LT_SSL=${LT_SSL:-false}
-      - LT_SUGGESTIONS=${LT_SUGGESTIONS:-false}
-      - LT_THREADS=${LT_THREADS:-4}
-      - LT_UPDATE_MODELS=${LT_UPDATE_MODELS:-false}
+      LT_API_KEYS: ${LT_API_KEYS:-false}
+      LT_BATCH_LIMIT: ${LT_BATCH_LIMIT:-}
+      LT_CHAR_LIMIT: ${LT_CHAR_LIMIT:-10000}
+      LT_DEBUG: ${LT_DEBUG:-false}
+      LT_FRONTEND_LANGUAGE_SOURCE: ${LT_FRONTEND_LANGUAGE_SOURCE:-auto}
+      LT_FRONTEND_LANGUAGE_TARGET: ${LT_FRONTEND_LANGUAGE_TARGET:-en}
+      LT_FRONTEND_TIMEOUT: ${LT_FRONTEND_TIMEOUT:-2000}
+      LT_HOST: ${LT_HOST:-0.0.0.0}
+      LT_LOAD_ONLY: ${LT_LOAD_ONLY:-}
+      LT_METRICS: ${LT_METRICS:-false}
+      LT_PORT: ${LT_PORT:-5000}
+      LT_REQ_LIMIT: ${LT_REQ_LIMIT:-}
+      LT_SSL: ${LT_SSL:-false}
+      LT_SUGGESTIONS: ${LT_SUGGESTIONS:-false}
+      LT_THREADS: ${LT_THREADS:-4}
+      LT_UPDATE_MODELS: ${LT_UPDATE_MODELS:-false}
     volumes:
       - libretranslate_api_keys:/app/db
       - libretranslate_models:/home/libretranslate/.local:rw
@@ -854,17 +893,17 @@ services:
     profiles: ["waha"]
     restart: unless-stopped
     environment:
-      - WAHA_ENGINE=${WAHA_ENGINE}
-      - WAHA_API_KEY=${WAHA_API_KEY}
-      - WAHA_DASHBOARD_USERNAME=${WAHA_DASHBOARD_USERNAME}
-      - WAHA_DASHBOARD_PASSWORD=${WAHA_DASHBOARD_PASSWORD}
-      - WHATSAPP_SWAGGER_USERNAME=${WHATSAPP_SWAGGER_USERNAME}
-      - WHATSAPP_SWAGGER_PASSWORD=${WHATSAPP_SWAGGER_PASSWORD}
-      - WAHA_DASHBOARD_ENABLED=${WAHA_DASHBOARD_ENABLED:-true}
-      - WHATSAPP_SWAGGER_ENABLED=${WHATSAPP_SWAGGER_ENABLED:-true}
-      - WAHA_BASE_URL=http://waha:3000
-      - REDIS_URL=redis://redis:6379
-      - WHATSAPP_SESSIONS_POSTGRESQL_URL=postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?sslmode=disable
+      WAHA_ENGINE: ${WAHA_ENGINE}
+      WAHA_API_KEY: ${WAHA_API_KEY}
+      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME}
+      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
+      WHATSAPP_SWAGGER_USERNAME: ${WHATSAPP_SWAGGER_USERNAME}
+      WHATSAPP_SWAGGER_PASSWORD: ${WHATSAPP_SWAGGER_PASSWORD}
+      WAHA_DASHBOARD_ENABLED: ${WAHA_DASHBOARD_ENABLED:-true}
+      WHATSAPP_SWAGGER_ENABLED: ${WHATSAPP_SWAGGER_ENABLED:-true}
+      WAHA_BASE_URL: http://waha:3000
+      REDIS_URL: redis://redis:6379
+      WHATSAPP_SESSIONS_POSTGRESQL_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?sslmode=disable
     depends_on:
       redis:
         condition: service_healthy
@@ -877,24 +916,25 @@ services:
     profiles: ["ragflow"]
     restart: unless-stopped
     environment:
-      - SVR_HTTP_PORT=80
-      - REDIS_HOST=ragflow-redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${RAGFLOW_REDIS_PASSWORD}
-      - MYSQL_HOST=ragflow-mysql
-      - MYSQL_PORT=3306
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=${RAGFLOW_MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=rag_flow
-      - DOC_ENGINE=elasticsearch
-      - ES_HOST=ragflow-elasticsearch
-      - ES_PORT=9200
-      - ELASTIC_PASSWORD=${RAGFLOW_ELASTICSEARCH_PASSWORD}
-      - MINIO_HOST=ragflow-minio
-      - MINIO_PORT=9000
-      - MINIO_USER=minio
-      - MINIO_PASSWORD=${RAGFLOW_MINIO_ROOT_PASSWORD}
-      - MINIO_BUCKET=ragflow
+      <<: *proxy-env
+      SVR_HTTP_PORT: 80
+      REDIS_HOST: ragflow-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${RAGFLOW_REDIS_PASSWORD}
+      MYSQL_HOST: ragflow-mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ${RAGFLOW_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: rag_flow
+      DOC_ENGINE: elasticsearch
+      ES_HOST: ragflow-elasticsearch
+      ES_PORT: 9200
+      ELASTIC_PASSWORD: ${RAGFLOW_ELASTICSEARCH_PASSWORD}
+      MINIO_HOST: ragflow-minio
+      MINIO_PORT: 9000
+      MINIO_USER: minio
+      MINIO_PASSWORD: ${RAGFLOW_MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ragflow
     volumes:
       - ragflow_data:/ragflow
       - ./ragflow/nginx.conf:/etc/nginx/sites-available/default:ro
@@ -914,8 +954,8 @@ services:
     profiles: ["ragflow"]
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=${RAGFLOW_MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=rag_flow
+      MYSQL_ROOT_PASSWORD: ${RAGFLOW_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: rag_flow
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost || exit 1"]
       interval: 10s
@@ -933,8 +973,8 @@ services:
     entrypoint: sh
     command: -c 'mkdir -p /data/ragflow && minio server --address ":9000" --console-address ":9001" /data'
     environment:
-      - MINIO_ROOT_USER=minio
-      - MINIO_ROOT_PASSWORD=${RAGFLOW_MINIO_ROOT_PASSWORD}
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: ${RAGFLOW_MINIO_ROOT_PASSWORD}
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
       interval: 5s
@@ -975,16 +1015,16 @@ services:
     profiles: ["ragflow"]
     restart: unless-stopped
     environment:
-      - node.name=ragflow-es01
-      - discovery.type=single-node
-      - ELASTIC_PASSWORD=${RAGFLOW_ELASTICSEARCH_PASSWORD}
-      - bootstrap.memory_lock=false
-      - xpack.security.enabled=true
-      - xpack.security.http.ssl.enabled=false
-      - xpack.security.transport.ssl.enabled=false
-      - cluster.routing.allocation.disk.watermark.low=5gb
-      - cluster.routing.allocation.disk.watermark.high=3gb
-      - cluster.routing.allocation.disk.watermark.flood_stage=2gb
+      node.name: ragflow-es01
+      discovery.type: single-node
+      ELASTIC_PASSWORD: ${RAGFLOW_ELASTICSEARCH_PASSWORD}
+      bootstrap.memory_lock: false
+      xpack.security.enabled: true
+      xpack.security.http.ssl.enabled: false
+      xpack.security.transport.ssl.enabled: false
+      cluster.routing.allocation.disk.watermark.low: 5gb
+      cluster.routing.allocation.disk.watermark.high: 3gb
+      cluster.routing.allocation.disk.watermark.flood_stage: 2gb
     ulimits:
       memlock:
         soft: -1
@@ -1015,76 +1055,67 @@ services:
     profiles: ["lightrag"]
     restart: unless-stopped
     environment:
+      <<: *proxy-env
       # Server Configuration
-      - HOST=0.0.0.0
-      - PORT=9621
-      - WEBUI_TITLE=LightRAG Knowledge Graph
-      - WEBUI_DESCRIPTION=Graph-based RAG with Knowledge Extraction
-
+      HOST: 0.0.0.0
+      PORT: 9621
+      WEBUI_TITLE: LightRAG Knowledge Graph
+      WEBUI_DESCRIPTION: Graph-based RAG with Knowledge Extraction
       # Authentication (Built-in)
-      - AUTH_ACCOUNTS=${LIGHTRAG_USERNAME}:${LIGHTRAG_PASSWORD}
-      - LIGHTRAG_API_KEY=${LIGHTRAG_API_KEY}
-
+      AUTH_ACCOUNTS: ${LIGHTRAG_USERNAME}:${LIGHTRAG_PASSWORD}
+      LIGHTRAG_API_KEY: ${LIGHTRAG_API_KEY}
       # LLM Configuration (Ollama)
-      - LLM_BINDING=ollama
-      - LLM_MODEL=qwen2.5:32b
-      - LLM_BINDING_HOST=http://ollama:11434
-      - OLLAMA_LLM_NUM_CTX=32768
-      - MAX_ASYNC=4
-
+      LLM_BINDING: ollama
+      LLM_MODEL: qwen2.5:32b
+      LLM_BINDING_HOST: http://ollama:11434
+      OLLAMA_LLM_NUM_CTX: 32768
+      MAX_ASYNC: 4
       # Embedding Configuration (Ollama)
-      - EMBEDDING_BINDING=ollama
-      - EMBEDDING_MODEL=bge-m3:latest
-      - EMBEDDING_DIM=1024
-      - EMBEDDING_BINDING_HOST=http://ollama:11434
-      - OLLAMA_EMBEDDING_NUM_CTX=8192
-      - EMBEDDING_FUNC_MAX_ASYNC=16
-      - EMBEDDING_BATCH_NUM=32
-
+      EMBEDDING_BINDING: ollama
+      EMBEDDING_MODEL: bge-m3:latest
+      EMBEDDING_DIM: 1024
+      EMBEDDING_BINDING_HOST: http://ollama:11434
+      OLLAMA_EMBEDDING_NUM_CTX: 8192
+      EMBEDDING_FUNC_MAX_ASYNC: 16
+      EMBEDDING_BATCH_NUM: 32
       # Query Configuration
-      - ENABLE_LLM_CACHE=true
-      - TOP_K=60
-      - CHUNK_TOP_K=20
-      - COSINE_THRESHOLD=0.2
-      - MAX_ENTITY_TOKENS=6000
-      - MAX_RELATION_TOKENS=8000
-      - MAX_TOTAL_TOKENS=30000
-
+      ENABLE_LLM_CACHE: true
+      TOP_K: 60
+      CHUNK_TOP_K: 20
+      COSINE_THRESHOLD: 0.2
+      MAX_ENTITY_TOKENS: 6000
+      MAX_RELATION_TOKENS: 8000
+      MAX_TOTAL_TOKENS: 30000
       # Document Processing
-      - ENABLE_LLM_CACHE_FOR_EXTRACT=true
-      - SUMMARY_LANGUAGE=English
-      - CHUNK_SIZE=1200
-      - CHUNK_OVERLAP_SIZE=100
-      - SUMMARY_MAX_TOKENS=500
-      - SUMMARY_CONTEXT_SIZE=10000
-
+      ENABLE_LLM_CACHE_FOR_EXTRACT: true
+      SUMMARY_LANGUAGE: English
+      CHUNK_SIZE: 1200
+      CHUNK_OVERLAP_SIZE: 100
+      SUMMARY_MAX_TOKENS: 500
+      SUMMARY_CONTEXT_SIZE: 10000
       # Storage Configuration (Flexible - uses PostgreSQL/Neo4j if available)
-      - LIGHTRAG_KV_STORAGE=JsonKVStorage
-      - LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage
-      - LIGHTRAG_GRAPH_STORAGE=${LIGHTRAG_GRAPH_STORAGE:-NetworkXStorage}
-      - LIGHTRAG_VECTOR_STORAGE=${LIGHTRAG_VECTOR_STORAGE:-NanoVectorDBStorage}
-
+      LIGHTRAG_KV_STORAGE: JsonKVStorage
+      LIGHTRAG_DOC_STATUS_STORAGE: JsonDocStatusStorage
+      LIGHTRAG_GRAPH_STORAGE: ${LIGHTRAG_GRAPH_STORAGE:-NetworkXStorage}
+      LIGHTRAG_VECTOR_STORAGE: ${LIGHTRAG_VECTOR_STORAGE:-NanoVectorDBStorage}
       # PostgreSQL Configuration (if using PostgreSQL storage)
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DATABASE=postgres
-      - POSTGRES_MAX_CONNECTIONS=12
-      - POSTGRES_VECTOR_INDEX_TYPE=HNSW
-      - POSTGRES_HNSW_M=16
-      - POSTGRES_HNSW_EF=200
-
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DATABASE: postgres
+      POSTGRES_MAX_CONNECTIONS: 12
+      POSTGRES_VECTOR_INDEX_TYPE: HNSW
+      POSTGRES_HNSW_M: 16
+      POSTGRES_HNSW_EF: 200
       # Neo4j Configuration (if using Neo4j storage)
-      - NEO4J_URI=bolt://neo4j:7687
-      - NEO4J_USERNAME=${NEO4J_AUTH_USERNAME:-neo4j}
-      - NEO4J_PASSWORD=${NEO4J_AUTH_PASSWORD}
-      - NEO4J_DATABASE=neo4j
-
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USERNAME: ${NEO4J_AUTH_USERNAME:-neo4j}
+      NEO4J_PASSWORD: ${NEO4J_AUTH_PASSWORD}
+      NEO4J_DATABASE: neo4j
       # Directories
-      - INPUT_DIR=/app/data/inputs
-      - WORKING_DIR=/app/data/rag_storage
-
+      INPUT_DIR: /app/data/inputs
+      WORKING_DIR: /app/data/rag_storage
     volumes:
       - lightrag_data:/app/data/rag_storage
       - lightrag_inputs:/app/data/inputs
@@ -1109,10 +1140,11 @@ services:
     profiles: ["docling"]
     restart: unless-stopped
     environment:
-      - DOCLING_SERVE_ENABLE_UI=1
-      - DOCLING_SERVE_ENABLE_REMOTE_SERVICES=${DOCLING_SERVE_ENABLE_REMOTE_SERVICES:-true}
-      - DOCLING_SERVE_LOAD_MODELS_AT_BOOT=${DOCLING_SERVE_LOAD_MODELS_AT_BOOT:-false}
-      - DOCLING_DEVICE=${DOCLING_DEVICE:-cpu}
+      <<: *proxy-env
+      DOCLING_SERVE_ENABLE_UI: 1
+      DOCLING_SERVE_ENABLE_REMOTE_SERVICES: ${DOCLING_SERVE_ENABLE_REMOTE_SERVICES:-true}
+      DOCLING_SERVE_LOAD_MODELS_AT_BOOT: ${DOCLING_SERVE_LOAD_MODELS_AT_BOOT:-false}
+      DOCLING_DEVICE: ${DOCLING_DEVICE:-cpu}
     volumes:
       - docling_cache:/opt/app-root/src/.cache
     shm_size: 1g
