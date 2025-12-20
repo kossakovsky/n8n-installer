@@ -92,7 +92,7 @@ if is_profile_active "open-webui"; then
     echo -e "     ${GREEN}*${NC} ${WHITE}Open WebUI${NC}: Register your account"
 fi
 if is_profile_active "gost"; then
-    echo -e "     ${GREEN}*${NC} ${WHITE}Gost Proxy${NC}: Active - AI services route outbound traffic through proxy"
+    echo -e "     ${GREEN}*${NC} ${WHITE}Gost Proxy${NC}: Routing AI traffic through external proxy"
 fi
 echo ""
 echo -e "  ${WHITE}4.${NC} Run ${CYAN}make doctor${NC} if you experience any issues"

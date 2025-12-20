@@ -431,8 +431,9 @@ if is_profile_active "gost"; then
         \"password\": \"$(json_escape "$GOST_PASSWORD")\"
       },
       \"extra\": {
-        \"note\": \"Internal HTTP proxy for AI services\",
+        \"note\": \"Routes AI traffic through external proxy for geo-bypass\",
         \"proxy_url\": \"$(json_escape "$GOST_PROXY_URL")\",
+        \"upstream_proxy\": \"$(json_escape "$GOST_UPSTREAM_PROXY")\",
         \"internal_api\": \"http://gost:8080\"
       }
     }")

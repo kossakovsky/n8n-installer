@@ -203,6 +203,35 @@ if [ $ollama_selected -eq 1 ]; then
     fi
 fi
 
+# If Gost was selected, prompt for upstream proxy URL
+gost_selected=0
+for p in "${selected_profiles[@]}"; do
+    [ "$p" = "gost" ] && gost_selected=1 && break
+done
+
+if [ $gost_selected -eq 1 ]; then
+    # Get existing value from .env if available
+    EXISTING_UPSTREAM=$(read_env_var "GOST_UPSTREAM_PROXY")
+
+    GOST_UPSTREAM_INPUT=$(wt_input "Gost Upstream Proxy" \
+        "Enter your external proxy URL for geo-bypass.\n\nExamples:\n  socks5://user:pass@proxy.com:1080\n  http://user:pass@proxy.com:8080\n\nThis proxy should be located outside restricted regions." \
+        "$EXISTING_UPSTREAM") || true
+
+    if [ -n "$GOST_UPSTREAM_INPUT" ]; then
+        # Save to .env file
+        write_env_var "GOST_UPSTREAM_PROXY" "$GOST_UPSTREAM_INPUT"
+        log_info "Gost upstream proxy configured: $GOST_UPSTREAM_INPUT"
+    else
+        # Remove gost from selected profiles if no upstream provided
+        tmp=()
+        for p in "${selected_profiles[@]}"; do
+            [ "$p" != "gost" ] && tmp+=("$p")
+        done
+        selected_profiles=("${tmp[@]}")
+        log_warning "Gost requires an upstream proxy. Gost has been removed from selection."
+    fi
+fi
+
 if [ ${#selected_profiles[@]} -eq 0 ]; then
     log_info "No optional services selected."
     COMPOSE_PROFILES_VALUE=""

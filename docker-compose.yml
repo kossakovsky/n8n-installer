@@ -356,6 +356,8 @@ services:
     command:
       - "-L"
       - "http://${GOST_USERNAME}:${GOST_PASSWORD}@:8080"
+      - "-F"
+      - "${GOST_UPSTREAM_PROXY}"
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8080 || exit 1"]
       interval: 30s

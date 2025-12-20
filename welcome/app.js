@@ -597,7 +597,9 @@
         swagger_pass: { label: 'Swagger Pass', isSecret: true },
         internal_host: { label: 'Internal Host', isSecret: false },
         internal_port: { label: 'Internal Port', isSecret: false },
-        database: { label: 'Database', isSecret: false }
+        database: { label: 'Database', isSecret: false },
+        proxy_url: { label: 'Proxy URL', isSecret: true },
+        upstream_proxy: { label: 'Upstream', isSecret: true }
     };
 
     /**
