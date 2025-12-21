@@ -38,6 +38,61 @@ If adding Caddy env passthrough (only if used in Caddyfile):
       - MYSERVICE_PASSWORD_HASH=${MYSERVICE_PASSWORD_HASH}
 ```
 
+## 1.5) Proxy Configuration (if service needs outbound AI API access)
+
+If your service makes outbound HTTP requests to external AI APIs (OpenAI, Anthropic, Google, etc.), it should support optional proxy routing via GOST:
+
+1. Add proxy environment anchor to your service:
+```yaml
+  myservice:
+    environment:
+      <<: *proxy-env  # Inherits HTTP_PROXY, HTTPS_PROXY, NO_PROXY
+      # ... other env vars
+```
+
+2. Add your service name to `GOST_NO_PROXY` in `.env.example`:
+   - Find the `GOST_NO_PROXY=` line (contains comma-separated list of services)
+   - Add your service name to prevent internal Docker traffic from routing through proxy
+   - Example: `...,waha,libretranslate,myservice`
+
+The `x-proxy-env` anchor is defined at the top of docker-compose.yml and provides:
+- `HTTP_PROXY`, `HTTPS_PROXY`, `http_proxy`, `https_proxy` - set to `${GOST_PROXY_URL:-}` (empty if gost not active)
+- `NO_PROXY`, `no_proxy` - set to `${GOST_NO_PROXY:-}` (internal services bypass list)
+
+## 1.6) Healthcheck Proxy Bypass (if using *proxy-env)
+
+**CRITICAL:** If your service uses `<<: *proxy-env`, the healthcheck command MUST explicitly bypass the proxy. Otherwise, the healthcheck will route through the external proxy and fail.
+
+```yaml
+healthcheck:
+  test: ["CMD-SHELL", "http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= wget -qO- http://localhost:8080/health || exit 1"]
+  interval: 30s
+  timeout: 10s
+  retries: 5
+```
+
+Note: The `http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY=` prefix clears proxy env vars for the healthcheck command only.
+
+## 1.7) Service Dependencies
+
+If your service requires other services (database, cache, etc.) to be healthy before starting:
+
+```yaml
+  myservice:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+```
+
+Common dependencies:
+- `postgres` - PostgreSQL database
+- `redis` - Redis cache/queue
+- `ollama` - Local LLM inference
+- `minio` - S3-compatible object storage
+- `clickhouse` - Analytics database (for Langfuse)
+
 ## 2) Caddyfile
 - Add a site block for the service hostname if it should be reachable externally:
 - Ask users whether the service needs Basic Auth via Caddy; if yes, add `basic_auth` with env-based credentials.
@@ -73,35 +128,56 @@ MYSERVICE_PASSWORD_HASH=
 ```
 
 ## 4) scripts/03_generate_secrets.sh
-- Generate secrets/hashes and preserve user-provided values:
-  - Add any password variables to `VARS_TO_GENERATE` (e.g., 32-char random password)
-  - Add username to `found_vars` if you want an auto default (commonly set to the installer email)
-  - Create a bcrypt hash using Caddy and write `MYSERVICE_PASSWORD_HASH` into `.env`
 
-Example edits:
-- Add to `VARS_TO_GENERATE` map:
+The script uses several arrays to manage variable generation:
+
+### Key Arrays
+
+1. **`VARS_TO_GENERATE`** - Map of variables to auto-generate with type:length format:
+```bash
+["MYSERVICE_PASSWORD"]="password:32"  # 32-char alphanumeric password
+["MYSERVICE_API_KEY"]="api_key:32"    # Prefixed API key (sk_...)
+["MYSERVICE_SECRET"]="base64:64"      # Base64 secret
+```
+
+2. **`EMAIL_VARS`** - Variables that get the installer's email as default value:
+```bash
+EMAIL_VARS=(
+    # ... existing vars ...
+    "MYSERVICE_USERNAME"  # Add here if username should be email
+)
+```
+
+3. **`USER_INPUT_VARS`** - Variables from user input (includes EMAIL_VARS):
+```bash
+USER_INPUT_VARS=(
+    "${EMAIL_VARS[@]}"
+    # ... other vars ...
+)
+```
+
+### Steps to add a new service:
+
+1. Add password to `VARS_TO_GENERATE` map (~line 75):
 ```bash
 ["MYSERVICE_PASSWORD"]="password:32"
 ```
-- Default username (optional) and mark as found var:
+
+2. If username should default to email, add to `EMAIL_VARS` array (~line 42):
 ```bash
-found_vars["MYSERVICE_USERNAME"]=0
-# ... later where usernames are defaulted
-generated_values["MYSERVICE_USERNAME"]="$USER_EMAIL"
+EMAIL_VARS=(
+    # ... existing ...
+    "MYSERVICE_USERNAME"
+)
 ```
-- Generate hash (following the established pattern used by other services):
+
+3. If service needs Caddy basic auth, add to `SERVICES_NEEDING_HASH` array (~line 520):
 ```bash
-MYSERVICE_PLAIN_PASS="${generated_values["MYSERVICE_PASSWORD"]}"
-FINAL_MYSERVICE_HASH="${generated_values[MYSERVICE_PASSWORD_HASH]}"
-if [[ -z "$FINAL_MYSERVICE_HASH" && -n "$MYSERVICE_PLAIN_PASS" ]]; then
-    NEW_HASH=$(_generate_and_get_hash "$MYSERVICE_PLAIN_PASS")
-    if [[ -n "$NEW_HASH" ]]; then
-        FINAL_MYSERVICE_HASH="$NEW_HASH"
-        generated_values["MYSERVICE_PASSWORD_HASH"]="$NEW_HASH"
-    fi
-fi
-_update_or_add_env_var "MYSERVICE_PASSWORD_HASH" "$FINAL_MYSERVICE_HASH"
+SERVICES_NEEDING_HASH=("PROMETHEUS" "SEARXNG" ... "MYSERVICE")
 ```
+This automatically generates bcrypt hash using: `docker exec caddy caddy hash-password`
+
+**Note:** Hash generation requires the Caddy container to be running.
 
 ## 5) scripts/04_wizard.sh
 - Add the service to the selectable profiles list so users can opt-in during installation:
@@ -111,39 +187,103 @@ _update_or_add_env_var "MYSERVICE_PASSWORD_HASH" "$FINAL_MYSERVICE_HASH"
 ```
 
 ## 6) scripts/generate_welcome_page.sh
-- Add a block that generates JSON data for the Welcome Page:
+
+This script is called automatically from `scripts/07_final_report.sh` during installation.
+
+Add a conditional block to generate JSON for the Welcome Page:
+
 ```bash
 # MyService
 if is_profile_active "myservice"; then
-    SERVICES_JSON+='"myservice": {
-      "hostname": "'"$(json_escape "$MYSERVICE_HOSTNAME")"'",
-      "credentials": {
-        "username": "'"$(json_escape "$MYSERVICE_USERNAME")"'",
-        "password": "'"$(json_escape "$MYSERVICE_PASSWORD")"'"
+    SERVICES_ARRAY+=("    \"myservice\": {
+      \"hostname\": \"$(json_escape "$MYSERVICE_HOSTNAME")\",
+      \"credentials\": {
+        \"username\": \"$(json_escape "$MYSERVICE_USERNAME")\",
+        \"password\": \"$(json_escape "$MYSERVICE_PASSWORD")\"
       },
-      "extra": {
-        "internal_api": "http://myservice:8080",
-        "docs": "https://example.com/docs"
+      \"extra\": {
+        \"internal_api\": \"http://myservice:8080\",
+        \"docs\": \"https://example.com/docs\"
       }
-    },'
+    }")
 fi
 ```
 
-Notes:
-- Use `"hostname": null` for internal-only services (no external access)
-- Use `"credentials": { "note": "..." }` for services without username/password
-- Add useful info to `extra` (internal_api, docs, dashboard URLs, etc.)
+### JSON Structure Options
+
+**External service (with hostname):**
+```bash
+\"hostname\": \"$(json_escape "$MYSERVICE_HOSTNAME")\",
+```
+
+**Internal-only service (no external access):**
+```bash
+\"hostname\": null,
+```
+
+**Credentials variants:**
+```bash
+# With username/password:
+\"credentials\": {
+  \"username\": \"...\",
+  \"password\": \"...\"
+}
+
+# With API key only:
+\"credentials\": {
+  \"api_key\": \"...\"
+}
+
+# Without credentials (informational):
+\"credentials\": {
+  \"note\": \"No authentication required\"
+}
+```
+
+**Extra field examples:**
+```bash
+\"extra\": {
+  \"internal_api\": \"http://myservice:8080\",  # Docker internal URL
+  \"docs\": \"https://docs.example.com\",        # Documentation link
+  \"dashboard\": \"http://myservice:9000\",      # Alternative UI port
+  \"note\": \"Some helpful information\"
+}
+```
+
+**Important:** Always use `json_escape "$VAR"` to prevent JSON breaking from special characters.
 
 ## 7) welcome/app.js
-- Add service metadata to `SERVICE_METADATA` object:
+
+Add service metadata to the `SERVICE_METADATA` object (located around line 145):
+
 ```javascript
 'myservice': {
-    name: 'MyService',
-    description: 'Short description of what it does',
-    icon: 'MS',  // 2-letter abbreviation
-    color: 'bg-blue-500',  // Tailwind color class
-    category: 'tools'  // ai, database, monitoring, tools, infra, automation
+    name: 'MyService',                    // Display name
+    description: 'Short description',     // One-line description (~50 chars max)
+    icon: 'MS',                           // 2-letter abbreviation
+    color: 'bg-[#ABC123]',                // Tailwind color (hex or named)
+    category: 'tools',                    // See categories below
+    docsUrl: 'https://docs.example.com'   // Official documentation URL
 },
+```
+
+### Categories
+
+| Category | Description | Examples |
+|----------|-------------|----------|
+| `ai` | AI/ML services | Flowise, LangChain, Ollama, LightRAG |
+| `database` | Data storage | PostgreSQL, Qdrant, Weaviate, Neo4j |
+| `monitoring` | Observability | Prometheus, Grafana, Langfuse |
+| `tools` | Utilities | Gotenberg, Docling, LibreTranslate, PaddleOCR |
+| `infra` | Infrastructure | Caddy, Redis, Gost, Portainer |
+| `automation` | Workflow automation | n8n, Postiz |
+
+### Color Examples
+
+```javascript
+color: 'bg-blue-500'      // Tailwind named color
+color: 'bg-[#FF6B35]'     // Custom hex color
+color: 'bg-lime-500'      // Another named color
 ```
 
 ## 8) README.md
@@ -181,6 +321,8 @@ docker compose -p localai logs -f --tail=200 caddy | cat
 ```
 
 ## 11) Quick checklist
+
+### Core setup
 - [ ] Service added to `docker-compose.yml` with a profile (no external ports exposed)
 - [ ] Hostname and (optional) credentials added to `.env.example`
 - [ ] Secret + hash generation added to `scripts/03_generate_secrets.sh`
@@ -189,4 +331,9 @@ docker compose -p localai logs -f --tail=200 caddy | cat
 - [ ] Service data added to `scripts/generate_welcome_page.sh`
 - [ ] Service metadata added to `welcome/app.js` (`SERVICE_METADATA`)
 - [ ] One-line description added to `README.md`
+
+### If service needs outbound proxy (AI API calls)
+- [ ] Added `<<: *proxy-env` to service environment in `docker-compose.yml`
+- [ ] Added service name to `GOST_NO_PROXY` list in `.env.example`
+- [ ] Healthcheck bypasses proxy: `http_proxy= https_proxy= ... wget ...`
 
