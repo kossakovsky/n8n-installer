@@ -45,7 +45,6 @@ EMAIL_VARS=(
     "DASHBOARD_USERNAME"
     "DOCLING_USERNAME"
     "FLOWISE_USERNAME"
-    "GOST_USERNAME"
     "LANGFUSE_INIT_USER_EMAIL"
     "LETSENCRYPT_EMAIL"
     "LIGHTRAG_USERNAME"
@@ -80,6 +79,7 @@ declare -A VARS_TO_GENERATE=(
     ["ENCRYPTION_KEY"]="hex:64" # Langfuse Encryption Key (32 bytes -> 64 hex chars)
     ["FLOWISE_PASSWORD"]="password:32"
     ["GOST_PASSWORD"]="password:32"
+    ["GOST_USERNAME"]="fixed:gost"
     ["GRAFANA_ADMIN_PASSWORD"]="password:32"
     ["JWT_SECRET"]="base64:64" # 48 bytes -> 64 chars
     ["LANGFUSE_INIT_PROJECT_PUBLIC_KEY"]="langfuse_pk:32"
