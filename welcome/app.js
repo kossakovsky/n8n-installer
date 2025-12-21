@@ -345,7 +345,7 @@
         },
         'gost': {
             name: 'Gost Proxy',
-            description: 'HTTP/HTTPS Proxy for Outbound Traffic',
+            description: 'Proxy for Outbound Traffic',
             icon: 'GP',
             color: 'bg-[#4051B5]',
             category: 'infra',
@@ -508,11 +508,11 @@
      */
     function createPasswordField(password) {
         const container = document.createElement('div');
-        container.className = 'flex items-center gap-1';
+        container.className = 'flex items-center gap-1 min-w-0';
 
         // Password display
         const passwordSpan = document.createElement('span');
-        passwordSpan.className = 'font-mono text-sm select-all text-gray-300';
+        passwordSpan.className = 'font-mono text-sm select-all text-gray-300 break-all';
         passwordSpan.textContent = '*'.repeat(Math.min(password.length, 12));
         passwordSpan.dataset.password = password;
         passwordSpan.dataset.hidden = 'true';
@@ -547,10 +547,10 @@
      */
     function createCredentialRow(label, value, isSecret) {
         const row = document.createElement('div');
-        row.className = 'flex justify-between items-center';
+        row.className = 'flex justify-between items-start gap-2 min-w-0';
 
         const labelSpan = document.createElement('span');
-        labelSpan.className = 'text-gray-500 text-sm';
+        labelSpan.className = 'text-gray-500 text-sm flex-shrink-0';
         labelSpan.textContent = `${label}:`;
         row.appendChild(labelSpan);
 
@@ -558,10 +558,10 @@
             row.appendChild(createPasswordField(value));
         } else {
             const valueContainer = document.createElement('div');
-            valueContainer.className = 'flex items-center gap-1';
+            valueContainer.className = 'flex items-start gap-1 min-w-0';
 
             const valueSpan = document.createElement('span');
-            valueSpan.className = 'font-mono text-sm select-all text-gray-300';
+            valueSpan.className = 'font-mono text-sm select-all text-gray-300 break-all';
             valueSpan.textContent = value;
 
             valueContainer.appendChild(valueSpan);
@@ -759,7 +759,7 @@
             const internalDiv = document.createElement('div');
             internalDiv.className = serviceData.hostname ? 'mt-1' : '';
             const internalUrl = serviceData.extra.internal_api || serviceData.extra.internal_url;
-            internalDiv.innerHTML = `<span class="text-xs text-gray-600 font-mono">Internal: ${escapeHtml(internalUrl)}</span>`;
+            internalDiv.innerHTML = `<span class="text-xs text-gray-600 font-mono break-all">Internal: ${escapeHtml(internalUrl)}</span>`;
             content.appendChild(internalDiv);
         }
 
