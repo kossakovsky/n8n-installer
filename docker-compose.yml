@@ -193,7 +193,7 @@ services:
       - ./n8n/backup:/backup
       - ./shared:/data/shared
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5678/healthz || exit 1"]
+      test: ["CMD-SHELL", "http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= wget -qO- http://localhost:5678/healthz || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -212,7 +212,7 @@ services:
       - n8n_storage:/home/node/.n8n
       - ./shared:/data/shared
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5678/healthz || exit 1"]
+      test: ["CMD-SHELL", "http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= wget -qO- http://localhost:5678/healthz || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -359,7 +359,7 @@ services:
       - "-F"
       - "${GOST_UPSTREAM_PROXY}"
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080 || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://${GOST_USERNAME}:${GOST_PASSWORD}@localhost:8080 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -1129,7 +1129,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "wget -qO- http://localhost:9621/health > /dev/null 2>&1 || exit 1",
+          "http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= wget -qO- http://localhost:9621/health > /dev/null 2>&1 || exit 1",
         ]
       interval: 30s
       timeout: 10s
@@ -1154,7 +1154,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "wget -qO- http://localhost:5001/docs > /dev/null || exit 1",
+          "http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= wget -qO- http://localhost:5001/docs > /dev/null || exit 1",
         ]
       interval: 30s
       timeout: 10s
