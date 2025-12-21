@@ -218,9 +218,18 @@ if [ $gost_selected -eq 1 ]; then
         "$EXISTING_UPSTREAM") || true
 
     if [ -n "$GOST_UPSTREAM_INPUT" ]; then
-        # Save to .env file
+        # Save upstream proxy to .env file
         write_env_var "GOST_UPSTREAM_PROXY" "$GOST_UPSTREAM_INPUT"
         log_info "Gost upstream proxy configured: $GOST_UPSTREAM_INPUT"
+
+        # Also generate GOST_PROXY_URL (needed because wizard runs AFTER generate_secrets)
+        GOST_USER=$(read_env_var "GOST_USERNAME")
+        GOST_PASS=$(read_env_var "GOST_PASSWORD")
+        if [ -n "$GOST_USER" ] && [ -n "$GOST_PASS" ]; then
+            GOST_PROXY_URL="http://${GOST_USER}:${GOST_PASS}@gost:8080"
+            write_env_var "GOST_PROXY_URL" "$GOST_PROXY_URL"
+            log_info "Gost proxy URL generated: http://***:***@gost:8080"
+        fi
     else
         # Remove gost from selected profiles if no upstream provided
         tmp=()
