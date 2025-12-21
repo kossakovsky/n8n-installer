@@ -20,9 +20,14 @@ Minimal example:
 ```yaml
   myservice:
     image: yourorg/myservice:latest
-    container_name: myservice
+    container_name: myservice              # Required - used in scripts and Caddyfile
     profiles: ["myservice"]
     restart: unless-stopped
+    logging:                               # Recommended - prevents log bloat
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
     # command: ...
     # healthcheck: { test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"], interval: 30s, timeout: 10s, retries: 5 }
 ```
@@ -93,11 +98,90 @@ Common dependencies:
 - `minio` - S3-compatible object storage
 - `clickhouse` - Analytics database (for Langfuse)
 
+## 1.8) Multi-service Profiles
+
+Some services consist of multiple containers that should be enabled together. Use the same profile for all related containers:
+
+```yaml
+  myservice-worker:
+    image: yourorg/myservice-worker:latest
+    container_name: myservice-worker
+    profiles: ["myservice"]  # Same profile as main service
+    # ...
+
+  myservice-web:
+    image: yourorg/myservice-web:latest
+    container_name: myservice-web
+    profiles: ["myservice"]  # Same profile as main service
+    # ...
+```
+
+For shared configuration, use YAML anchors:
+```yaml
+# At the top of docker-compose.yml (x- prefix = extension, ignored by Docker)
+x-myservice-common: &myservice-common
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+# In service definitions:
+  myservice-worker:
+    <<: *myservice-common
+    # ... rest of config
+
+  myservice-web:
+    <<: *myservice-common
+    # ... rest of config
+```
+
+Examples in this project:
+- `langfuse` → langfuse-worker + langfuse-web + clickhouse + minio
+- `ragflow` → ragflow + ragflow-mysql + ragflow-redis + ragflow-minio + ragflow-elasticsearch
+- `monitoring` → prometheus + grafana + cadvisor + node-exporter
+
+## 1.9) Hardware/GPU Profiles
+
+For services with multiple hardware variants (CPU, NVIDIA GPU, AMD GPU), use mutually exclusive profiles:
+
+```yaml
+  # CPU variant
+  myservice-cpu:
+    <<: *service-myservice
+    profiles: ["cpu"]
+
+  # NVIDIA GPU variant
+  myservice-gpu:
+    <<: *service-myservice
+    profiles: ["gpu-nvidia"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # AMD GPU variant
+  myservice-gpu-amd:
+    <<: *service-myservice
+    image: yourorg/myservice:rocm
+    profiles: ["gpu-amd"]
+    devices:
+      - "/dev/kfd"
+      - "/dev/dri"
+```
+
+The wizard (`scripts/04_wizard.sh`) handles mutual exclusion - only one hardware profile can be active.
+
+Example in this project: Ollama (ollama-cpu, ollama-gpu, ollama-gpu-amd)
+
 ## 2) Caddyfile
 - Add a site block for the service hostname if it should be reachable externally:
 - Ask users whether the service needs Basic Auth via Caddy; if yes, add `basic_auth` with env-based credentials.
 
-Example:
+### Basic Example
 ```caddyfile
 {$MYSERVICE_HOSTNAME} {
     # Optional. Ask the user if we should protect this endpoint via Basic Auth
@@ -105,6 +189,39 @@ Example:
         {$MYSERVICE_USERNAME} {$MYSERVICE_PASSWORD_HASH}
     }
     reverse_proxy myservice:8080
+}
+```
+
+### Conditional Basic Auth (allow internal networks without auth)
+```caddyfile
+{$MYSERVICE_HOSTNAME} {
+    @protected not remote_ip 127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10
+
+    basic_auth @protected {
+        {$MYSERVICE_USERNAME} {$MYSERVICE_PASSWORD_HASH}
+    }
+    reverse_proxy myservice:8080
+}
+```
+
+### Special Protocols (e.g., Neo4j Bolt on non-standard port)
+```caddyfile
+# Neo4j Bolt Protocol on port 7687
+https://{$NEO4J_HOSTNAME}:7687 {
+    reverse_proxy neo4j:7687
+}
+```
+Note: Non-standard ports must be exposed in Caddy's `ports:` section in docker-compose.yml.
+
+### Static File Serving (e.g., Welcome Page)
+```caddyfile
+{$WELCOME_HOSTNAME} {
+    basic_auth {
+        {$WELCOME_USERNAME} {$WELCOME_PASSWORD_HASH}
+    }
+    root * /srv/welcome
+    file_server
+    try_files {path} /index.html  # SPA fallback
 }
 ```
 
@@ -171,20 +288,73 @@ EMAIL_VARS=(
 )
 ```
 
-3. If service needs Caddy basic auth, add to `SERVICES_NEEDING_HASH` array (~line 520):
+### SERVICES_NEEDING_HASH (Critical for Basic Auth)
+
+**⚠️ IMPORTANT:** If your service uses Caddy basic auth, you MUST add it to this array. Missing this step will cause authentication to fail!
+
+Add to `SERVICES_NEEDING_HASH` array (~line 520):
 ```bash
 SERVICES_NEEDING_HASH=("PROMETHEUS" "SEARXNG" ... "MYSERVICE")
 ```
+
 This automatically generates bcrypt hash using: `docker exec caddy caddy hash-password`
+
+The script will:
+1. Read `MYSERVICE_PASSWORD` from `.env`
+2. Generate bcrypt hash via Caddy container
+3. Write hash to `MYSERVICE_PASSWORD_HASH` in `.env`
 
 **Note:** Hash generation requires the Caddy container to be running.
 
 ## 5) scripts/04_wizard.sh
-- Add the service to the selectable profiles list so users can opt-in during installation:
+
+Add the service to the selectable profiles list so users can opt-in during installation:
 ```bash
-# base_services_data+=
+# In base_services_data array:
 "myservice" "MyService (Short description)"
 ```
+
+### Special Wizard Patterns
+
+**Services requiring additional prompts** (like GOST asking for upstream proxy URL):
+- Add custom whiptail dialog in the wizard
+- See GOST implementation (~lines 206-242) as example
+
+**Mutually exclusive services** (like Dify and Supabase):
+- Add logic to remove conflicting service from selection
+- See Dify/Supabase exclusion (~lines 139-156) as example
+
+For complex service-specific configuration, see section 5.5.
+
+## 5.5) scripts/05_configure_services.sh
+
+For services that need configuration beyond what the wizard can handle, add logic to this script.
+
+Use cases:
+- **Token-based authentication** (e.g., Cloudflare Tunnel token)
+- **Mutual exclusion logic** (e.g., Supabase vs Dify - both use same ports)
+- **Dynamic configuration files** (e.g., generating config from template)
+
+Example pattern:
+```bash
+# Configure MyService if active
+if is_profile_active "myservice"; then
+    log_info "Configuring MyService..."
+
+    # Example: Generate config file from template
+    envsubst < ./myservice/config.template.yml > ./myservice/config.yml
+
+    # Example: Handle mutual exclusion
+    if is_profile_active "conflicting-service"; then
+        log_warn "MyService and ConflictingService cannot run together"
+        # Remove conflicting profile from COMPOSE_PROFILES
+    fi
+fi
+```
+
+See existing implementations:
+- Cloudflare Tunnel token handling (~lines 132-153)
+- Supabase/Dify mutual exclusion (~lines 159-173)
 
 ## 6) scripts/generate_welcome_page.sh
 
@@ -252,6 +422,38 @@ fi
 
 **Important:** Always use `json_escape "$VAR"` to prevent JSON breaking from special characters.
 
+### Quick Start Steps (QUICK_START_ARRAY)
+
+If your service requires first-run setup (e.g., initial configuration, API key setup), add a Quick Start step:
+
+```bash
+# MyService Quick Start
+if is_profile_active "myservice"; then
+    QUICK_START_ARRAY+=("    \"myservice\": {
+      \"title\": \"Configure MyService\",
+      \"description\": \"Complete initial setup\",
+      \"action\": \"Visit https://\${MYSERVICE_HOSTNAME} to configure\"
+    }")
+fi
+```
+
+This appears in the Welcome Page's "Quick Start" section to guide users through post-installation steps.
+
+## 6.5) scripts/07_final_report.sh
+
+For services with first-run instructions that should appear in the terminal after installation:
+
+```bash
+if is_profile_active "myservice"; then
+    echo -e "     ${GREEN}*${NC} ${WHITE}MyService${NC}: Visit dashboard to complete initial setup"
+fi
+```
+
+This provides immediate guidance in the terminal after installation completes. Use for:
+- First-time configuration steps
+- Important security notices
+- Links to documentation
+
 ## 7) welcome/app.js
 
 Add service metadata to the `SERVICE_METADATA` object (located around line 145):
@@ -296,6 +498,23 @@ color: 'bg-lime-500'      // Another named color
     - **MyService:** `myservice.yourdomain.com` (Brief description)
 ```
 
+## 8.5) CHANGELOG.md
+
+Add an entry when introducing a new service:
+
+```markdown
+## [Unreleased]
+
+### Added
+- **MyService** - Brief description of what the service provides
+```
+
+Follow [Keep a Changelog](https://keepachangelog.com/) format:
+- `Added` - for new features
+- `Changed` - for changes in existing functionality
+- `Fixed` - for bug fixes
+- `Removed` - for removed features
+
 ## 9) Ask about Basic Auth (important)
 When adding any new public-facing service, explicitly ask the user whether they want to protect the service with Basic Auth via Caddy. If yes, add:
 - Credentials section to `.env.example`
@@ -320,20 +539,64 @@ docker compose -p localai logs -f --tail=200 myservice | cat
 docker compose -p localai logs -f --tail=200 caddy | cat
 ```
 
+## 10.5) scripts/update_preview.sh (optional)
+
+If your service uses a Docker image that should be tracked for updates, add version checking logic:
+
+```bash
+# Check MyService version
+if is_profile_active "myservice"; then
+    check_image_update "yourorg/myservice" "MYSERVICE"
+fi
+```
+
+This allows `make update` to show available updates for your service.
+
+## 10.6) scripts/apply_update.sh (for complex services)
+
+For services with their own docker-compose files (like Supabase, Dify), add handling logic:
+
+```bash
+# Update MyService
+if is_profile_active "myservice"; then
+    log_info "Updating MyService..."
+    # Pull latest compose file or run service-specific update
+    docker compose -f docker-compose.myservice.yml pull
+fi
+```
+
+Most services don't need this - only use for services with external compose files or complex update procedures.
+
 ## 11) Quick checklist
 
 ### Core setup
-- [ ] Service added to `docker-compose.yml` with a profile (no external ports exposed)
-- [ ] Hostname and (optional) credentials added to `.env.example`
-- [ ] Secret + hash generation added to `scripts/03_generate_secrets.sh`
+- [ ] Service added to `docker-compose.yml` with profile (no external ports)
+- [ ] `container_name: servicename` specified (required)
+- [ ] `logging:` driver json-file configured (recommended)
+- [ ] Hostname and credentials added to `.env.example`
+- [ ] Password added to `VARS_TO_GENERATE` in `scripts/03_generate_secrets.sh`
+- [ ] If basic auth: added to `SERVICES_NEEDING_HASH` array
 - [ ] Exposed via `Caddyfile` with `reverse_proxy` (+ `basic_auth` if desired)
 - [ ] Service selectable in `scripts/04_wizard.sh`
 - [ ] Service data added to `scripts/generate_welcome_page.sh`
 - [ ] Service metadata added to `welcome/app.js` (`SERVICE_METADATA`)
 - [ ] One-line description added to `README.md`
+- [ ] Entry added to `CHANGELOG.md`
 
 ### If service needs outbound proxy (AI API calls)
 - [ ] Added `<<: *proxy-env` to service environment in `docker-compose.yml`
 - [ ] Added service name to `GOST_NO_PROXY` list in `.env.example`
 - [ ] Healthcheck bypasses proxy: `http_proxy= https_proxy= ... wget ...`
+
+### If service has first-run setup
+- [ ] Added to `QUICK_START_ARRAY` in `scripts/generate_welcome_page.sh`
+- [ ] Added instructions in `scripts/07_final_report.sh`
+
+### If service needs special configuration
+- [ ] Added prompts in `scripts/04_wizard.sh`
+- [ ] Added logic in `scripts/05_configure_services.sh`
+
+### For complex multi-container services
+- [ ] All related containers use same profile
+- [ ] Consider YAML anchors for shared dependencies (see section 1.8)
 
