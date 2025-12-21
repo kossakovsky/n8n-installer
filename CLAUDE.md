@@ -38,12 +38,16 @@ make logs s=<service>  # View logs for specific service
 make status            # Show container status
 make monitor           # Live CPU/memory monitoring
 make restarts          # Show restart count per container
+make doctor            # Run system diagnostics (DNS, SSL, containers, disk, memory)
+
+make switch-beta       # Switch to develop branch and update
+make switch-stable     # Switch to main branch and update
 ```
 
 
 ## Adding a New Service
 
-Follow this workflow when adding a new optional service (refer to `.cursor/rules/add-new-service.mdc` for complete details):
+Follow this workflow when adding a new optional service (refer to `.claude/commands/add-new-service.md` for complete details):
 
 1. **docker-compose.yml**: Add service with `profiles: ["myservice"]`, `restart: unless-stopped`. Do NOT expose ports.
 2. **Caddyfile**: Add reverse proxy block using `{$MYSERVICE_HOSTNAME}`. Consider if basic auth is needed.
@@ -87,7 +91,19 @@ The `scripts/03_generate_secrets.sh` script:
 - Generates random passwords, JWT secrets, API keys, and encryption keys
 - Creates bcrypt password hashes using Caddy's `hash-password` command
 - Preserves existing user-provided values in `.env`
-- Supports different secret types via `VARS_TO_GENERATE` map: `password:32`, `jwt`, `api_key`, etc.
+- Supports different secret types via `VARS_TO_GENERATE` map: `password:32`, `jwt`, `api_key`, `base64:64`, `hex:32`
+
+### Utility Functions (scripts/utils.sh)
+
+Source with: `source "$(dirname "$0")/utils.sh" && init_paths`
+
+Key functions:
+- `is_profile_active "myservice"` - Check if profile is enabled
+- `read_env_var "VAR_NAME"` / `write_env_var "VAR_NAME" "value"` - .env manipulation
+- `gen_password 32` / `gen_hex 64` / `gen_base64 64` - Secret generation
+- `generate_bcrypt_hash "password"` - Create Caddy-compatible bcrypt hash
+- `wt_input`, `wt_yesno`, `wt_checklist` - Whiptail dialog wrappers
+- `log_info`, `log_success`, `log_warning`, `log_error` - Logging functions
 
 ### Service Profiles
 
@@ -138,6 +154,34 @@ if is_profile_active "myservice"; then
   # Service-specific logic
 fi
 ```
+
+### Proxy Configuration (for AI services)
+
+Services making outbound HTTP requests to AI APIs (OpenAI, Anthropic, etc.) should use the shared proxy anchor:
+```yaml
+x-proxy-env: &proxy-env
+  HTTP_PROXY: ${GOST_PROXY_URL:-}
+  HTTPS_PROXY: ${GOST_PROXY_URL:-}
+  NO_PROXY: ${GOST_NO_PROXY:-}
+
+services:
+  myservice:
+    environment:
+      <<: *proxy-env  # Inherit proxy settings
+```
+
+**Important:** Healthchecks must bypass proxy:
+```yaml
+healthcheck:
+  test: ["CMD-SHELL", "http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= wget -qO- http://localhost:8080/health || exit 1"]
+```
+
+### Preserved Directories
+
+Directories in `PRESERVE_DIRS` (defined in `scripts/utils.sh`) survive git updates:
+- `python-runner/` - User's custom Python code
+
+These are backed up before `git reset --hard` and restored after.
 
 ## Common Issues and Solutions
 
