@@ -125,6 +125,7 @@ x-n8n-worker-runner: &service-n8n-worker-runner
     dockerfile: Dockerfile.runner
     pull: true
   environment:
+    <<: *proxy-env
     GENERIC_TIMEZONE: ${GENERIC_TIMEZONE:-America/New_York}
     N8N_RUNNERS_AUTH_TOKEN: ${N8N_RUNNERS_AUTH_TOKEN}
     N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT: 15
@@ -223,7 +224,7 @@ services:
     profiles: ["n8n-template"]
     entrypoint: ["/bin/sh", "-c", "/usr/local/bin/task-runner-launcher javascript python"]
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5680/healthz || exit 1"]
+      test: ["CMD-SHELL", "http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= wget -qO- http://localhost:5680/healthz || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
