@@ -31,6 +31,7 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 ```bash
 make install           # Full installation
 make update            # Update system and services
+make update-preview    # Preview available updates (dry-run)
 make clean             # Remove unused Docker resources
 
 make logs              # View logs (all services)
@@ -42,6 +43,7 @@ make doctor            # Run system diagnostics (DNS, SSL, containers, disk, mem
 
 make switch-beta       # Switch to develop branch and update
 make switch-stable     # Switch to main branch and update
+make help              # Show all available commands
 ```
 
 
@@ -54,8 +56,11 @@ Follow this workflow when adding a new optional service (refer to `.claude/comma
 3. **.env.example**: Add `MYSERVICE_HOSTNAME=myservice.yourdomain.com` and credentials if using basic auth.
 4. **scripts/03_generate_secrets.sh**: Generate passwords and bcrypt hashes. Add to `VARS_TO_GENERATE` map.
 5. **scripts/04_wizard.sh**: Add service to `base_services_data` array for wizard selection.
-6. **scripts/07_final_report.sh**: Add service URL and credentials output using `is_profile_active "myservice"`.
-7. **README.md**: Add one-line description under "What's Included".
+6. **scripts/generate_welcome_page.sh**: Add service to `SERVICES_ARRAY` for welcome dashboard.
+7. **welcome/app.js**: Add `SERVICE_METADATA` entry with name, description, icon, color, category.
+8. **scripts/07_final_report.sh**: Add service URL and credentials output using `is_profile_active "myservice"`.
+9. **README.md**: Add one-line description under "What's Included".
+10. **CHANGELOG.md**: Add entry under `## [Unreleased]` → `### Added`.
 
 **Always ask users if the new service requires Caddy basic auth protection.**
 
@@ -100,10 +105,19 @@ Source with: `source "$(dirname "$0")/utils.sh" && init_paths`
 Key functions:
 - `is_profile_active "myservice"` - Check if profile is enabled
 - `read_env_var "VAR_NAME"` / `write_env_var "VAR_NAME" "value"` - .env manipulation
+- `load_env` - Source .env file to make variables available
+- `update_compose_profiles "profile1,profile2"` - Update COMPOSE_PROFILES in .env
 - `gen_password 32` / `gen_hex 64` / `gen_base64 64` - Secret generation
-- `generate_bcrypt_hash "password"` - Create Caddy-compatible bcrypt hash
-- `wt_input`, `wt_yesno`, `wt_checklist` - Whiptail dialog wrappers
+- `generate_bcrypt_hash "password"` - Create Caddy-compatible bcrypt hash (uses Caddy binary)
+- `json_escape "string"` - Escape string for JSON output
+- `wt_input`, `wt_password`, `wt_yesno`, `wt_msg` - Whiptail dialog wrappers
+- `wt_checklist`, `wt_radiolist`, `wt_menu` - Whiptail selection dialogs
+- `wt_parse_choices "$result" array_name` - Parse quoted checklist output safely
 - `log_info`, `log_success`, `log_warning`, `log_error` - Logging functions
+- `log_header`, `log_subheader`, `log_divider`, `log_box` - Formatted output
+- `print_ok`, `print_error`, `print_warning`, `print_info` - Doctor output helpers
+- `get_real_user` / `get_real_user_home` - Get actual user even under sudo
+- `backup_preserved_dirs` / `restore_preserved_dirs` - Directory preservation for git updates
 
 ### Service Profiles
 
@@ -113,7 +127,9 @@ Common profiles:
 - `monitoring`: Prometheus, Grafana, cAdvisor, node-exporter
 - `langfuse`: Langfuse observability (includes ClickHouse, MinIO, worker, web)
 - `cpu`, `gpu-nvidia`, `gpu-amd`: Ollama hardware profiles (mutually exclusive)
-- `cloudflare-tunnel`: Cloudflare Tunnel for zero-trust access
+- `cloudflare-tunnel`: Cloudflare Tunnel for zero-trust access (see `cloudflare-instructions.md`)
+- `gost`: HTTP/HTTPS proxy for routing AI service outbound traffic
+- `python-runner`: Internal Python execution environment (no external access)
 
 ## Architecture Patterns
 
@@ -176,6 +192,14 @@ healthcheck:
   test: ["CMD-SHELL", "http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= wget -qO- http://localhost:8080/health || exit 1"]
 ```
 
+### Welcome Page Dashboard
+
+The welcome page (`welcome/`) provides a post-install dashboard showing all active services:
+- `scripts/generate_welcome_page.sh`: Generates `welcome/services.json` with service URLs, credentials, and metadata
+- `welcome/app.js`: Contains `SERVICE_METADATA` object defining display properties (name, description, icon, color, category)
+- Categories: `ai`, `database`, `monitoring`, `tools`, `infra`, `automation`
+- Always use `json_escape "$VAR"` when building JSON to handle special characters
+
 ### Preserved Directories
 
 Directories in `PRESERVE_DIRS` (defined in `scripts/utils.sh`) survive git updates:
@@ -209,6 +233,22 @@ These are backed up before `git reset --hard` and restored after.
 - Service logs: `docker compose -p localai logs <service>`
 
 ## Testing Changes
+
+### Syntax Validation
+
+```bash
+# Docker Compose syntax
+docker compose -p localai config --quiet
+
+# Bash script syntax
+bash -n scripts/03_generate_secrets.sh
+bash -n scripts/04_wizard.sh
+bash -n scripts/05_configure_services.sh
+bash -n scripts/07_final_report.sh
+bash -n scripts/generate_welcome_page.sh
+```
+
+### Full Testing
 
 When modifying installer scripts:
 1. Test on a clean Ubuntu 24.04 LTS system (minimum 4GB RAM / 2 CPU)
