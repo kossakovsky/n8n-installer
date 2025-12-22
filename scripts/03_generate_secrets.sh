@@ -44,7 +44,6 @@ EMAIL_VARS=(
     "COMFYUI_USERNAME"
     "DASHBOARD_USERNAME"
     "DOCLING_USERNAME"
-    "FLOWISE_USERNAME"
     "LANGFUSE_INIT_USER_EMAIL"
     "LETSENCRYPT_EMAIL"
     "LIGHTRAG_USERNAME"
@@ -77,7 +76,6 @@ declare -A VARS_TO_GENERATE=(
     ["DIFY_SECRET_KEY"]="secret:64" # Dify application secret key (maps to SECRET_KEY in Dify)
     ["DOCLING_PASSWORD"]="password:32"
     ["ENCRYPTION_KEY"]="hex:64" # Langfuse Encryption Key (32 bytes -> 64 hex chars)
-    ["FLOWISE_PASSWORD"]="password:32"
     ["GOST_PASSWORD"]="password:32"
     ["GOST_USERNAME"]="fixed:gost"
     ["GRAFANA_ADMIN_PASSWORD"]="password:32"
