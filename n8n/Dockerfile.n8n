@@ -1,5 +1,9 @@
 FROM n8nio/n8n:stable
 
 USER root
-RUN apk add --no-cache ffmpeg
+# Install static ffmpeg binary (no package manager needed)
+RUN wget -qO- https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | \
+    tar -xJC /tmp && \
+    mv /tmp/ffmpeg-*-static/ffmpeg /tmp/ffmpeg-*-static/ffprobe /usr/local/bin/ && \
+    rm -rf /tmp/ffmpeg-*
 USER node

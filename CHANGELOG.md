@@ -12,6 +12,9 @@ All notable changes to this project are documented in this file.
 - **Update preview** - Preview changes before applying updates
 - **n8n v2.0 support** - Worker-runner sidecar pattern for task execution
 
+### Fixed
+- **n8n 2.1.0+ compatibility** - Switch to static ffmpeg binary (apk removed upstream in n8n 2.1.0)
+
 ## [November 2025]
 
 ### Added
