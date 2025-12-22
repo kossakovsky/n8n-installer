@@ -38,6 +38,10 @@ apt install -y \
   build-essential ca-certificates gnupg lsb-release openssl \
   apt-transport-https python3-dotenv python3-yaml
 
+# Configure git to use rebase on pull (prevents merge commits during updates)
+log_info "Configuring git pull strategy..."
+git config --global pull.rebase true
+
 # Configuring Firewall (UFW)
 log_subheader "Firewall (UFW)"
 log_info "Configuring firewall..."

@@ -64,6 +64,11 @@ else
     # Change to project root for git pull
     cd "$PROJECT_ROOT" || { log_error "Failed to change directory to $PROJECT_ROOT"; exit 1; }
 
+    # Ensure git pull.rebase is configured (fallback for older installations)
+    if [ -z "$(git config --global pull.rebase)" ]; then
+        git config --global pull.rebase true
+    fi
+
     # Backup user-customizable directories before git reset (uses PRESERVE_DIRS from utils.sh)
     if ! BACKUP_PATH=$(backup_preserved_dirs); then
         log_error "Backup failed. Aborting update to prevent data loss."
