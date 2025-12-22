@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Create a report to help improve the Local AI Package
+about: Report a bug with n8n-install
 title: '[BUG] '
 labels: bug
 assignees: ''
@@ -10,29 +10,38 @@ assignees: ''
 A clear and concise description of the issue.
 
 ## Steps to Reproduce
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+1. Run '...'
+2. Navigate to '...'
+3. See error
 
 ## Expected Behavior
-A clear and concise description of what you expected to happen.
+What you expected to happen.
 
 ## Actual Behavior
-A clear and concise description of what actually happened.
+What actually happened. Include any error messages.
 
-## Screenshots
-If applicable, add screenshots to help explain your problem.
+## Logs
+```
+# Paste relevant logs here
+# Get logs with: make logs s=<service>
+```
 
 ## Environment
- - OS: [e.g. Windows 10, macOS Monterey, Ubuntu 22.04]
- - Using Docker Desktop, WSL, etc.
+- **OS**: [e.g., Ubuntu 24.04, Debian 12, macOS Sonoma]
+- **Docker version**: [e.g., 27.0.3]
+- **Docker Compose version**: [e.g., v2.29.1]
+- **n8n-install branch**: [main/develop]
+- **Affected service(s)**: [e.g., n8n, flowise, caddy]
+
+## Configuration
+- Which profiles are enabled? (from `COMPOSE_PROFILES` in `.env`)
+- Are you using a custom domain with SSL?
+- Are you using Cloudflare Tunnel?
 
 ## Additional Context
-Add any other context about the problem here, such as:
 - Does this happen consistently or intermittently?
-- Were there any recent changes that might be related?
+- Did this work before? If so, what changed?
 - Any workarounds you've discovered?
 
 ## Possible Solution
-If you have suggestions on how to fix the issue or what might be causing it.
+If you have suggestions on how to fix the issue.

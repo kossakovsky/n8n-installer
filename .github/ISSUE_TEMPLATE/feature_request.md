@@ -1,19 +1,25 @@
 ---
 name: Feature Request
-about: Suggest an idea for the Local AI Package
+about: Suggest a new feature or service for n8n-install
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
 ---
 
-## Describe the feature you'd like and why
-A clear and concise description of what you want to happen.
+## Feature Description
+What feature or service would you like added?
 
-## User Impact
-Who would benefit from this feature and how?
+## Use Case
+Why do you need this? What problem does it solve?
 
-## Implementation Details (optional)
-Any thoughts on how this might be implemented?
+## Proposed Implementation (optional)
+If you have ideas on how this could be implemented:
+- New service to add?
+- Changes to existing services?
+- New configuration options?
 
-## Additional context
-Add any other screenshots, mockups, or context about the feature request here.
+## Alternatives Considered
+Have you considered any alternative solutions or workarounds?
+
+## Additional Context
+Any other context, links, or references that might be helpful.
