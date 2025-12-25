@@ -96,6 +96,9 @@ $COMPOSE_CMD -p "localai" "${COMPOSE_FILES_FOR_PULL[@]}" pull --ignore-buildable
 log_info "Running Services..."
 bash "$RUN_SERVICES_SCRIPT" || { log_error "Failed to start services. Check logs for details."; exit 1; }
 
+# Initialize PostgreSQL databases for services (creates if not exist)
+bash "$SCRIPT_DIR/init_databases.sh" || { log_warning "Database initialization had issues, but continuing..."; }
+
 log_success "Update application completed successfully!"
 
 # --- Fix file permissions ---

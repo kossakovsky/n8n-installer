@@ -123,6 +123,9 @@ show_step 6 8 "Running Services"
 bash "$SCRIPT_DIR/06_run_services.sh" || { log_error "Running Services failed"; exit 1; }
 log_success "Running Services complete!"
 
+# Initialize PostgreSQL databases for services (creates if not exist)
+bash "$SCRIPT_DIR/init_databases.sh" || { log_warning "Database initialization had issues, but continuing..."; }
+
 show_step 7 8 "Generating Final Report"
 # --- Installation Summary ---
 log_info "Installation Summary:"
