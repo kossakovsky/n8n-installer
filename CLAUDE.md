@@ -22,6 +22,7 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 - `scripts/install.sh`: Main installation orchestrator
 - `scripts/04_wizard.sh`: Interactive service selection using whiptail
 - `scripts/03_generate_secrets.sh`: Secret generation and bcrypt hashing
+- `scripts/init_databases.sh`: Creates isolated PostgreSQL databases for services
 - `scripts/07_final_report.sh`: Post-install credential summary
 
 ## Common Development Commands
@@ -56,11 +57,12 @@ Follow this workflow when adding a new optional service (refer to `.claude/comma
 3. **.env.example**: Add `MYSERVICE_HOSTNAME=myservice.yourdomain.com` and credentials if using basic auth.
 4. **scripts/03_generate_secrets.sh**: Generate passwords and bcrypt hashes. Add to `VARS_TO_GENERATE` map.
 5. **scripts/04_wizard.sh**: Add service to `base_services_data` array for wizard selection.
-6. **scripts/generate_welcome_page.sh**: Add service to `SERVICES_ARRAY` for welcome dashboard.
-7. **welcome/app.js**: Add `SERVICE_METADATA` entry with name, description, icon, color, category.
-8. **scripts/07_final_report.sh**: Add service URL and credentials output using `is_profile_active "myservice"`.
-9. **README.md**: Add one-line description under "What's Included".
-10. **CHANGELOG.md**: Add entry under `## [Unreleased]` → `### Added`.
+6. **scripts/init_databases.sh**: If service uses PostgreSQL, add database name to `DATABASES` array.
+7. **scripts/generate_welcome_page.sh**: Add service to `SERVICES_ARRAY` for welcome dashboard.
+8. **welcome/app.js**: Add `SERVICE_METADATA` entry with name, description, icon, color, category.
+9. **scripts/07_final_report.sh**: Add service URL and credentials output using `is_profile_active "myservice"`.
+10. **README.md**: Add one-line description under "What's Included".
+11. **CHANGELOG.md**: Add entry under `## [Unreleased]` → `### Added`.
 
 **Always ask users if the new service requires Caddy basic auth protection.**
 

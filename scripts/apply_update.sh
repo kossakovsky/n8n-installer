@@ -92,12 +92,17 @@ $COMPOSE_CMD -p "localai" "${COMPOSE_FILES_FOR_PULL[@]}" pull --ignore-buildable
   exit 1
 }
 
-# Start services using the 06_run_services.sh script
-log_info "Running Services..."
-bash "$RUN_SERVICES_SCRIPT" || { log_error "Failed to start services. Check logs for details."; exit 1; }
+# Start PostgreSQL first to initialize databases before other services
+log_info "Starting PostgreSQL..."
+$COMPOSE_CMD -p "localai" up -d postgres || { log_error "Failed to start PostgreSQL"; exit 1; }
 
 # Initialize PostgreSQL databases for services (creates if not exist)
+# This must run BEFORE other services that depend on these databases
 bash "$SCRIPT_DIR/init_databases.sh" || { log_warning "Database initialization had issues, but continuing..."; }
+
+# Start all services using the 06_run_services.sh script (postgres is already running)
+log_info "Running Services..."
+bash "$RUN_SERVICES_SCRIPT" || { log_error "Failed to start services. Check logs for details."; exit 1; }
 
 log_success "Update application completed successfully!"
 

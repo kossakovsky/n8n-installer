@@ -87,7 +87,40 @@ Common dependencies:
 - `minio` - S3-compatible object storage
 - `clickhouse` - Analytics database (for Langfuse)
 
-### 1.5 Proxy Configuration (for outbound AI API calls)
+### 1.5 Database Initialization (if using PostgreSQL)
+
+If service requires its own PostgreSQL database, add it to `scripts/init_databases.sh`:
+
+```bash
+# List of databases to create (add new services here)
+DATABASES=(
+    "langfuse"
+    "lightrag"
+    "postiz"
+    "waha"
+    "$ARGUMENTS"  # Add your service here
+)
+```
+
+**File:** `scripts/init_databases.sh`
+
+This script:
+- Runs automatically during install/update (BEFORE services start)
+- Creates database if it doesn't exist (idempotent)
+- Waits for PostgreSQL to be healthy first
+
+**Important:** Database name should match what's configured in docker-compose.yml environment variables.
+
+Example in docker-compose.yml:
+```yaml
+environment:
+  DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/$ARGUMENTS
+  # OR individual vars:
+  POSTGRES_HOST: postgres
+  POSTGRES_DATABASE: $ARGUMENTS
+```
+
+### 1.6 Proxy Configuration (for outbound AI API calls)
 
 If service makes HTTP requests to external AI APIs (OpenAI, Anthropic, Google, etc.), add proxy support:
 
@@ -102,7 +135,7 @@ The `x-proxy-env` anchor (defined at top of docker-compose.yml) provides:
 - `HTTP_PROXY`, `HTTPS_PROXY`, `http_proxy`, `https_proxy` → `${GOST_PROXY_URL:-}`
 - `NO_PROXY`, `no_proxy` → `${GOST_NO_PROXY:-}`
 
-### 1.6 Healthcheck Proxy Bypass
+### 1.7 Healthcheck Proxy Bypass
 
 **CRITICAL:** If using `<<: *proxy-env`, healthcheck MUST bypass proxy:
 
@@ -116,7 +149,7 @@ healthcheck:
 
 The `http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY=` prefix clears proxy vars for healthcheck only.
 
-### 1.7 Multi-service Profiles
+### 1.8 Multi-service Profiles
 
 For services with multiple containers, use same profile for all:
 
@@ -160,7 +193,7 @@ Examples in project:
 - `ragflow` → ragflow + ragflow-mysql + ragflow-redis + ragflow-minio + ragflow-elasticsearch
 - `monitoring` → prometheus + grafana + cadvisor + node-exporter
 
-### 1.8 Hardware/GPU Profiles
+### 1.9 Hardware/GPU Profiles
 
 For services with CPU/GPU variants, use mutually exclusive profiles:
 
@@ -660,6 +693,7 @@ bash -n scripts/07_final_report.sh
 
 ### If Database Required
 - [ ] `docker-compose.yml`: `depends_on` with `condition: service_healthy`
+- [ ] `scripts/init_databases.sh`: add database name to `DATABASES` array
 
 ### If First-Run Setup Needed
 - [ ] `scripts/generate_welcome_page.sh`: `QUICK_START_ARRAY` entry

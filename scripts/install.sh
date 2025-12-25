@@ -120,11 +120,17 @@ bash "$SCRIPT_DIR/05_configure_services.sh" || { log_error "Configure Services f
 log_success "Configure Services complete!"
 
 show_step 6 8 "Running Services"
-bash "$SCRIPT_DIR/06_run_services.sh" || { log_error "Running Services failed"; exit 1; }
-log_success "Running Services complete!"
+# Start PostgreSQL first to initialize databases before other services
+log_info "Starting PostgreSQL..."
+docker compose -p localai up -d postgres || { log_error "Failed to start PostgreSQL"; exit 1; }
 
 # Initialize PostgreSQL databases for services (creates if not exist)
+# This must run BEFORE other services that depend on these databases
 bash "$SCRIPT_DIR/init_databases.sh" || { log_warning "Database initialization had issues, but continuing..."; }
+
+# Now start all services (postgres is already running)
+bash "$SCRIPT_DIR/06_run_services.sh" || { log_error "Running Services failed"; exit 1; }
+log_success "Running Services complete!"
 
 show_step 7 8 "Generating Final Report"
 # --- Installation Summary ---

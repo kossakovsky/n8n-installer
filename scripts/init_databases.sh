@@ -5,7 +5,7 @@
 # This script runs during install/update and creates databases if they don't exist.
 # Safe to run multiple times - only creates missing databases.
 #
-# Usage: Called automatically from install.sh and update.sh
+# Usage: Called automatically from install.sh and apply_update.sh
 # =============================================================================
 
 source "$(dirname "$0")/utils.sh" && init_paths
@@ -15,7 +15,6 @@ source "$(dirname "$0")/utils.sh" && init_paths
 DATABASES=(
     "langfuse"
     "lightrag"
-    "nocodb"
     "postiz"
     "waha"
 )
@@ -44,7 +43,7 @@ EXISTING=0
 
 for db in "${DATABASES[@]}"; do
     # Check if database exists
-    EXISTS=$(docker exec postgres psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$db'" 2>/dev/null)
+    EXISTS=$(docker exec postgres psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$db'" 2>/dev/null | tr -d ' ')
 
     if [ "$EXISTS" = "1" ]; then
         log_info "Database '$db' already exists"
