@@ -420,7 +420,8 @@ restore_debian_frontend() {
 gen_random() {
     local length="$1"
     local characters="$2"
-    head /dev/urandom | tr -dc "$characters" | head -c "$length"
+    # LC_ALL=C is required on macOS to handle raw bytes from /dev/urandom
+    LC_ALL=C tr -dc "$characters" < /dev/urandom | head -c "$length"
 }
 
 # Generate alphanumeric password
@@ -445,13 +446,26 @@ gen_base64() {
     openssl rand -base64 "$bytes" | head -c "$length"
 }
 
-# Generate bcrypt hash using Caddy
+# Generate bcrypt hash using Caddy (supports both native and Docker)
 # Usage: hash=$(generate_bcrypt_hash "plaintext_password")
 generate_bcrypt_hash() {
     local plaintext="$1"
-    if [[ -n "$plaintext" ]]; then
+    [[ -z "$plaintext" ]] && return 1
+
+    # Try native caddy first
+    if command -v caddy &> /dev/null; then
         caddy hash-password --algorithm bcrypt --plaintext "$plaintext" 2>/dev/null
+        return $?
     fi
+
+    # Fall back to Docker-based caddy
+    if command -v docker &> /dev/null; then
+        docker run --rm caddy:latest caddy hash-password --algorithm bcrypt --plaintext "$plaintext" 2>/dev/null
+        return $?
+    fi
+
+    log_error "Neither caddy nor docker is available for bcrypt generation"
+    return 1
 }
 
 #=============================================================================

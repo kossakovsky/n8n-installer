@@ -3,20 +3,45 @@
 # install.sh - Main installation orchestrator for n8n-install
 # =============================================================================
 # This script runs the complete installation process by sequentially executing
-# 8 installation steps:
+# installation steps. The steps vary based on installation mode:
+#
+# VPS Mode (production with SSL):
 #   1. System Preparation - updates packages, installs utilities, configures firewall
 #   2. Docker Installation - installs Docker and Docker Compose
-#   3. Secret Generation - creates .env file with secure passwords and secrets
-#   4. Service Wizard - interactive service selection using whiptail
-#   5. Service Configuration - prompts for API keys and service-specific settings
-#   6. Service Launch - starts all selected services via Docker Compose
-#   7. Final Report - displays credentials and access URLs
-#   8. Fix Permissions - ensures correct file ownership for the invoking user
+#   3-8. Secret generation, wizard, configuration, launch, report, permissions
 #
-# Usage: sudo bash scripts/install.sh
+# Local Mode (.local domains, HTTP only):
+#   1. Prerequisites Check - verifies Docker, whiptail, openssl, git are installed
+#   2-7. Secret generation, wizard, configuration, launch, report, permissions
+#
+# Usage:
+#   VPS:   sudo bash scripts/install.sh
+#   Local: bash scripts/install.sh
 # =============================================================================
 
 set -e
+
+# Check bash version (requires bash 4+ for associative arrays)
+if [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
+    echo "[ERROR] Bash 4.0 or higher is required. Current version: $BASH_VERSION"
+    echo ""
+    echo "On macOS, install modern bash and run with it:"
+    echo "  brew install bash"
+    echo "  /opt/homebrew/bin/bash ./scripts/install.sh"
+    echo ""
+    echo "Or add it to your PATH and run without full path."
+    exit 1
+fi
+
+# Parse command line arguments
+DEFAULT_MODE="vps"
+for arg in "$@"; do
+    case $arg in
+        --mode=*)
+            DEFAULT_MODE="${arg#*=}"
+            ;;
+    esac
+done
 
 # Source the utilities file
 source "$(dirname "$0")/utils.sh"
@@ -111,34 +136,100 @@ if [ ${#non_executable_scripts[@]} -gt 0 ]; then
     log_success "Scripts successfully made executable."
 fi
 
-# Run installation steps sequentially using their full paths
+# =============================================================================
+# Installation Mode Selection
+# =============================================================================
+log_header "Installation Mode"
 
-show_step 1 8 "System Preparation"
-set_telemetry_stage "system_prep"
-bash "$SCRIPT_DIR/01_system_preparation.sh" || { log_error "System Preparation failed"; exit 1; }
-log_success "System preparation complete!"
+# Require whiptail for mode selection
+if ! command -v whiptail &> /dev/null; then
+    log_error "whiptail is required but not found."
+    log_info "Please install whiptail first:"
+    log_info "  macOS: brew install newt"
+    log_info "  Linux: sudo apt-get install -y whiptail"
+    exit 1
+fi
 
-show_step 2 8 "Installing Docker"
-set_telemetry_stage "docker_install"
-bash "$SCRIPT_DIR/02_install_docker.sh" || { log_error "Docker Installation failed"; exit 1; }
-log_success "Docker installation complete!"
+# Set selection based on DEFAULT_MODE
+if [ "$DEFAULT_MODE" = "local" ]; then
+    VPS_SELECTED="OFF"
+    LOCAL_SELECTED="ON"
+else
+    VPS_SELECTED="ON"
+    LOCAL_SELECTED="OFF"
+fi
 
-show_step 3 8 "Generating Secrets and Configuration"
+INSTALL_MODE=$(wt_radiolist "Installation Mode" \
+    "Choose your installation environment:" \
+    "$DEFAULT_MODE" \
+    "vps" "VPS/Production - Real domain with Let's Encrypt SSL" "$VPS_SELECTED" \
+    "local" "Local Installation - .local domains, HTTP only" "$LOCAL_SELECTED") || true
+
+if [ -z "$INSTALL_MODE" ]; then
+    log_error "Installation mode not selected. Exiting."
+    exit 1
+fi
+
+export INSTALL_MODE
+log_info "Installation mode: $INSTALL_MODE"
+
+# Determine total steps based on mode
+if [ "$INSTALL_MODE" = "local" ]; then
+    TOTAL_STEPS=7
+else
+    TOTAL_STEPS=8
+fi
+
+# =============================================================================
+# Run installation steps sequentially
+# =============================================================================
+
+if [ "$INSTALL_MODE" = "vps" ]; then
+    # VPS Mode: Full system preparation and Docker installation
+    show_step 1 $TOTAL_STEPS "System Preparation"
+    set_telemetry_stage "system_prep"
+    "$BASH" "$SCRIPT_DIR/01_system_preparation.sh" || { log_error "System Preparation failed"; exit 1; }
+    log_success "System preparation complete!"
+
+    show_step 2 $TOTAL_STEPS "Installing Docker"
+    set_telemetry_stage "docker_install"
+    "$BASH" "$SCRIPT_DIR/02_install_docker.sh" || { log_error "Docker Installation failed"; exit 1; }
+    log_success "Docker installation complete!"
+
+    STEP_OFFSET=2
+else
+    # Local Mode: Just check prerequisites
+    show_step 1 $TOTAL_STEPS "Checking Prerequisites"
+    "$BASH" "$SCRIPT_DIR/00_check_prerequisites.sh" || { log_error "Prerequisites check failed"; exit 1; }
+    log_success "Prerequisites check complete!"
+
+    # Pull Caddy image for bcrypt hash generation
+    log_info "Pulling Caddy image for password hashing..."
+    docker pull caddy:latest 2>/dev/null || log_warning "Could not pull Caddy image, will try during installation"
+
+    STEP_OFFSET=1
+fi
+
+CURRENT_STEP=$((STEP_OFFSET + 1))
+show_step $CURRENT_STEP $TOTAL_STEPS "Generating Secrets and Configuration"
 set_telemetry_stage "secrets_gen"
-bash "$SCRIPT_DIR/03_generate_secrets.sh" || { log_error "Secret/Config Generation failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/03_generate_secrets.sh" || { log_error "Secret/Config Generation failed"; exit 1; }
 log_success "Secret/Config Generation complete!"
 
-show_step 4 8 "Running Service Selection Wizard"
+CURRENT_STEP=$((STEP_OFFSET + 2))
+show_step $CURRENT_STEP $TOTAL_STEPS "Running Service Selection Wizard"
 set_telemetry_stage "wizard"
-bash "$SCRIPT_DIR/04_wizard.sh" || { log_error "Service Selection Wizard failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/04_wizard.sh" || { log_error "Service Selection Wizard failed"; exit 1; }
 log_success "Service Selection Wizard complete!"
 
-show_step 5 8 "Configure Services"
+CURRENT_STEP=$((STEP_OFFSET + 3))
+show_step $CURRENT_STEP $TOTAL_STEPS "Configure Services"
 set_telemetry_stage "configure"
-bash "$SCRIPT_DIR/05_configure_services.sh" || { log_error "Configure Services failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/05_configure_services.sh" || { log_error "Configure Services failed"; exit 1; }
 log_success "Configure Services complete!"
 
-show_step 6 8 "Running Services"
+CURRENT_STEP=$((STEP_OFFSET + 4))
+show_step $CURRENT_STEP $TOTAL_STEPS "Running Services"
 set_telemetry_stage "db_init"
 # Start PostgreSQL first to initialize databases before other services
 log_info "Starting PostgreSQL..."
@@ -151,27 +242,34 @@ init_all_databases || { log_warning "Database initialization had issues, but con
 
 # Now start all services (postgres is already running)
 set_telemetry_stage "services_start"
-bash "$SCRIPT_DIR/06_run_services.sh" || { log_error "Running Services failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/06_run_services.sh" || { log_error "Running Services failed"; exit 1; }
 log_success "Running Services complete!"
 
-show_step 7 8 "Generating Final Report"
+CURRENT_STEP=$((STEP_OFFSET + 5))
+show_step $CURRENT_STEP $TOTAL_STEPS "Generating Final Report"
 set_telemetry_stage "final_report"
 # --- Installation Summary ---
 log_info "Installation Summary:"
-echo -e "  ${GREEN}*${NC} System updated and basic utilities installed"
-echo -e "  ${GREEN}*${NC} Firewall (UFW) configured and enabled"
-echo -e "  ${GREEN}*${NC} Fail2Ban activated for brute-force protection"
-echo -e "  ${GREEN}*${NC} Automatic security updates enabled"
-echo -e "  ${GREEN}*${NC} Docker and Docker Compose installed"
+if [ "$INSTALL_MODE" = "vps" ]; then
+    echo -e "  ${GREEN}*${NC} System updated and basic utilities installed"
+    echo -e "  ${GREEN}*${NC} Firewall (UFW) configured and enabled"
+    echo -e "  ${GREEN}*${NC} Fail2Ban activated for brute-force protection"
+    echo -e "  ${GREEN}*${NC} Automatic security updates enabled"
+    echo -e "  ${GREEN}*${NC} Docker and Docker Compose installed"
+else
+    echo -e "  ${GREEN}*${NC} Prerequisites verified (Docker, whiptail, openssl, git)"
+    echo -e "  ${GREEN}*${NC} Local installation mode configured (.local domains)"
+fi
 echo -e "  ${GREEN}*${NC} '.env' generated with secure passwords and secrets"
 echo -e "  ${GREEN}*${NC} Services launched via Docker Compose"
 
-bash "$SCRIPT_DIR/07_final_report.sh" || { log_error "Final Report Generation failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/07_final_report.sh" || { log_error "Final Report Generation failed"; exit 1; }
 log_success "Final Report generated!"
 
-show_step 8 8 "Fixing File Permissions"
+CURRENT_STEP=$((STEP_OFFSET + 6))
+show_step $CURRENT_STEP $TOTAL_STEPS "Fixing File Permissions"
 set_telemetry_stage "fix_perms"
-bash "$SCRIPT_DIR/08_fix_permissions.sh" || { log_error "Fix Permissions failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/08_fix_permissions.sh" || { log_error "Fix Permissions failed"; exit 1; }
 log_success "File permissions fixed!"
 
 log_success "Installation complete!"

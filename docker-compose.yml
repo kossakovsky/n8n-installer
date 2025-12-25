@@ -89,6 +89,7 @@ x-n8n: &service-n8n
     N8N_SMTP_SSL: ${N8N_SMTP_SSL:-true}
     N8N_SMTP_STARTTLS: ${N8N_SMTP_STARTTLS:-true}
     N8N_SMTP_USER: ${N8N_SMTP_USER:-}
+    N8N_SECURE_COOKIE: ${N8N_SECURE_COOKIE:-true}
     N8N_TRUST_PROXY: true
     N8N_USER_MANAGEMENT_JWT_SECRET: ${N8N_USER_MANAGEMENT_JWT_SECRET}
     NODE_ENV: production
@@ -96,7 +97,7 @@ x-n8n: &service-n8n
     QUEUE_BULL_REDIS_HOST: ${REDIS_HOST:-redis}
     QUEUE_BULL_REDIS_PORT: ${REDIS_PORT:-6379}
     QUEUE_HEALTH_CHECK_ACTIVE: true
-    WEBHOOK_URL: ${N8N_HOSTNAME:+https://}${N8N_HOSTNAME:-http://localhost:5678}/
+    WEBHOOK_URL: ${PROTOCOL:-https}://${N8N_HOSTNAME}/
 
 x-ollama: &service-ollama
   image: ollama/ollama:latest
@@ -312,6 +313,7 @@ services:
       - caddy-data:/data:rw
       - caddy-config:/config:rw
     environment:
+      CADDY_AUTO_HTTPS: ${CADDY_AUTO_HTTPS:-on}
       COMFYUI_HOSTNAME: ${COMFYUI_HOSTNAME}
       COMFYUI_PASSWORD_HASH: ${COMFYUI_PASSWORD_HASH}
       COMFYUI_USERNAME: ${COMFYUI_USERNAME}

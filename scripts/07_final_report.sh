@@ -26,10 +26,21 @@ init_paths
 # Load environment variables from .env file
 load_env || exit 1
 
+# Get installation mode
+INSTALL_MODE="${INSTALL_MODE:-$(read_env_var "INSTALL_MODE")}"
+INSTALL_MODE="${INSTALL_MODE:-vps}"
+
+# Determine protocol based on mode
+if [ "$INSTALL_MODE" = "local" ]; then
+    PROTOCOL="http"
+else
+    PROTOCOL="https"
+fi
+
 # Generate welcome page data
 if [ -f "$SCRIPT_DIR/generate_welcome_page.sh" ]; then
     log_info "Generating welcome page..."
-    bash "$SCRIPT_DIR/generate_welcome_page.sh" || log_warning "Failed to generate welcome page"
+    "$BASH" "$SCRIPT_DIR/generate_welcome_page.sh" || log_warning "Failed to generate welcome page"
 fi
 
 # Helper function to print a divider line
@@ -58,12 +69,31 @@ clear
 # Header
 log_box "Installation/Update Complete"
 
+# --- Local Mode: /etc/hosts Instructions ---
+if [ "$INSTALL_MODE" = "local" ]; then
+    print_section "Local Installation Setup"
+    echo ""
+    echo -e "  ${WHITE}Before accessing services, add entries to your hosts file:${NC}"
+    echo ""
+
+    # Generate hosts entries inline
+    if [ -f "$SCRIPT_DIR/generate_hosts.sh" ]; then
+        "$BASH" "$SCRIPT_DIR/generate_hosts.sh" 2>/dev/null || true
+    fi
+
+    echo -e "  ${CYAN}sudo bash -c 'cat hosts.txt >> /etc/hosts'${NC}"
+    echo ""
+    echo -e "  ${DIM}Then flush your DNS cache:${NC}"
+    echo -e "  ${CYAN}macOS: sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder${NC}"
+    echo -e "  ${CYAN}Linux: sudo systemd-resolve --flush-caches${NC}"
+fi
+
 # --- Welcome Page Section ---
 print_section "Welcome Page"
 echo ""
 echo -e "  ${WHITE}All your service credentials are available here:${NC}"
 echo ""
-print_credential "URL" "https://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}"
+print_credential "URL" "${PROTOCOL}://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}"
 print_credential "Username" "${WELCOME_USERNAME:-<not_set>}"
 print_credential "Password" "${WELCOME_PASSWORD:-<not_set>}"
 echo ""
@@ -74,7 +104,7 @@ echo -e "  ${DIM}hostnames, credentials, and internal URLs.${NC}"
 print_section "Next Steps"
 echo ""
 echo -e "  ${WHITE}1.${NC} Visit your Welcome Page to view all credentials"
-echo -e "     ${CYAN}https://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}${NC}"
+echo -e "     ${CYAN}${PROTOCOL}://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}${NC}"
 echo ""
 echo -e "  ${WHITE}2.${NC} Store the Welcome Page credentials securely"
 echo ""

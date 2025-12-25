@@ -17,17 +17,19 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 
 - `Makefile`: Common commands (install, update, logs, etc.)
 - `docker-compose.yml`: Service definitions with profiles
-- `Caddyfile`: Reverse proxy configuration with automatic HTTPS
+- `Caddyfile`: Reverse proxy configuration (HTTPS for VPS, HTTP for local via `CADDY_AUTO_HTTPS`)
 - `.env`: Generated secrets and configuration (from `.env.example`)
 - `scripts/install.sh`: Main installation orchestrator (runs numbered scripts 01-08 in sequence)
 - `scripts/utils.sh`: Shared utility functions (sourced by all scripts via `source "$(dirname "$0")/utils.sh" && init_paths`)
 - `scripts/git.sh`: Git utilities (sync with origin, branch detection, configuration)
+- `scripts/00_check_prerequisites.sh`: Prerequisites check for local installation
 - `scripts/03_generate_secrets.sh`: Secret generation and bcrypt hashing
 - `scripts/04_wizard.sh`: Interactive service selection using whiptail
 - `scripts/05_configure_services.sh`: Service-specific configuration logic
 - `scripts/databases.sh`: Creates isolated PostgreSQL databases for services (library)
 - `scripts/telemetry.sh`: Anonymous telemetry functions (Scarf integration)
 - `scripts/06_run_services.sh`: Starts Docker Compose stack
+- `scripts/generate_hosts.sh`: Generates /etc/hosts entries for local mode
 - `scripts/07_final_report.sh`: Post-install credential summary
 - `scripts/08_fix_permissions.sh`: Fixes file ownership for non-root access
 - `scripts/generate_n8n_workers.sh`: Generates dynamic worker/runner compose file
@@ -54,6 +56,13 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 8. `08_fix_permissions.sh` - Fix file ownership for non-root access
 
 The update flow (`scripts/update.sh`) similarly orchestrates: git fetch + reset → service selection → `apply_update.sh` → restart.
+
+### Installation Modes
+
+The installer supports two modes, selected at the start of installation:
+
+- **VPS Mode**: Production with real domains, Let's Encrypt SSL, full system prep. Run with `sudo`.
+- **Local Mode**: Development with `.local` domains, HTTP only, no system prep. Requires Docker pre-installed.
 
 ## Common Development Commands
 

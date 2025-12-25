@@ -1,11 +1,15 @@
-.PHONY: help install update update-preview clean logs status monitor restart show-restarts doctor switch-beta switch-stable
+.PHONY: help install install-local update update-preview clean logs status monitor restart show-restarts doctor switch-beta switch-stable
 
 PROJECT_NAME := localai
+
+# Detect Homebrew bash for macOS (required for bash 4+ features)
+HOMEBREW_BASH := $(shell command -v /opt/homebrew/bin/bash 2>/dev/null || command -v /usr/local/bin/bash 2>/dev/null || echo bash)
 
 help:
 	@echo "n8n-install - Available commands:"
 	@echo ""
-	@echo "  make install           Full installation"
+	@echo "  make install           VPS installation (with sudo)"
+	@echo "  make install-local     Local installation (macOS/Linux, no sudo)"
 	@echo "  make update            Update system and services"
 	@echo "  make update-preview    Preview available updates (dry-run)"
 	@echo "  make clean             Remove unused Docker resources"
@@ -22,7 +26,10 @@ help:
 	@echo "  make switch-stable     Switch to stable (main branch)"
 
 install:
-	sudo bash ./scripts/install.sh
+	sudo bash ./scripts/install.sh --mode=vps
+
+install-local:
+	$(HOMEBREW_BASH) ./scripts/install.sh --mode=local
 
 update:
 	sudo bash ./scripts/update.sh

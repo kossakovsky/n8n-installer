@@ -26,6 +26,10 @@ init_paths
 # Source telemetry functions
 source "$SCRIPT_DIR/telemetry.sh"
 
+# Read installation mode (default to vps for backward compatibility)
+INSTALL_MODE="${INSTALL_MODE:-$(read_env_var "INSTALL_MODE")}"
+INSTALL_MODE="${INSTALL_MODE:-vps}"
+
 # Setup cleanup for temporary files
 TEMP_FILES=()
 cleanup_temp_files() {
@@ -151,15 +155,23 @@ if [ -f "$OUTPUT_FILE" ]; then
     done < "$OUTPUT_FILE"
 fi
 
-# Install Caddy
-log_subheader "Installing Caddy"
-log_info "Adding Caddy repository and installing..."
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --yes --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
-apt install -y caddy
-
-# Check for caddy
-require_command "caddy" "Caddy installation failed. Please check the installation logs above."
+# Install Caddy for bcrypt hash generation
+log_subheader "Setting up Caddy for password hashing"
+if [ "$INSTALL_MODE" = "vps" ]; then
+    # VPS mode: Install Caddy via apt
+    log_info "Adding Caddy repository and installing..."
+    curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --yes --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+    curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+    apt install -y caddy
+    require_command "caddy" "Caddy installation failed. Please check the installation logs above."
+else
+    # Local mode: Use Docker-based Caddy (already pulled in install.sh)
+    log_info "Using Docker-based Caddy for password hashing..."
+    if ! docker image inspect caddy:latest &>/dev/null; then
+        log_info "Pulling Caddy Docker image..."
+        docker pull caddy:latest
+    fi
+fi
 
 require_whiptail
 
@@ -167,64 +179,89 @@ require_whiptail
 log_subheader "Domain Configuration"
 DOMAIN="" # Initialize DOMAIN variable
 
-# Try to get domain from existing .env file first
-# Check if USER_DOMAIN_NAME is set in existing_env_vars and is not empty
-if [[ ${existing_env_vars[USER_DOMAIN_NAME]+_} && -n "${existing_env_vars[USER_DOMAIN_NAME]}" ]]; then
-    DOMAIN="${existing_env_vars[USER_DOMAIN_NAME]}"
-    # Ensure this value is carried over to generated_values for writing and template processing
-    # If it came from existing_env_vars, it might already be there, but this ensures it.
+if [ "$INSTALL_MODE" = "local" ]; then
+    # Local mode: use .local TLD automatically
+    DOMAIN="local"
     generated_values["USER_DOMAIN_NAME"]="$DOMAIN"
+    generated_values["INSTALL_MODE"]="local"
+    generated_values["CADDY_AUTO_HTTPS"]="off"
+    generated_values["N8N_SECURE_COOKIE"]="false"
+    generated_values["PROTOCOL"]="http"
+    log_info "Using local development domain: .local"
 else
-    while true; do
-        DOMAIN_INPUT=$(wt_input "Primary Domain" "Enter the primary domain name for your services (e.g., example.com)." "") || true
+    # VPS mode: prompt for real domain
+    generated_values["INSTALL_MODE"]="vps"
+    generated_values["CADDY_AUTO_HTTPS"]="on"
+    generated_values["N8N_SECURE_COOKIE"]="true"
+    generated_values["PROTOCOL"]="https"
 
-        DOMAIN_TO_USE="$DOMAIN_INPUT" # Direct assignment, no default fallback
+    # Try to get domain from existing .env file first
+    # Check if USER_DOMAIN_NAME is set in existing_env_vars and is not empty
+    if [[ ${existing_env_vars[USER_DOMAIN_NAME]+_} && -n "${existing_env_vars[USER_DOMAIN_NAME]}" ]]; then
+        DOMAIN="${existing_env_vars[USER_DOMAIN_NAME]}"
+        # Ensure this value is carried over to generated_values for writing and template processing
+        # If it came from existing_env_vars, it might already be there, but this ensures it.
+        generated_values["USER_DOMAIN_NAME"]="$DOMAIN"
+    else
+        while true; do
+            DOMAIN_INPUT=$(wt_input "Primary Domain" "Enter the primary domain name for your services (e.g., example.com)." "") || true
 
-        # Validate domain input
-        if [[ -z "$DOMAIN_TO_USE" ]]; then
-            wt_msg "Validation" "Domain name cannot be empty."
-            continue
-        fi
+            DOMAIN_TO_USE="$DOMAIN_INPUT" # Direct assignment, no default fallback
 
-        # Basic check for likely invalid domain characters (very permissive)
-        if [[ "$DOMAIN_TO_USE" =~ [^a-zA-Z0-9.-] ]]; then
-            wt_msg "Validation" "Warning: Domain contains potentially invalid characters: '$DOMAIN_TO_USE'"
-        fi
-        if wt_yesno "Confirm Domain" "Use '$DOMAIN_TO_USE' as the primary domain?" "yes"; then
-            DOMAIN="$DOMAIN_TO_USE" # Set the final DOMAIN variable
-            generated_values["USER_DOMAIN_NAME"]="$DOMAIN" # Using USER_DOMAIN_NAME
-            log_info "Domain set to '$DOMAIN'. It will be saved in .env."
-            break # Confirmed, exit loop
-        fi
-    done
+            # Validate domain input
+            if [[ -z "$DOMAIN_TO_USE" ]]; then
+                wt_msg "Validation" "Domain name cannot be empty."
+                continue
+            fi
+
+            # Basic check for likely invalid domain characters (very permissive)
+            if [[ "$DOMAIN_TO_USE" =~ [^a-zA-Z0-9.-] ]]; then
+                wt_msg "Validation" "Warning: Domain contains potentially invalid characters: '$DOMAIN_TO_USE'"
+            fi
+            if wt_yesno "Confirm Domain" "Use '$DOMAIN_TO_USE' as the primary domain?" "yes"; then
+                DOMAIN="$DOMAIN_TO_USE" # Set the final DOMAIN variable
+                generated_values["USER_DOMAIN_NAME"]="$DOMAIN" # Using USER_DOMAIN_NAME
+                log_info "Domain set to '$DOMAIN'. It will be saved in .env."
+                break # Confirmed, exit loop
+            fi
+        done
+    fi
 fi
 
 # Prompt for user email
 log_subheader "Email Configuration"
-if [[ -z "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
-    wt_msg "Email Required" "Please enter your email address. It will be used for logins and Let's Encrypt SSL."
-fi
 
-if [[ -n "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
-    USER_EMAIL="${existing_env_vars[LETSENCRYPT_EMAIL]}"
+if [ "$INSTALL_MODE" = "local" ]; then
+    # Local mode: use placeholder email
+    USER_EMAIL="admin@local"
+    log_info "Using placeholder email for local mode: $USER_EMAIL"
 else
-    while true; do
-        USER_EMAIL=$(wt_input "Email" "Enter your email address." "") || true
+    # VPS mode: prompt for real email
+    if [[ -z "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
+        wt_msg "Email Required" "Please enter your email address. It will be used for logins and Let's Encrypt SSL."
+    fi
 
-        # Validate email input
-        if [[ -z "$USER_EMAIL" ]]; then
-            wt_msg "Validation" "Email cannot be empty."
-            continue
-        fi
+    if [[ -n "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
+        USER_EMAIL="${existing_env_vars[LETSENCRYPT_EMAIL]}"
+    else
+        while true; do
+            USER_EMAIL=$(wt_input "Email" "Enter your email address." "") || true
 
-        # Basic email format validation
-        if [[ ! "$USER_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-            wt_msg "Validation" "Warning: Email format appears to be invalid: '$USER_EMAIL'"
-        fi
-        if wt_yesno "Confirm Email" "Use '$USER_EMAIL' as your email?" "yes"; then
-            break # Confirmed, exit loop
-        fi
-    done
+            # Validate email input
+            if [[ -z "$USER_EMAIL" ]]; then
+                wt_msg "Validation" "Email cannot be empty."
+                continue
+            fi
+
+            # Basic email format validation
+            if [[ ! "$USER_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+                wt_msg "Validation" "Warning: Email format appears to be invalid: '$USER_EMAIL'"
+            fi
+            if wt_yesno "Confirm Email" "Use '$USER_EMAIL' as your email?" "yes"; then
+                break # Confirmed, exit loop
+            fi
+        done
+    fi
 fi
 
 
@@ -577,8 +614,10 @@ log_success ".env file generated successfully in the project root ($OUTPUT_FILE)
 # Save installation ID for telemetry correlation
 save_installation_id "$OUTPUT_FILE"
 
-# Uninstall caddy
-apt remove -y caddy
+# Uninstall caddy (only in VPS mode where it was installed via apt)
+if [ "$INSTALL_MODE" = "vps" ]; then
+    apt remove -y caddy
+fi
 
 # Cleanup any .bak files
 cleanup_bak_files "$PROJECT_ROOT"

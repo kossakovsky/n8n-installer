@@ -161,16 +161,60 @@ This single command automates the entire setup process, including:
 
 During the installation, the script will prompt you for:
 
-1.  Your **primary domain name** (Required, e.g., `yourdomain.com`). This is the domain for which you've configured the wildcard DNS record.
-2.  Your **email address** (Required, used for service logins like Flowise, Supabase dashboard, Grafana, and for SSL certificate registration with Let's Encrypt).
-3.  An optional **OpenAI API key** (Not required. If provided, it can be used by Supabase AI features and Crawl4ai. Press Enter to skip).
-4.  Whether you want to **import ~300 ready-made n8n community workflows** (y/n, Optional. This can take 20-30 minutes, depending on your server and network speed).
-5.  The **number of n8n workers** you want to run (Required, e.g., 1, 2, 3, 4. This determines how many workflows can be processed in parallel. Each worker automatically gets its own dedicated task runner sidecar for executing Code nodes. Defaults to 1 if not specified).
-6.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
+1.  **Installation mode** - VPS (production with SSL) or Local (development with HTTP).
+2.  Your **primary domain name** (Required for VPS mode, e.g., `yourdomain.com`). This is the domain for which you've configured the wildcard DNS record.
+3.  Your **email address** (Required for VPS mode, used for service logins like Flowise, Supabase dashboard, Grafana, and for SSL certificate registration with Let's Encrypt).
+4.  An optional **OpenAI API key** (Not required. If provided, it can be used by Supabase AI features and Crawl4ai. Press Enter to skip).
+5.  Whether you want to **import ~300 ready-made n8n community workflows** (y/n, Optional. This can take 20-30 minutes, depending on your server and network speed).
+6.  The **number of n8n workers** you want to run (Required, e.g., 1, 2, 3, 4. This determines how many workflows can be processed in parallel. Each worker automatically gets its own dedicated task runner sidecar for executing Code nodes. Defaults to 1 if not specified).
+7.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
 
 Upon successful completion, the script will display a summary report. This report contains the access URLs and credentials for the deployed services. **Save this information in a safe place!**
 
-## Quick Start and Usage
+### Local Installation
+
+You can also run this project on your local machine (macOS, Linux, or Windows via WSL2) for development and testing purposes.
+
+#### Prerequisites
+
+- Docker and Docker Compose installed and running
+- Bash 4.0+ (macOS ships with bash 3.2, install modern bash: `brew install bash`)
+- Python 3 with PyYAML (`pip3 install pyyaml` - auto-installed if missing)
+- `whiptail` installed (macOS: `brew install newt`, Linux: `apt install whiptail`)
+- `openssl` and `git` installed
+
+#### Running Local Install
+
+```bash
+git clone https://github.com/kossakovsky/n8n-install && cd n8n-install
+make install-local
+```
+
+This automatically uses Homebrew bash on macOS (required for bash 4+ features).
+
+When prompted, select **"Local Installation"** mode. The installer will:
+- Skip system preparation and Docker installation steps
+- Use `.local` domains (e.g., `n8n.local`, `flowise.local`)
+- Configure Caddy for HTTP only (no SSL certificates)
+
+#### After Installation
+
+Add the generated host entries to your system:
+
+```bash
+# The installer generates a hosts.txt file with all required entries
+sudo bash -c 'cat hosts.txt >> /etc/hosts'
+
+# Flush DNS cache
+# macOS:
+sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
+# Linux:
+sudo systemd-resolve --flush-caches
+```
+
+Access your services at `http://n8n.local`, `http://flowise.local`, etc.
+
+## ⚡️ Quick Start and Usage
 
 After successful installation, your services are up and running! Here's how to get started:
 
