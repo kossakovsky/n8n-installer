@@ -32,6 +32,9 @@ require_file "$RUN_SERVICES_SCRIPT" "$RUN_SERVICES_SCRIPT not found."
 
 cd "$PROJECT_ROOT"
 
+# Send telemetry: update started
+send_telemetry "update_start"
+
 # --- Call 03_generate_secrets.sh in update mode --- 
 log_info "Ensuring .env file is up-to-date with all variables..."
 bash "$SCRIPT_DIR/03_generate_secrets.sh" --update || {
@@ -120,4 +123,7 @@ bash "$SCRIPT_DIR/07_final_report.sh" || {
 }
 # --- End of Final Report ---
 
-exit 0 
+# Send telemetry: update completed with current services
+send_telemetry "update_complete" "$(read_env_var COMPOSE_PROFILES)"
+
+exit 0

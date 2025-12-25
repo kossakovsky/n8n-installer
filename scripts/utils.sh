@@ -806,3 +806,110 @@ restore_preserved_dirs() {
     rm -rf "$backup_base"
     return 0
 }
+
+#=============================================================================
+# ANONYMOUS TELEMETRY (Scarf)
+#=============================================================================
+# Sends anonymous usage statistics to help improve the project.
+# No personal data is collected. Users can opt-out by setting SCARF_ANALYTICS=false
+# or DO_NOT_TRACK=1
+
+# Scarf endpoint for anonymous telemetry
+SCARF_ENDPOINT="https://kossakovsky.gateway.scarf.sh/n8n-install"
+
+# Get or generate installation ID (persistent across sessions)
+# Usage: id=$(get_installation_id)
+# Priority: 1) exported env var, 2) .env file, 3) generate new
+get_installation_id() {
+    # First check if ID is already in environment (exported from parent process)
+    # This ensures consistency when called multiple times before .env exists
+    if [[ -n "${INSTALLATION_ID:-}" ]]; then
+        echo "$INSTALLATION_ID"
+        return 0
+    fi
+
+    # Then check .env file for existing ID
+    if [[ -f "$ENV_FILE" ]]; then
+        local existing_id
+        existing_id=$(grep "^INSTALLATION_ID=" "$ENV_FILE" 2>/dev/null | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+        if [[ -n "$existing_id" ]]; then
+            echo "$existing_id"
+            return 0
+        fi
+    fi
+
+    # Generate new ID (12 char hex = 6 bytes)
+    local new_id
+    new_id=$(od -An -tx1 -N6 /dev/urandom | tr -d ' \n')
+
+    # Save to .env if file exists
+    if [[ -f "$ENV_FILE" ]]; then
+        if grep -q "^INSTALLATION_ID=" "$ENV_FILE" 2>/dev/null; then
+            sed -i.bak "s/^INSTALLATION_ID=.*/INSTALLATION_ID=\"${new_id}\"/" "$ENV_FILE"
+            rm -f "${ENV_FILE}.bak"
+        else
+            echo "INSTALLATION_ID=\"${new_id}\"" >> "$ENV_FILE"
+        fi
+    fi
+
+    echo "$new_id"
+}
+
+# Detect OS type
+# Usage: os=$(get_os_type)
+get_os_type() {
+    if [[ -f /etc/os-release ]]; then
+        . /etc/os-release
+        echo "${ID:-linux}-${VERSION_ID:-unknown}"
+    elif [[ "$(uname)" == "Darwin" ]]; then
+        echo "macos-$(sw_vers -productVersion 2>/dev/null || echo 'unknown')"
+    else
+        echo "$(uname -s | tr '[:upper:]' '[:lower:]')-unknown"
+    fi
+}
+
+# Send anonymous telemetry event
+# Usage: send_telemetry "install_start"
+#        send_telemetry "install_complete" "$COMPOSE_PROFILES"
+#        send_telemetry "update_start"
+#        send_telemetry "update_complete" "$COMPOSE_PROFILES"
+# Arguments:
+#   $1 - event_type: "install_start", "install_complete", "update_start", "update_complete"
+#   $2 - services (optional): comma-separated list of selected profiles (for *_complete events)
+# Note: To get installation ID, call get_installation_id directly before this function
+send_telemetry() {
+    local event_type="$1"
+    local services="${2:-}"
+
+    # Load environment (for SCARF_ANALYTICS check and INSTALLATION_ID)
+    [[ -f "$ENV_FILE" ]] && source "$ENV_FILE" 2>/dev/null
+
+    # Get installation ID and OS
+    local install_id
+    install_id=$(get_installation_id)
+    local os_type
+    os_type=$(get_os_type)
+
+    # Opt-out check: respect SCARF_ANALYTICS and DO_NOT_TRACK
+    if [[ "${SCARF_ANALYTICS:-true}" == "false" ]] || [[ "${DO_NOT_TRACK:-0}" == "1" ]]; then
+        return 0
+    fi
+
+    # Get version from VERSION file
+    local version="unknown"
+    if [[ -f "$PROJECT_ROOT/VERSION" ]]; then
+        version=$(cat "$PROJECT_ROOT/VERSION" | tr -d '\n\r')
+    fi
+
+    # Build URL with query parameters (URL-encode services to handle special chars)
+    local url="${SCARF_ENDPOINT}?event=${event_type}&version=${version}&id=${install_id}&os=${os_type}"
+
+    if [[ -n "$services" ]]; then
+        # URL encode spaces (commas are allowed in query strings per RFC 3986)
+        local encoded_services="${services// /%20}"
+        url="${url}&services=${encoded_services}"
+    fi
+
+    # Send telemetry in background with short timeout (non-blocking, silent)
+    curl -sf --connect-timeout 2 --max-time 2 "$url" >/dev/null 2>&1 &
+}

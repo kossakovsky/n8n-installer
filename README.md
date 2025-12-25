@@ -363,6 +363,23 @@ When you build automations in n8n that need to read or write files on your serve
 
 Want to see who has contributed to this project? Check out the [**GitHub Contributors Page**](https://github.com/kossakovsky/n8n-install/graphs/contributors)!
 
-## 📜 License
+## Telemetry
+
+This installer collects anonymous usage statistics via [Scarf](https://scarf.sh) to help improve the project. **No personal data is collected.**
+
+Data collected:
+- Event type (install/update start/complete)
+- Installer version
+- Selected services
+- OS type (e.g., ubuntu-24.04)
+- Random installation ID (to correlate start/complete events)
+- Country (determined by Scarf from IP, not stored by us)
+
+To opt out, add to your `.env` file after installation:
+```
+SCARF_ANALYTICS=false
+```
+
+## License
 
 This project (originally created by the n8n team, with further development by contributors - see "Important Links") is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.

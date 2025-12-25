@@ -47,6 +47,14 @@ fi
 # Initialize paths using utils.sh helper
 init_paths
 
+# Generate installation ID for telemetry correlation (before .env exists)
+# This ID will be saved to .env by 03_generate_secrets.sh
+INSTALLATION_ID=$(get_installation_id)
+export INSTALLATION_ID
+
+# Send telemetry: installation started
+send_telemetry "install_start"
+
 # Check if all required scripts exist and are executable in the current directory
 required_scripts=(
     "01_system_preparation.sh"
@@ -151,5 +159,8 @@ bash "$SCRIPT_DIR/08_fix_permissions.sh" || { log_error "Fix Permissions failed"
 log_success "File permissions fixed!"
 
 log_success "Installation complete!"
+
+# Send telemetry: installation completed with selected services
+send_telemetry "install_complete" "$(read_env_var COMPOSE_PROFILES)"
 
 exit 0

@@ -548,6 +548,11 @@ done
 
 log_success ".env file generated successfully in the project root ($OUTPUT_FILE)."
 
+# Save INSTALLATION_ID if passed from install.sh (for telemetry correlation)
+if [[ -n "${INSTALLATION_ID:-}" ]]; then
+    write_env_var "INSTALLATION_ID" "$INSTALLATION_ID" "$OUTPUT_FILE"
+fi
+
 # Uninstall caddy
 apt remove -y caddy
 
