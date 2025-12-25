@@ -548,10 +548,14 @@ done
 
 log_success ".env file generated successfully in the project root ($OUTPUT_FILE)."
 
-# Save INSTALLATION_ID if passed from install.sh (for telemetry correlation)
-if [[ -n "${INSTALLATION_ID:-}" ]]; then
-    write_env_var "INSTALLATION_ID" "$INSTALLATION_ID" "$OUTPUT_FILE"
+# Save INSTALLATION_ID for telemetry correlation
+# Priority: 1) exported from parent (install.sh), 2) existing .env (via generated_values), 3) generate new
+existing_install_id="${INSTALLATION_ID:-${generated_values[INSTALLATION_ID]:-}}"
+if [[ -z "$existing_install_id" ]]; then
+    # Generate new ID for existing installations upgrading from pre-telemetry version
+    existing_install_id=$(od -An -tx1 -N6 /dev/urandom | tr -d ' \n')
 fi
+write_env_var "INSTALLATION_ID" "$existing_install_id" "$OUTPUT_FILE"
 
 # Uninstall caddy
 apt remove -y caddy
