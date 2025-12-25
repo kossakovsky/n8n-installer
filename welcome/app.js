@@ -247,6 +247,14 @@
             category: 'database',
             docsUrl: 'https://neo4j.com/docs'
         },
+        'nocodb': {
+            name: 'NocoDB',
+            description: 'Spreadsheet Database',
+            icon: 'NC',
+            color: 'bg-[#3433C1]',
+            category: 'database',
+            docsUrl: 'https://nocodb.com/docs/product-docs'
+        },
         'searxng': {
             name: 'SearXNG',
             description: 'Private Metasearch Engine',

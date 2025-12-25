@@ -178,6 +178,20 @@ if is_profile_active "neo4j"; then
     }")
 fi
 
+# NocoDB
+if is_profile_active "nocodb"; then
+    SERVICES_ARRAY+=("    \"nocodb\": {
+      \"hostname\": \"$(json_escape "$NOCODB_HOSTNAME")\",
+      \"credentials\": {
+        \"note\": \"Create your account on first login\"
+      },
+      \"extra\": {
+        \"internal_api\": \"http://nocodb:8080\",
+        \"docs\": \"https://docs.nocodb.com\"
+      }
+    }")
+fi
+
 # SearXNG
 if is_profile_active "searxng"; then
     SERVICES_ARRAY+=("    \"searxng\": {

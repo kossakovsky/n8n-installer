@@ -52,6 +52,8 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Neo4j**](https://neo4j.com/) - A graph database management system that allows you to model, store, and query data as a network of nodes and relationships.
 
+✅ [**NocoDB**](https://nocodb.com/) - An open source Airtable alternative that turns any database into a smart spreadsheet with a no-code interface for building collaborative apps.
+
 ✅ [**Ollama**](https://ollama.com/) - Run Llama 3, Mistral, Gemma, and other large language models locally.
 
 ✅ [**Open WebUI**](https://openwebui.com/) - A user-friendly, ChatGPT-like interface to interact privately with your AI models and n8n agents.
@@ -154,6 +156,7 @@ After successful installation, your services are up and running! Here's how to g
     - **Letta:** `letta.yourdomain.com`
     - **LibreTranslate:** `translate.yourdomain.com`
     - **Neo4j:** `neo4j.yourdomain.com`
+    - **NocoDB:** `nocodb.yourdomain.com`
     - **Open WebUI:** `webui.yourdomain.com`
     - **PaddleOCR:** `paddleocr.yourdomain.com`
     - **Portainer:** `portainer.yourdomain.com` (Protected by Caddy basic auth; on first login, complete Portainer admin setup)

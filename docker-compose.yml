@@ -15,6 +15,7 @@ volumes:
   lightrag_data:
   lightrag_inputs:
   n8n_storage:
+  nocodb_data:
   ollama_storage:
   open-webui:
   paddle_cache:
@@ -267,6 +268,32 @@ services:
         soft: 40000
         hard: 40000
 
+  nocodb:
+    image: nocodb/nocodb:latest
+    container_name: nocodb
+    profiles: ["nocodb"]
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+    environment:
+      NC_AUTH_JWT_SECRET: ${NOCODB_JWT_SECRET}
+      NC_DB: pg://postgres:5432?u=postgres&p=${POSTGRES_PASSWORD}&d=nocodb
+      NC_PUBLIC_URL: https://${NOCODB_HOSTNAME}
+    volumes:
+      - nocodb_data:/usr/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/v2/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   caddy:
     container_name: caddy
     image: docker.io/library/caddy:2-alpine
@@ -300,6 +327,7 @@ services:
       LT_USERNAME: ${LT_USERNAME}
       N8N_HOSTNAME: ${N8N_HOSTNAME}
       NEO4J_HOSTNAME: ${NEO4J_HOSTNAME}
+      NOCODB_HOSTNAME: ${NOCODB_HOSTNAME}
       PADDLEOCR_HOSTNAME: ${PADDLEOCR_HOSTNAME}
       PADDLEOCR_PASSWORD_HASH: ${PADDLEOCR_PASSWORD_HASH}
       PADDLEOCR_USERNAME: ${PADDLEOCR_USERNAME}
@@ -753,7 +781,7 @@ services:
     environment:
       <<: *proxy-env
       BACKEND_INTERNAL_URL: http://postiz:3000
-      DATABASE_URL: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postiz"
+      DATABASE_URL: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?schema=postiz"
       DISABLE_REGISTRATION: ${POSTIZ_DISABLE_REGISTRATION}
       FRONTEND_URL: ${POSTIZ_HOSTNAME:+https://}${POSTIZ_HOSTNAME}
       IS_GENERAL: "true" # Required for self-hosting.
@@ -902,7 +930,7 @@ services:
       WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
       WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME}
       WAHA_ENGINE: ${WAHA_ENGINE}
-      WHATSAPP_SESSIONS_POSTGRESQL_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/waha?sslmode=disable
+      WHATSAPP_SESSIONS_POSTGRESQL_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?sslmode=disable
       WHATSAPP_SWAGGER_ENABLED: ${WHATSAPP_SWAGGER_ENABLED:-true}
       WHATSAPP_SWAGGER_PASSWORD: ${WHATSAPP_SWAGGER_PASSWORD}
       WHATSAPP_SWAGGER_USERNAME: ${WHATSAPP_SWAGGER_USERNAME}
@@ -1108,7 +1136,7 @@ services:
       POSTGRES_PORT: 5432
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DATABASE: lightrag
+      POSTGRES_DATABASE: postgres
       POSTGRES_MAX_CONNECTIONS: 12
       POSTGRES_VECTOR_INDEX_TYPE: HNSW
       POSTGRES_HNSW_M: 16

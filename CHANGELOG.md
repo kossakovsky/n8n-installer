@@ -6,6 +6,7 @@ All notable changes to this project are documented in this file.
 
 ### Added
 - **Anonymous Telemetry** - Optional usage analytics via Scarf (opt-out with `SCARF_ANALYTICS=false`)
+- **NocoDB** - Open source Airtable alternative with spreadsheet database interface
 - **Gost Proxy** - HTTP/HTTPS proxy for AI services outbound traffic (geo-bypass)
 - **Welcome Page** - Post-install dashboard with service credentials and quick start
 - **Makefile** - Common project commands (`make install`, `make update`, `make logs`, `make status`, etc.)

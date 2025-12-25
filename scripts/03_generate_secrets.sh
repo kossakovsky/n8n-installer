@@ -97,6 +97,7 @@ declare -A VARS_TO_GENERATE=(
     ["NEO4J_AUTH_PASSWORD"]="password:32" # Added Neo4j password
     ["NEO4J_AUTH_USERNAME"]="fixed:neo4j" # Added Neo4j username
     ["NEXTAUTH_SECRET"]="secret:64" # base64 encoded, 48 bytes -> 64 chars
+    ["NOCODB_JWT_SECRET"]="secret:64" # NocoDB authentication JWT secret
     ["PADDLEOCR_PASSWORD"]="password:32" # Added PaddleOCR basic auth password
     ["PG_META_CRYPTO_KEY"]="alphanum:32"
     ["POSTGRES_NON_ROOT_PASSWORD"]="password:32"
