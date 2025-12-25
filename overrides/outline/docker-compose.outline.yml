@@ -1,0 +1,145 @@
+version: "3.9"
+
+# ============================================================================
+# Outline / Shadowsocks outbound routing for n8n-install
+#
+# Goal:
+#   - Route ALL outbound HTTP(S) traffic from n8n (and workers) via Outline.
+#   - No secrets in git: server parameters come from .env.vpn.
+#   - Provide a kill-switch so traffic does NOT leak directly if Outline is down.
+#
+# Notes:
+#   - This is SOCKS5 proxying (Outline is Shadowsocks). Not a L3 VPN tunnel.
+#   - We use socks5h:// to proxy DNS resolution through SOCKS.
+#   - Most n8n integrations are TCP/HTTPS -> covered. UDP is not handled here.
+#
+# Usage:
+#   docker compose --env-file .env --env-file .env.vpn \
+#     -f docker-compose.yml -f overrides/outline/docker-compose.outline.yml up -d
+# ============================================================================
+
+services:
+  # --------------------------------------------------------------------------
+  # Shadowsocks local client (SOCKS5)
+  # --------------------------------------------------------------------------
+  outline:
+    image: ghcr.io/shadowsocks/sslocal-rust:latest
+    container_name: outline
+    restart: unless-stopped
+    environment:
+      SS_REMOTE_HOST: "${OUTLINE_HOST}"
+      SS_REMOTE_PORT: "${OUTLINE_PORT}"
+      SS_PASSWORD: "${OUTLINE_PASSWORD}"
+      SS_METHOD: "${OUTLINE_METHOD}"
+      SS_LOCAL_ADDR: "0.0.0.0"
+      SS_LOCAL_PORT: "1080"
+    networks:
+      - outline-net
+    expose:
+      - "1080"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 1080 || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  # --------------------------------------------------------------------------
+  # Egress gateway with kill-switch
+  #
+  # Why:
+  #   If you only set HTTP_PROXY, some tools/libraries may still attempt direct
+  #   connections (or DNS leaks). This gateway is a place to enforce policies.
+  #
+  # What it does:
+  #   - Starts redsocks (transparent TCP proxy) configured to relay to SOCKS5.
+  #   - Sets OUTPUT policy to DROP (kill-switch) and allows only:
+  #       * loopback
+  #       * established/related
+  #       * connection to Outline server
+  #
+  # Important:
+  #   This kill-switch protects the gateway container itself from leaking.
+  #   For strict enforcement for ALL traffic from n8n container (including non-proxy apps),
+  #   we would add TPROXY/REDIRECT rules on the n8n container namespace or host.
+  #   Start with this; extend if needed.
+  # --------------------------------------------------------------------------
+  vpn-egress:
+    image: redsockscap/redsocks:latest
+    container_name: vpn-egress
+    restart: unless-stopped
+    depends_on:
+      outline:
+        condition: service_healthy
+    cap_add:
+      - NET_ADMIN
+    environment:
+      REDSOCKS_RELAY_ADDR: "outline"
+      REDSOCKS_RELAY_PORT: "1080"
+      REDSOCKS_RELAY_TYPE: "socks5"
+      REDSOCKS_LOCAL_PORT: "12345"
+    networks:
+      - outline-net
+    command: >
+      sh -c '
+        echo "[vpn-egress] kill-switch: OUTPUT=DROP" &&
+        iptables -P OUTPUT DROP &&
+        iptables -A OUTPUT -o lo -j ACCEPT &&
+        iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT &&
+        iptables -A OUTPUT -d ${OUTLINE_HOST} -p tcp --dport ${OUTLINE_PORT} -j ACCEPT &&
+        echo "[vpn-egress] starting redsocks..." &&
+        /usr/sbin/redsocks -c /etc/redsocks.conf
+      '
+
+  # --------------------------------------------------------------------------
+  # n8n service override
+  # --------------------------------------------------------------------------
+  n8n:
+    depends_on:
+      outline:
+        condition: service_healthy
+    networks:
+      - outline-net
+    environment:
+      # Force outbound connections via Outline SOCKS.
+      # socks5h -> hostname resolution happens through the proxy (prevents DNS leak).
+      HTTP_PROXY: "socks5h://outline:1080"
+      HTTPS_PROXY: "socks5h://outline:1080"
+      ALL_PROXY: "socks5h://outline:1080"
+
+      # Keep internal service discovery local.
+      NO_PROXY: "localhost,127.0.0.1,::1,postgres,db,redis,valkey,prometheus,grafana"
+
+  # --------------------------------------------------------------------------
+  # n8n worker override (exists when N8N_WORKER_COUNT>0 and profile n8n enabled)
+  # --------------------------------------------------------------------------
+  n8n-worker:
+    depends_on:
+      outline:
+        condition: service_healthy
+    networks:
+      - outline-net
+    environment:
+      HTTP_PROXY: "socks5h://outline:1080"
+      HTTPS_PROXY: "socks5h://outline:1080"
+      ALL_PROXY: "socks5h://outline:1080"
+      NO_PROXY: "localhost,127.0.0.1,::1,postgres,db,redis,valkey,n8n,prometheus,grafana"
+
+  # --------------------------------------------------------------------------
+  # Monitoring services (optional)
+  #
+  # In this stack, monitoring is profile-driven. They usually don't need egress.
+  # We attach them to outline-net to keep service discovery consistent if you
+  # later restrict default network egress.
+  # --------------------------------------------------------------------------
+  prometheus:
+    networks:
+      - outline-net
+
+  grafana:
+    networks:
+      - outline-net
+
+networks:
+  outline-net:
+    name: outline-net
+    driver: bridge
