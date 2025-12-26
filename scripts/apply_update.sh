@@ -21,6 +21,9 @@ set -e
 source "$(dirname "$0")/utils.sh"
 init_paths
 
+# Source telemetry functions
+source "$SCRIPT_DIR/telemetry.sh"
+
 # Setup error telemetry trap for tracking failures
 setup_error_telemetry_trap
 
@@ -109,7 +112,8 @@ $COMPOSE_CMD -p "localai" up -d postgres || { log_error "Failed to start Postgre
 
 # Initialize PostgreSQL databases for services (creates if not exist)
 # This must run BEFORE other services that depend on these databases
-bash "$SCRIPT_DIR/init_databases.sh" || { log_warning "Database initialization had issues, but continuing..."; }
+source "$SCRIPT_DIR/databases.sh"
+init_all_databases || { log_warning "Database initialization had issues, but continuing..."; }
 
 # Start all services using the 06_run_services.sh script (postgres is already running)
 set_telemetry_stage "update_services_start"

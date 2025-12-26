@@ -89,20 +89,21 @@ Common dependencies:
 
 ### 1.5 Database Initialization (if using PostgreSQL)
 
-If service requires its own PostgreSQL database, add it to `scripts/init_databases.sh`:
+If service requires its own PostgreSQL database, add it to `scripts/databases.sh`:
 
 ```bash
 # List of databases to create (add new services here)
-DATABASES=(
+INIT_DB_DATABASES=(
     "langfuse"
     "lightrag"
+    "nocodb"
     "postiz"
     "waha"
     "new_data_base_name"  # Add your service here
 )
 ```
 
-**File:** `scripts/init_databases.sh`
+**File:** `scripts/databases.sh`
 
 This script:
 - Runs automatically during install/update (BEFORE services start)
@@ -693,7 +694,7 @@ bash -n scripts/07_final_report.sh
 
 ### If Database Required
 - [ ] `docker-compose.yml`: `depends_on` with `condition: service_healthy`
-- [ ] `scripts/init_databases.sh`: add database name to `DATABASES` array
+- [ ] `scripts/databases.sh`: add database name to `INIT_DB_DATABASES` array
 
 ### If First-Run Setup Needed
 - [ ] `scripts/generate_welcome_page.sh`: `QUICK_START_ARRAY` entry

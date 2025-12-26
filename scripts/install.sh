@@ -47,6 +47,9 @@ fi
 # Initialize paths using utils.sh helper
 init_paths
 
+# Source telemetry functions
+source "$SCRIPT_DIR/telemetry.sh"
+
 # Setup error telemetry trap for tracking failures
 setup_error_telemetry_trap
 
@@ -143,7 +146,8 @@ docker compose -p localai up -d postgres || { log_error "Failed to start Postgre
 
 # Initialize PostgreSQL databases for services (creates if not exist)
 # This must run BEFORE other services that depend on these databases
-bash "$SCRIPT_DIR/init_databases.sh" || { log_warning "Database initialization had issues, but continuing..."; }
+source "$SCRIPT_DIR/databases.sh"
+init_all_databases || { log_warning "Database initialization had issues, but continuing..."; }
 
 # Now start all services (postgres is already running)
 set_telemetry_stage "services_start"

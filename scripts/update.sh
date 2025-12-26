@@ -24,6 +24,9 @@ set -e
 source "$(dirname "$0")/utils.sh"
 init_paths
 
+# Source telemetry functions
+source "$SCRIPT_DIR/telemetry.sh"
+
 # Setup error telemetry trap for tracking failures
 setup_error_telemetry_trap
 
