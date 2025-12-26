@@ -25,14 +25,11 @@
 - [Key Features](#key-features)
 - [Why This Setup?](#why-this-setup)
 - [What's Included](#whats-included)
-- [Included Community Workflows](#included-community-workflows)
 - [Installation](#installation)
-- [Quick Start and Usage](#-quick-start-and-usage)
-- [Secure Access with Cloudflare Tunnel](#-secure-access-with-cloudflare-tunnel-optional)
+- [Quick Start and Usage](#quick-start-and-usage)
 - [Upgrading](#upgrading)
-- [Quick Commands (Makefile)](#quick-commands-makefile)
+- [Quick Commands](#quick-commands-makefile)
 - [Troubleshooting](#troubleshooting)
-- [Tips & Tricks](#tips--tricks)
 - [License](#license)
 
 ---
@@ -173,7 +170,7 @@ During the installation, the script will prompt you for:
 
 Upon successful completion, the script will display a summary report. This report contains the access URLs and credentials for the deployed services. **Save this information in a safe place!**
 
-## ⚡️ Quick Start and Usage
+## Quick Start and Usage
 
 After successful installation, your services are up and running! Here's how to get started:
 
@@ -230,7 +227,7 @@ After successful installation, your services are up and running! Here's how to g
     - Visit Grafana (`grafana.yourdomain.com`) to see dashboards monitoring your system's performance (data sourced from Prometheus).
 	
 
-## 🔒 Secure Access with Cloudflare Tunnel (Optional)
+## Secure Access with Cloudflare Tunnel (Optional)
 
 Cloudflare Tunnel provides zero-trust access to your services without exposing any ports on your server. All traffic is routed through Cloudflare's secure network, providing DDoS protection and hiding your server's IP address.
 
@@ -358,7 +355,7 @@ Here are solutions to common issues you might encounter:
 - **VPN Conflicts:** Using a VPN might interfere with downloading Docker images. If you encounter issues pulling images, try temporarily disabling your VPN.
 - **Server Requirements:** If you experience unexpected issues, ensure your server meets the minimum hardware and operating system requirements (including version) as specified in the "Prerequisites before Installation" section.
 
-## 👓 Recommended Reading
+## Recommended Reading
 
 n8n offers excellent resources for getting started with its AI capabilities:
 
@@ -368,7 +365,7 @@ n8n offers excellent resources for getting started with its AI capabilities:
 - [Demonstration of key differences between agents and chains](https://docs.n8n.io/advanced-ai/examples/agent-chain-comparison/)
 - [What are vector databases?](https://docs.n8n.io/advanced-ai/examples/understand-vector-databases/) (Explains tools like Supabase and Qdrant in more detail)
 
-## 🛍️ More AI Templates
+## More AI Templates
 
 For more AI workflow ideas, visit the [**official n8n AI template gallery**](https://n8n.io/workflows/?categories=AI). From each workflow, select the **Use workflow** button to automatically import it into your n8n instance.
 
@@ -398,7 +395,7 @@ When you build automations in n8n that need to read or write files on your serve
 - [Local File Trigger](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.localfiletrigger/) (To start workflows when files change)
 - [Execute Command](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.executecommand/) (To run command-line tools)
 
-## 🙌 Contributors
+## Contributors
 
 Want to see who has contributed to this project? Check out the [**GitHub Contributors Page**](https://github.com/kossakovsky/n8n-install/graphs/contributors)!
 
