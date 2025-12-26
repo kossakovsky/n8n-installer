@@ -10,15 +10,15 @@
 
 ## Key Features
 
-- **🏠 Private AI Homelab** — Run LLMs locally with Ollama, keep your data on your own servers
-- **🤖 ChatGPT Alternative** — Open WebUI provides a familiar chat interface for local AI models
-- **🔄 Workflow Automation** — n8n with 400+ integrations, scalable queue-based architecture
-- **🧠 AI Agents & RAG** — Flowise, Dify, LangChain, vector databases (Qdrant, Weaviate)
-- **📦 One Command Install** — Interactive wizard, automatic secrets, zero manual configuration
-- **🔒 Auto HTTPS** — Caddy reverse proxy with automatic Let's Encrypt certificates
-- **📊 Built-in Monitoring** — Grafana + Prometheus stack included
-- **🚀 Production Ready** — Scalable workers, health checks, proper service dependencies
-- **💰 Free & Open Source** — No vendor lock-in, Apache 2.0 license
+- **Private AI Homelab** — Run LLMs locally with Ollama, keep your data on your own servers
+- **ChatGPT Alternative** — Open WebUI provides a familiar chat interface for local AI models
+- **Workflow Automation** — n8n with 400+ integrations, scalable queue-based architecture
+- **AI Agents & RAG** — Flowise, Dify, LangChain, vector databases (Qdrant, Weaviate)
+- **One Command Install** — Interactive wizard, automatic secrets, zero manual configuration
+- **Auto HTTPS** — Caddy reverse proxy with automatic Let's Encrypt certificates
+- **Built-in Monitoring** — Grafana + Prometheus stack included
+- **Production Ready** — Scalable workers, health checks, proper service dependencies
+- **Free & Open Source** — No vendor lock-in, Apache 2.0 license
 
 ## Table of Contents
 
@@ -27,7 +27,7 @@
 - [What's Included](#whats-included)
 - [Included Community Workflows](#included-community-workflows)
 - [Installation](#installation)
-- [Quick Start and Usage](#️-quick-start-and-usage)
+- [Quick Start and Usage](#-quick-start-and-usage)
 - [Secure Access with Cloudflare Tunnel](#-secure-access-with-cloudflare-tunnel-optional)
 - [Upgrading](#upgrading)
 - [Quick Commands (Makefile)](#quick-commands-makefile)
