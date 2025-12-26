@@ -8,18 +8,6 @@
 
 **Deploy 30+ AI and automation tools with a single command.** This open-source Docker Compose template creates a complete self-hosted environment with n8n (workflow automation), Flowise (AI agents), Ollama (local LLMs), vector databases (Qdrant, Weaviate), RAG engines, Supabase, monitoring stack, and more — all pre-configured behind Caddy reverse proxy with automatic HTTPS. Plus, optionally import 300+ community workflows during setup!
 
-## Key Features
-
-- **Private AI Homelab** — Run LLMs locally with Ollama, keep your data on your own servers
-- **ChatGPT Alternative** — Open WebUI provides a familiar chat interface for local AI models
-- **Workflow Automation** — n8n with 400+ integrations, scalable queue-based architecture
-- **AI Agents & RAG** — Flowise, Dify, LangChain, vector databases (Qdrant, Weaviate)
-- **One Command Install** — Interactive wizard, automatic secrets, zero manual configuration
-- **Auto HTTPS** — Caddy reverse proxy with automatic Let's Encrypt certificates
-- **Built-in Monitoring** — Grafana + Prometheus stack included
-- **Production Ready** — Scalable workers, health checks, proper service dependencies
-- **Free & Open Source** — No vendor lock-in, Apache 2.0 license
-
 ## Table of Contents
 
 - [Key Features](#key-features)
@@ -31,6 +19,18 @@
 - [Quick Commands](#quick-commands-makefile)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
+
+## Key Features
+
+- **Private AI Homelab** — Run LLMs locally with Ollama, keep your data on your own servers
+- **ChatGPT Alternative** — Open WebUI provides a familiar chat interface for local AI models
+- **Workflow Automation** — n8n with 400+ integrations, scalable queue-based architecture
+- **AI Agents & RAG** — Flowise, Dify, LangChain, vector databases (Qdrant, Weaviate)
+- **One Command Install** — Interactive wizard, automatic secrets, zero manual configuration
+- **Auto HTTPS** — Caddy reverse proxy with automatic Let's Encrypt certificates
+- **Built-in Monitoring** — Grafana + Prometheus stack included
+- **Production Ready** — Scalable workers, health checks, proper service dependencies
+- **Free & Open Source** — No vendor lock-in, Apache 2.0 license
 
 ---
 
