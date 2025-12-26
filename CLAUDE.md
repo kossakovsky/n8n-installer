@@ -26,11 +26,16 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 - `scripts/05_configure_services.sh`: Service-specific configuration logic
 - `scripts/databases.sh`: Creates isolated PostgreSQL databases for services (library)
 - `scripts/telemetry.sh`: Anonymous telemetry functions (Scarf integration)
+- `scripts/06_run_services.sh`: Starts Docker Compose stack
 - `scripts/07_final_report.sh`: Post-install credential summary
+- `scripts/08_fix_permissions.sh`: Fixes file ownership for non-root access
 - `scripts/generate_n8n_workers.sh`: Generates dynamic worker/runner compose file
 - `scripts/update.sh`: Update orchestrator (pulls latest code and images)
+- `scripts/update_preview.sh`: Preview available updates without applying (dry-run)
 - `scripts/doctor.sh`: System diagnostics (DNS, SSL, containers, disk, memory)
 - `scripts/apply_update.sh`: Applies updates after git pull
+- `scripts/docker_cleanup.sh`: Removes unused Docker resources (used by `make clean`)
+- `scripts/download_top_workflows.sh`: Downloads community n8n workflows
 
 **Project Name**: All docker-compose commands use `-p localai` (defined in Makefile as `PROJECT_NAME := localai`).
 
@@ -54,7 +59,7 @@ The update flow (`scripts/update.sh`) similarly orchestrates: git pull → servi
 ### Makefile Commands
 
 ```bash
-make install           # Full installation
+make install           # Full installation (runs scripts/install.sh)
 make update            # Update system and services
 make update-preview    # Preview available updates (dry-run)
 make clean             # Remove unused Docker resources
@@ -62,7 +67,7 @@ make clean             # Remove unused Docker resources
 make logs              # View logs (all services)
 make logs s=<service>  # View logs for specific service
 make status            # Show container status
-make monitor           # Live CPU/memory monitoring
+make monitor           # Live CPU/memory monitoring (docker stats)
 make restart           # Restart all services
 make show-restarts     # Show restart count per container
 make doctor            # Run system diagnostics (DNS, SSL, containers, disk, memory)
