@@ -19,12 +19,32 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 - `docker-compose.yml`: Service definitions with profiles
 - `Caddyfile`: Reverse proxy configuration with automatic HTTPS
 - `.env`: Generated secrets and configuration (from `.env.example`)
-- `scripts/install.sh`: Main installation orchestrator
-- `scripts/04_wizard.sh`: Interactive service selection using whiptail
+- `scripts/install.sh`: Main installation orchestrator (runs numbered scripts 01-08 in sequence)
+- `scripts/utils.sh`: Shared utility functions (sourced by all scripts via `source "$(dirname "$0")/utils.sh" && init_paths`)
 - `scripts/03_generate_secrets.sh`: Secret generation and bcrypt hashing
+- `scripts/04_wizard.sh`: Interactive service selection using whiptail
+- `scripts/05_configure_services.sh`: Service-specific configuration logic
 - `scripts/databases.sh`: Creates isolated PostgreSQL databases for services (library)
 - `scripts/telemetry.sh`: Anonymous telemetry functions (Scarf integration)
 - `scripts/07_final_report.sh`: Post-install credential summary
+- `scripts/generate_n8n_workers.sh`: Generates dynamic worker/runner compose file
+- `scripts/update.sh`: Update orchestrator (pulls latest code and images)
+- `scripts/doctor.sh`: System diagnostics (DNS, SSL, containers, disk, memory)
+
+### Installation Flow
+
+`scripts/install.sh` orchestrates the installation by running numbered scripts in sequence:
+
+1. `01_system_preparation.sh` - System updates, firewall, security hardening
+2. `02_install_docker.sh` - Docker and Docker Compose installation
+3. `03_generate_secrets.sh` - Generate passwords, API keys, bcrypt hashes
+4. `04_wizard.sh` - Interactive service selection (whiptail UI)
+5. `05_configure_services.sh` - Service-specific configuration
+6. `06_run_services.sh` - Start Docker Compose stack
+7. `07_final_report.sh` - Display credentials and URLs
+8. `08_fix_permissions.sh` - Fix file ownership for non-root access
+
+The update flow (`scripts/update.sh`) similarly orchestrates: git pull → service selection → `apply_update.sh` → restart.
 
 ## Common Development Commands
 
@@ -243,12 +263,16 @@ These are backed up before `git reset --hard` and restored after.
 # Docker Compose syntax
 docker compose -p localai config --quiet
 
-# Bash script syntax
+# Bash script syntax (validate all key scripts)
+bash -n scripts/utils.sh
+bash -n scripts/databases.sh
+bash -n scripts/telemetry.sh
 bash -n scripts/03_generate_secrets.sh
 bash -n scripts/04_wizard.sh
 bash -n scripts/05_configure_services.sh
 bash -n scripts/07_final_report.sh
 bash -n scripts/generate_welcome_page.sh
+bash -n scripts/generate_n8n_workers.sh
 ```
 
 ### Full Testing
