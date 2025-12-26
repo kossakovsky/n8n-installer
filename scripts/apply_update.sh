@@ -2,7 +2,7 @@
 # =============================================================================
 # apply_update.sh - Service update and restart logic
 # =============================================================================
-# Called by update.sh after git pull. Performs the actual service updates:
+# Called by update.sh after git sync. Performs the actual service updates:
 #   1. Updates .env with any new variables (03_generate_secrets.sh --update)
 #   2. Runs service selection wizard (04_wizard.sh) to update profiles
 #   3. Configures services (05_configure_services.sh)

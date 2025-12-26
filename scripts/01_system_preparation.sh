@@ -18,6 +18,9 @@ set -e
 source "$(dirname "$0")/utils.sh"
 init_paths
 
+# Source git utilities
+source "$SCRIPT_DIR/git.sh"
+
 export DEBIAN_FRONTEND=noninteractive
 
 # System Update
@@ -39,8 +42,7 @@ apt install -y \
   apt-transport-https python3-dotenv python3-yaml
 
 # Configure git to use rebase on pull (prevents merge commits during updates)
-log_info "Configuring git pull strategy..."
-git config --global pull.rebase true
+git_configure_pull_rebase
 
 # Configuring Firewall (UFW)
 log_subheader "Firewall (UFW)"

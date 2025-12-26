@@ -749,7 +749,7 @@ backup_preserved_dirs() {
     return 0
 }
 
-# Restore preserved directories after git pull
+# Restore preserved directories after git reset
 # Usage: restore_preserved_dirs <backup_base_path>
 # Returns: 0 on success, 1 on failure
 restore_preserved_dirs() {
@@ -784,7 +784,7 @@ restore_preserved_dirs() {
         fi
 
         if [ -d "$backup_base/$dir" ]; then
-            log_info "Restoring $dir/ after git pull..."
+            log_info "Restoring $dir/ after git reset..."
 
             # Remove the git-restored version
             if [ -d "$PROJECT_ROOT/$dir" ]; then

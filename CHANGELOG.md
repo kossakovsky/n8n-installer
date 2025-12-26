@@ -17,6 +17,9 @@ All notable changes to this project are documented in this file.
 ### Fixed
 - **n8n 2.1.0+ compatibility** - Switch to static ffmpeg binary (apk removed upstream in n8n 2.1.0)
 
+### Changed
+- **Git sync** - Replaced `git pull` with `git fetch + reset` for more reliable updates (handles accidental local commits)
+
 ## [November 2025]
 
 ### Added

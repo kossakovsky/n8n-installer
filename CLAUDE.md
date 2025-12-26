@@ -21,6 +21,7 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 - `.env`: Generated secrets and configuration (from `.env.example`)
 - `scripts/install.sh`: Main installation orchestrator (runs numbered scripts 01-08 in sequence)
 - `scripts/utils.sh`: Shared utility functions (sourced by all scripts via `source "$(dirname "$0")/utils.sh" && init_paths`)
+- `scripts/git.sh`: Git utilities (sync with origin, branch detection, configuration)
 - `scripts/03_generate_secrets.sh`: Secret generation and bcrypt hashing
 - `scripts/04_wizard.sh`: Interactive service selection using whiptail
 - `scripts/05_configure_services.sh`: Service-specific configuration logic
@@ -30,10 +31,10 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 - `scripts/07_final_report.sh`: Post-install credential summary
 - `scripts/08_fix_permissions.sh`: Fixes file ownership for non-root access
 - `scripts/generate_n8n_workers.sh`: Generates dynamic worker/runner compose file
-- `scripts/update.sh`: Update orchestrator (pulls latest code and images)
+- `scripts/update.sh`: Update orchestrator (syncs with origin and updates images)
 - `scripts/update_preview.sh`: Preview available updates without applying (dry-run)
 - `scripts/doctor.sh`: System diagnostics (DNS, SSL, containers, disk, memory)
-- `scripts/apply_update.sh`: Applies updates after git pull
+- `scripts/apply_update.sh`: Applies updates after git sync
 - `scripts/docker_cleanup.sh`: Removes unused Docker resources (used by `make clean`)
 - `scripts/download_top_workflows.sh`: Downloads community n8n workflows
 
@@ -52,7 +53,7 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 7. `07_final_report.sh` - Display credentials and URLs
 8. `08_fix_permissions.sh` - Fix file ownership for non-root access
 
-The update flow (`scripts/update.sh`) similarly orchestrates: git pull → service selection → `apply_update.sh` → restart.
+The update flow (`scripts/update.sh`) similarly orchestrates: git fetch + reset → service selection → `apply_update.sh` → restart.
 
 ## Common Development Commands
 
@@ -275,6 +276,7 @@ docker compose -p localai config --quiet
 
 # Bash script syntax (validate all key scripts)
 bash -n scripts/utils.sh
+bash -n scripts/git.sh
 bash -n scripts/databases.sh
 bash -n scripts/telemetry.sh
 bash -n scripts/03_generate_secrets.sh

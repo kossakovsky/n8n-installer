@@ -4,13 +4,17 @@
 # =============================================================================
 # Performs a full system and service update:
 #   1. Backs up user-customizable directories (e.g., python-runner/)
-#   2. Pulls latest changes from the git repository (git reset --hard + pull)
+#   2. Fetches and resets to origin/<branch> (discards any local commits)
 #   3. Restores backed up directories to preserve user modifications
 #   4. Updates Ubuntu system packages (apt-get update && upgrade)
 #   5. Delegates to apply_update.sh for service updates
 #
 # This two-stage approach ensures apply_update.sh itself gets updated before
 # running, so new update logic is always applied.
+#
+# Git strategy: We use `git fetch` + `git reset --hard origin/<branch>` instead
+# of `git pull` to ensure we always sync with remote, even if the user has
+# accidental local commits that would cause rebase conflicts.
 #
 # Preserved directories: Defined in PRESERVE_DIRS array in utils.sh.
 # These directories contain user-customizable content that survives git reset.
@@ -23,6 +27,9 @@ set -e
 # Source the utilities file and initialize paths
 source "$(dirname "$0")/utils.sh"
 init_paths
+
+# Source git utilities
+source "$SCRIPT_DIR/git.sh"
 
 # Source telemetry functions
 source "$SCRIPT_DIR/telemetry.sh"
@@ -57,59 +64,43 @@ fi
 log_info "Starting update process..."
 set_telemetry_stage "git_update"
 
-# Pull the latest repository changes
-log_info "Pulling latest repository changes..."
+# Sync with the latest repository changes
+log_info "Syncing with latest repository changes..."
+
 # Check if git is installed
-if ! command -v git &> /dev/null; then
-    log_warning "'git' command not found. Skipping repository update."
-    # Decide if we should proceed without git pull or exit. Exiting is safer.
-    log_error "Cannot proceed with update without git. Please install git."
+if ! require_git; then
     exit 1
-    # Or, if allowing update without pull:
-    # log_warning "Proceeding without pulling latest changes..."
-else
-    # Change to project root for git pull
-    cd "$PROJECT_ROOT" || { log_error "Failed to change directory to $PROJECT_ROOT"; exit 1; }
-
-    # Ensure git pull.rebase is configured (fallback for older installations)
-    if [ -z "$(git config --global pull.rebase)" ]; then
-        git config --global pull.rebase true
-    fi
-
-    # Backup user-customizable directories before git reset (uses PRESERVE_DIRS from utils.sh)
-    if ! BACKUP_PATH=$(backup_preserved_dirs); then
-        log_error "Backup failed. Aborting update to prevent data loss."
-        exit 1
-    fi
-
-    if [ -n "$BACKUP_PATH" ]; then
-        log_info "Backup created at: $BACKUP_PATH"
-    fi
-
-    # Git operations
-    if ! git reset --hard HEAD; then
-        log_error "Git reset failed."
-        restore_preserved_dirs "$BACKUP_PATH"
-        exit 1
-    fi
-
-    if ! git pull; then
-        log_error "Git pull failed."
-        restore_preserved_dirs "$BACKUP_PATH"
-        exit 1
-    fi
-
-    # Restore user-customizable directories after git pull
-    if ! restore_preserved_dirs "$BACKUP_PATH"; then
-        log_error "Failed to restore user directories from backup."
-        log_error "Backup may still be available at: $BACKUP_PATH"
-        BACKUP_PATH=""  # Prevent cleanup from deleting it
-        exit 1
-    fi
-
-    # Clear backup path after successful restore
-    BACKUP_PATH=""
 fi
+
+# Change to project root for git operations
+cd "$PROJECT_ROOT" || { log_error "Failed to change directory to $PROJECT_ROOT"; exit 1; }
+
+# Backup user-customizable directories before git reset (uses PRESERVE_DIRS from utils.sh)
+if ! BACKUP_PATH=$(backup_preserved_dirs); then
+    log_error "Backup failed. Aborting update to prevent data loss."
+    exit 1
+fi
+
+if [ -n "$BACKUP_PATH" ]; then
+    log_info "Backup created at: $BACKUP_PATH"
+fi
+
+# Sync with origin (fetch + reset to remote branch)
+if ! git_sync_with_origin; then
+    restore_preserved_dirs "$BACKUP_PATH"
+    exit 1
+fi
+
+# Restore user-customizable directories after git reset
+if ! restore_preserved_dirs "$BACKUP_PATH"; then
+    log_error "Failed to restore user directories from backup."
+    log_error "Backup may still be available at: $BACKUP_PATH"
+    BACKUP_PATH=""  # Prevent cleanup from deleting it
+    exit 1
+fi
+
+# Clear backup path after successful restore
+BACKUP_PATH=""
 
 # Update Ubuntu packages before running apply_update
 set_telemetry_stage "git_system_packages"
