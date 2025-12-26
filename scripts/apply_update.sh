@@ -21,6 +21,9 @@ set -e
 source "$(dirname "$0")/utils.sh"
 init_paths
 
+# Setup error telemetry trap for tracking failures
+setup_error_telemetry_trap
+
 # Set the compose command explicitly to use docker compose subcommand
 COMPOSE_CMD="docker compose"
 
@@ -35,7 +38,8 @@ cd "$PROJECT_ROOT"
 # Send telemetry: update started
 send_telemetry "update_start"
 
-# --- Call 03_generate_secrets.sh in update mode --- 
+# --- Call 03_generate_secrets.sh in update mode ---
+set_telemetry_stage "update_env"
 log_info "Ensuring .env file is up-to-date with all variables..."
 bash "$SCRIPT_DIR/03_generate_secrets.sh" --update || {
     log_error "Failed to update .env configuration via 03_generate_secrets.sh. Update process cannot continue."
@@ -44,7 +48,8 @@ bash "$SCRIPT_DIR/03_generate_secrets.sh" --update || {
 log_success ".env file updated successfully."
 # --- End of .env update by 03_generate_secrets.sh ---
 
-# --- Run Service Selection Wizard FIRST to get updated profiles --- 
+# --- Run Service Selection Wizard FIRST to get updated profiles ---
+set_telemetry_stage "update_wizard"
 log_info "Running Service Selection Wizard to update service choices..."
 bash "$SCRIPT_DIR/04_wizard.sh" || {
     log_error "Service Selection Wizard failed. Update process cannot continue."
@@ -54,6 +59,7 @@ log_success "Service selection updated."
 # --- End of Service Selection Wizard ---
 
 # --- Configure Services (prompts and .env updates) ---
+set_telemetry_stage "update_configure"
 log_info "Configuring services (.env updates for optional inputs)..."
 bash "$SCRIPT_DIR/05_configure_services.sh" || {
     log_error "Configure Services failed. Update process cannot continue."
@@ -65,6 +71,7 @@ log_success "Service configuration completed."
 cleanup_legacy_n8n_workers
 
 # Pull latest versions of selected containers based on updated .env
+set_telemetry_stage "update_docker_pull"
 log_info "Pulling latest versions of selected containers..."
 COMPOSE_FILES_FOR_PULL=("-f" "$PROJECT_ROOT/docker-compose.yml")
 
@@ -96,6 +103,7 @@ $COMPOSE_CMD -p "localai" "${COMPOSE_FILES_FOR_PULL[@]}" pull --ignore-buildable
 }
 
 # Start PostgreSQL first to initialize databases before other services
+set_telemetry_stage "update_db_init"
 log_info "Starting PostgreSQL..."
 $COMPOSE_CMD -p "localai" up -d postgres || { log_error "Failed to start PostgreSQL"; exit 1; }
 
@@ -104,12 +112,14 @@ $COMPOSE_CMD -p "localai" up -d postgres || { log_error "Failed to start Postgre
 bash "$SCRIPT_DIR/init_databases.sh" || { log_warning "Database initialization had issues, but continuing..."; }
 
 # Start all services using the 06_run_services.sh script (postgres is already running)
+set_telemetry_stage "update_services_start"
 log_info "Running Services..."
 bash "$RUN_SERVICES_SCRIPT" || { log_error "Failed to start services. Check logs for details."; exit 1; }
 
 log_success "Update application completed successfully!"
 
 # --- Fix file permissions ---
+set_telemetry_stage "update_fix_perms"
 log_info "Fixing file permissions..."
 bash "$SCRIPT_DIR/08_fix_permissions.sh" || {
     log_warning "Failed to fix file permissions. This does not affect the update."
@@ -117,6 +127,7 @@ bash "$SCRIPT_DIR/08_fix_permissions.sh" || {
 # --- End of Fix permissions ---
 
 # --- Display Final Report with Credentials ---
+set_telemetry_stage "update_final_report"
 bash "$SCRIPT_DIR/07_final_report.sh" || {
     log_warning "Failed to display the final report. This does not affect the update."
     # We don't exit 1 here as the update itself was successful.

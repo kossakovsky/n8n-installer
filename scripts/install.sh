@@ -47,6 +47,9 @@ fi
 # Initialize paths using utils.sh helper
 init_paths
 
+# Setup error telemetry trap for tracking failures
+setup_error_telemetry_trap
+
 # Generate installation ID for telemetry correlation (before .env exists)
 # This ID will be saved to .env by 03_generate_secrets.sh
 INSTALLATION_ID=$(get_installation_id)
@@ -108,26 +111,32 @@ fi
 # Run installation steps sequentially using their full paths
 
 show_step 1 8 "System Preparation"
+set_telemetry_stage "system_prep"
 bash "$SCRIPT_DIR/01_system_preparation.sh" || { log_error "System Preparation failed"; exit 1; }
 log_success "System preparation complete!"
 
 show_step 2 8 "Installing Docker"
+set_telemetry_stage "docker_install"
 bash "$SCRIPT_DIR/02_install_docker.sh" || { log_error "Docker Installation failed"; exit 1; }
 log_success "Docker installation complete!"
 
 show_step 3 8 "Generating Secrets and Configuration"
+set_telemetry_stage "secrets_gen"
 bash "$SCRIPT_DIR/03_generate_secrets.sh" || { log_error "Secret/Config Generation failed"; exit 1; }
 log_success "Secret/Config Generation complete!"
 
 show_step 4 8 "Running Service Selection Wizard"
+set_telemetry_stage "wizard"
 bash "$SCRIPT_DIR/04_wizard.sh" || { log_error "Service Selection Wizard failed"; exit 1; }
 log_success "Service Selection Wizard complete!"
 
 show_step 5 8 "Configure Services"
+set_telemetry_stage "configure"
 bash "$SCRIPT_DIR/05_configure_services.sh" || { log_error "Configure Services failed"; exit 1; }
 log_success "Configure Services complete!"
 
 show_step 6 8 "Running Services"
+set_telemetry_stage "db_init"
 # Start PostgreSQL first to initialize databases before other services
 log_info "Starting PostgreSQL..."
 docker compose -p localai up -d postgres || { log_error "Failed to start PostgreSQL"; exit 1; }
@@ -137,10 +146,12 @@ docker compose -p localai up -d postgres || { log_error "Failed to start Postgre
 bash "$SCRIPT_DIR/init_databases.sh" || { log_warning "Database initialization had issues, but continuing..."; }
 
 # Now start all services (postgres is already running)
+set_telemetry_stage "services_start"
 bash "$SCRIPT_DIR/06_run_services.sh" || { log_error "Running Services failed"; exit 1; }
 log_success "Running Services complete!"
 
 show_step 7 8 "Generating Final Report"
+set_telemetry_stage "final_report"
 # --- Installation Summary ---
 log_info "Installation Summary:"
 echo -e "  ${GREEN}*${NC} System updated and basic utilities installed"
@@ -155,6 +166,7 @@ bash "$SCRIPT_DIR/07_final_report.sh" || { log_error "Final Report Generation fa
 log_success "Final Report generated!"
 
 show_step 8 8 "Fixing File Permissions"
+set_telemetry_stage "fix_perms"
 bash "$SCRIPT_DIR/08_fix_permissions.sh" || { log_error "Fix Permissions failed"; exit 1; }
 log_success "File permissions fixed!"
 

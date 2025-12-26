@@ -913,3 +913,70 @@ send_telemetry() {
     # Send telemetry in background with short timeout (non-blocking, silent)
     curl -sf --connect-timeout 2 --max-time 2 "$url" >/dev/null 2>&1 &
 }
+
+#=============================================================================
+# ERROR TELEMETRY
+#=============================================================================
+# Tracks installation/update failures with stage and exit code.
+# Uses same opt-out as regular telemetry (SCARF_ANALYTICS=false or DO_NOT_TRACK=1)
+
+# Set current telemetry stage for error tracking
+# Usage: set_telemetry_stage "system_prep"
+set_telemetry_stage() {
+    export TELEMETRY_STAGE="$1"
+}
+
+# Send error telemetry event (called by trap handler)
+# Usage: send_error_telemetry 1
+# Arguments:
+#   $1 - exit_code: The exit code that triggered the error
+send_error_telemetry() {
+    local exit_code="${1:-1}"
+    local stage="${TELEMETRY_STAGE:-unknown}"
+
+    # Prevent duplicate sends
+    [[ "${TELEMETRY_ERROR_SENT:-0}" == "1" ]] && return 0
+    export TELEMETRY_ERROR_SENT=1
+
+    # Load environment (for SCARF_ANALYTICS check)
+    [[ -f "$ENV_FILE" ]] && source "$ENV_FILE" 2>/dev/null
+
+    # Opt-out check: respect SCARF_ANALYTICS and DO_NOT_TRACK
+    [[ "${SCARF_ANALYTICS:-true}" == "false" || "${DO_NOT_TRACK:-0}" == "1" ]] && return 0
+
+    # Determine event type based on stage prefix
+    local event_type="install_error"
+    [[ "$stage" == update_* || "$stage" == git_* ]] && event_type="update_error"
+
+    # Get installation ID and OS
+    local install_id
+    install_id=$(get_installation_id)
+    local os_type
+    os_type=$(get_os_type)
+
+    # Get version from VERSION file
+    local version="unknown"
+    [[ -f "$PROJECT_ROOT/VERSION" ]] && version=$(cat "$PROJECT_ROOT/VERSION" | tr -d '\n\r')
+
+    # Build URL with error-specific parameters
+    local url="${SCARF_ENDPOINT}?event=${event_type}&version=${version}&id=${install_id}&os=${os_type}&stage=${stage}&exit_code=${exit_code}"
+
+    # Send telemetry in background with short timeout (non-blocking, silent)
+    curl -sf --connect-timeout 2 --max-time 2 "$url" >/dev/null 2>&1 &
+}
+
+# Internal trap handler for ERR signal
+_telemetry_error_handler() {
+    local exit_code=$?
+    # Only send if we actually have an error (exit_code > 0)
+    [[ $exit_code -gt 0 ]] && send_error_telemetry "$exit_code"
+    # Re-exit with the original code (important for set -e behavior)
+    exit $exit_code
+}
+
+# Setup global ERR trap for error telemetry
+# Usage: setup_error_telemetry_trap
+# Note: Only call this in top-level orchestrator scripts (install.sh, apply_update.sh, update.sh)
+setup_error_telemetry_trap() {
+    trap '_telemetry_error_handler' ERR
+}

@@ -24,6 +24,9 @@ set -e
 source "$(dirname "$0")/utils.sh"
 init_paths
 
+# Setup error telemetry trap for tracking failures
+setup_error_telemetry_trap
+
 # Global variable to track backup path for cleanup
 BACKUP_PATH=""
 
@@ -49,6 +52,7 @@ fi
 
 
 log_info "Starting update process..."
+set_telemetry_stage "git_update"
 
 # Pull the latest repository changes
 log_info "Pulling latest repository changes..."
@@ -105,6 +109,7 @@ else
 fi
 
 # Update Ubuntu packages before running apply_update
+set_telemetry_stage "git_system_packages"
 log_info "Updating system packages..."
 if command -v apt-get &> /dev/null; then
     sudo apt-get update && sudo apt-get upgrade -y
@@ -115,6 +120,7 @@ fi
 
 
 # Execute the rest of the update process using the (potentially updated) apply_update.sh
+# Note: apply_update.sh has its own error telemetry trap and stages
 bash "$APPLY_UPDATE_SCRIPT"
 
 exit 0

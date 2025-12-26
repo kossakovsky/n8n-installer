@@ -98,7 +98,7 @@ DATABASES=(
     "lightrag"
     "postiz"
     "waha"
-    "$ARGUMENTS"  # Add your service here
+    "new_data_base_name"  # Add your service here
 )
 ```
 
@@ -114,10 +114,10 @@ This script:
 Example in docker-compose.yml:
 ```yaml
 environment:
-  DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/$ARGUMENTS
+  DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/new_data_base_name
   # OR individual vars:
   POSTGRES_HOST: postgres
-  POSTGRES_DATABASE: $ARGUMENTS
+  POSTGRES_DATABASE: new_data_base_name
 ```
 
 ### 1.6 Proxy Configuration (for outbound AI API calls)
@@ -563,14 +563,14 @@ Add to `SERVICE_METADATA` object (~line 145):
 
 ### Categories
 
-| Category | Description | Examples |
-|----------|-------------|----------|
-| `ai` | AI/ML services | Flowise, LangChain, Ollama, LightRAG |
-| `database` | Data storage | PostgreSQL, Qdrant, Weaviate, Neo4j |
-| `monitoring` | Observability | Prometheus, Grafana, Langfuse |
-| `tools` | Utilities | Gotenberg, Docling, LibreTranslate, PaddleOCR |
-| `infra` | Infrastructure | Caddy, Redis, Gost, Portainer |
-| `automation` | Workflow automation | n8n, Postiz |
+| Category     | Description         | Examples                                      |
+| ------------ | ------------------- | --------------------------------------------- |
+| `ai`         | AI/ML services      | Flowise, LangChain, Ollama, LightRAG          |
+| `database`   | Data storage        | PostgreSQL, Qdrant, Weaviate, Neo4j           |
+| `monitoring` | Observability       | Prometheus, Grafana, Langfuse                 |
+| `tools`      | Utilities           | Gotenberg, Docling, LibreTranslate, PaddleOCR |
+| `infra`      | Infrastructure      | Caddy, Redis, Gost, Portainer                 |
+| `automation` | Workflow automation | n8n, Postiz                                   |
 
 ### Color Examples
 
