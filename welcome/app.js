@@ -418,7 +418,6 @@
         { cmd: 'make show-restarts', desc: 'Show restart count per container' },
         { cmd: 'make doctor', desc: 'Run system diagnostics' },
         { cmd: 'make update', desc: 'Update system and services' },
-        { cmd: 'make update-preview', desc: 'Preview available updates' },
         { cmd: 'make clean', desc: 'Remove unused Docker resources' }
     ];
 
