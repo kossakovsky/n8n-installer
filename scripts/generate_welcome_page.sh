@@ -183,7 +183,8 @@ if is_profile_active "nocodb"; then
     SERVICES_ARRAY+=("    \"nocodb\": {
       \"hostname\": \"$(json_escape "$NOCODB_HOSTNAME")\",
       \"credentials\": {
-        \"note\": \"Create your account on first login\"
+        \"note\": \"Create your account on first login\",
+        \"user_token\": \"$(json_escape "$NOCODB_JWT_SECRET")\"
       },
       \"extra\": {
         \"internal_api\": \"http://nocodb:8080\",

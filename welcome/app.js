@@ -676,6 +676,9 @@
             if (creds.api_key) {
                 section.appendChild(createCredentialRow('API Key', creds.api_key, true));
             }
+            if (creds.user_token) {
+                section.appendChild(createCredentialRow('User Token', creds.user_token, true));
+            }
         }
 
         // Add extra fields (skip internal_api/internal_url - shown in header)
