@@ -30,6 +30,9 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 - `scripts/generate_n8n_workers.sh`: Generates dynamic worker/runner compose file
 - `scripts/update.sh`: Update orchestrator (pulls latest code and images)
 - `scripts/doctor.sh`: System diagnostics (DNS, SSL, containers, disk, memory)
+- `scripts/apply_update.sh`: Applies updates after git pull
+
+**Project Name**: All docker-compose commands use `-p localai` (defined in Makefile as `PROJECT_NAME := localai`).
 
 ### Installation Flow
 
@@ -142,6 +145,7 @@ Key functions:
 - `print_ok`, `print_error`, `print_warning`, `print_info` - Doctor output helpers
 - `get_real_user` / `get_real_user_home` - Get actual user even under sudo
 - `backup_preserved_dirs` / `restore_preserved_dirs` - Directory preservation for git updates
+- `cleanup_legacy_n8n_workers` - Remove old n8n worker containers from previous naming convention
 
 ### Service Profiles
 
@@ -274,6 +278,9 @@ bash -n scripts/05_configure_services.sh
 bash -n scripts/07_final_report.sh
 bash -n scripts/generate_welcome_page.sh
 bash -n scripts/generate_n8n_workers.sh
+bash -n scripts/apply_update.sh
+bash -n scripts/update.sh
+bash -n scripts/install.sh
 ```
 
 ### Full Testing
