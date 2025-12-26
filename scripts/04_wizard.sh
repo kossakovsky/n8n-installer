@@ -53,7 +53,7 @@ base_services_data=(
     "monitoring" "Monitoring Suite (Prometheus, Grafana, cAdvisor, Node-Exporter)"
     "n8n" "n8n, n8n-worker, n8n-import (Workflow Automation)"
     "neo4j" "Neo4j (Graph Database)"
-    "nocodb" "NocoDB (Open Source Airtable Alternative - Spreadsheet Database)"
+    # "nocodb" "NocoDB (Open Source Airtable Alternative - Spreadsheet Database)"
     "ollama" "Ollama (Local LLM Runner - select hardware in next step)"
     "open-webui" "Open WebUI (ChatGPT-like Interface)"
     "paddleocr" "PaddleOCR (OCR API Server)"
