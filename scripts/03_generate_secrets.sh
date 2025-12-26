@@ -281,6 +281,28 @@ for var in "${EMAIL_VARS[@]}"; do
     generated_values["$var"]="$USER_EMAIL"
 done
 
+# Database names for backward compatibility
+# New installations: use service-specific databases (postiz, waha, lightrag)
+# Upgrades: use 'postgres' to preserve existing data
+DB_MIGRATION_VARS=("POSTIZ_DB_NAME" "WAHA_DB_NAME" "LIGHTRAG_DB_NAME")
+
+for var in "${DB_MIGRATION_VARS[@]}"; do
+    if [[ -z "${existing_env_vars[$var]}" ]]; then
+        # Variable not in existing .env
+        if [[ ${#existing_env_vars[@]} -gt 0 ]]; then
+            # This is an upgrade - .env exists but var is missing
+            # Use 'postgres' for backward compatibility
+            generated_values["$var"]="postgres"
+        else
+            # New installation - use service name
+            case "$var" in
+                "POSTIZ_DB_NAME")  generated_values["$var"]="postiz" ;;
+                "WAHA_DB_NAME")    generated_values["$var"]="waha" ;;
+                "LIGHTRAG_DB_NAME") generated_values["$var"]="lightrag" ;;
+            esac
+        fi
+    fi
+done
 
 # Create a temporary file for processing
 TMP_ENV_FILE=$(mktemp)
