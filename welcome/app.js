@@ -555,7 +555,7 @@
      */
     function createCredentialRow(label, value, isSecret) {
         const row = document.createElement('div');
-        row.className = 'flex justify-between items-start gap-2 min-w-0';
+        row.className = 'flex justify-between items-center gap-2 min-w-0';
 
         const labelSpan = document.createElement('span');
         labelSpan.className = 'text-gray-500 text-sm flex-shrink-0';
@@ -566,7 +566,7 @@
             row.appendChild(createPasswordField(value));
         } else {
             const valueContainer = document.createElement('div');
-            valueContainer.className = 'flex items-start gap-1 min-w-0';
+            valueContainer.className = 'flex items-center gap-1 min-w-0';
 
             const valueSpan = document.createElement('span');
             valueSpan.className = 'font-mono text-sm select-all text-gray-300 break-all';
