@@ -354,7 +354,7 @@ EMAIL_VARS=(
 )
 ```
 
-### 4.3 SERVICES_NEEDING_HASH Array (~line 520)
+### 4.3 SERVICES_NEEDING_HASH Array (~line 554)
 
 **CRITICAL for Basic Auth:** Add service to generate bcrypt hash:
 
@@ -605,19 +605,21 @@ Add service URL (alphabetical order):
 
 ---
 
-## STEP 8.5: CHANGELOG.md
+## STEP 9: CHANGELOG.md
 
 **File:** `CHANGELOG.md`
 
-Add under `## [Unreleased]` → `### Added`:
+Add under the current month's `## [Month Year]` → `### Added` section (e.g., `## [December 2025]`):
 
 ```markdown
 - **${SERVICE_NAME_TITLE}** - <Brief description of what it provides>
 ```
 
+If no `### Added` section exists for the current month, create one.
+
 ---
 
-## STEP 10.5: scripts/update_preview.sh (optional)
+## STEP 10: scripts/update_preview.sh (optional)
 
 **File:** `scripts/update_preview.sh`
 
@@ -631,7 +633,7 @@ fi
 
 ---
 
-## STEP 10.6: scripts/apply_update.sh (for complex services)
+## STEP 11: scripts/apply_update.sh (for complex services)
 
 **File:** `scripts/apply_update.sh`
 
