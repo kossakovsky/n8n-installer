@@ -278,7 +278,8 @@ The project includes a Makefile for simplified command execution:
 | `make logs s=<service>` | View logs for specific service (e.g., `make logs s=n8n`) |
 | `make status`           | Show container status                                    |
 | `make monitor`          | Live CPU/memory monitoring                               |
-| `make restarts`         | Show restart count per container                         |
+| `make restart`          | Restart all services                                     |
+| `make show-restarts`    | Show restart count per container                         |
 
 ### Diagnostics
 

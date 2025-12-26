@@ -1,4 +1,4 @@
-.PHONY: help install update update-preview clean logs status monitor restarts doctor switch-beta switch-stable
+.PHONY: help install update update-preview clean logs status monitor restart show-restarts doctor switch-beta switch-stable
 
 PROJECT_NAME := localai
 
@@ -14,7 +14,8 @@ help:
 	@echo "  make logs s=<service>  View logs for specific service"
 	@echo "  make status            Show container status"
 	@echo "  make monitor           Live CPU/memory monitoring"
-	@echo "  make restarts          Show restart count per container"
+	@echo "  make restart           Restart all services"
+	@echo "  make show-restarts     Show restart count per container"
 	@echo "  make doctor            Run system diagnostics"
 	@echo ""
 	@echo "  make switch-beta       Switch to beta (develop branch)"
@@ -45,7 +46,10 @@ status:
 monitor:
 	docker stats
 
-restarts:
+restart:
+	docker compose -p $(PROJECT_NAME) down && docker compose -p $(PROJECT_NAME) up -d
+
+show-restarts:
 	@docker ps -q | while read id; do \
 		name=$$(docker inspect --format '{{.Name}}' $$id | sed 's/^\/\(.*\)/\1/'); \
 		restarts=$$(docker inspect --format '{{.RestartCount}}' $$id); \

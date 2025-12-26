@@ -60,7 +60,8 @@ make logs              # View logs (all services)
 make logs s=<service>  # View logs for specific service
 make status            # Show container status
 make monitor           # Live CPU/memory monitoring
-make restarts          # Show restart count per container
+make restart           # Restart all services
+make show-restarts     # Show restart count per container
 make doctor            # Run system diagnostics (DNS, SSL, containers, disk, memory)
 
 make switch-beta       # Switch to develop branch and update
