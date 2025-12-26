@@ -1,12 +1,43 @@
-# The Easiest and Fastest Way to Self-Host n8n
+# Self-Hosted AI Automation Platform
 
 [![GitHub stars](https://img.shields.io/github/stars/kossakovsky/n8n-install?style=social)](https://github.com/kossakovsky/n8n-install/stargazers)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-ready-blue?logo=docker)](https://www.docker.com/)
+[![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white)](https://ubuntu.com/)
 [![n8n](https://img.shields.io/badge/n8n-compatible-orange)](https://n8n.io)
 
-**n8n Install** is an open-source Docker Compose template designed to significantly simplify setting up a comprehensive, self-hosted environment for n8n and Flowise. It bundles essential supporting tools like Open WebUI (as an interface for n8n agents), Supabase (database, vector information storage, authentication), Qdrant (high-performance vector information storage), Langfuse (to observe AI model performance), SearXNG (private metasearch), Grafana/Prometheus (monitoring), Crawl4ai (web crawling), and Caddy (for managed HTTPS). Plus, during setup, you can optionally import over 300 community workflows into your n8n instance!
+**Deploy 30+ AI and automation tools with a single command.** This open-source Docker Compose template creates a complete self-hosted environment with n8n (workflow automation), Flowise (AI agents), Ollama (local LLMs), vector databases (Qdrant, Weaviate), RAG engines, Supabase, monitoring stack, and more — all pre-configured behind Caddy reverse proxy with automatic HTTPS. Plus, optionally import 300+ community workflows during setup!
 
-### Why This Setup?
+## Key Features
+
+- **🏠 Private AI Homelab** — Run LLMs locally with Ollama, keep your data on your own servers
+- **🤖 ChatGPT Alternative** — Open WebUI provides a familiar chat interface for local AI models
+- **🔄 Workflow Automation** — n8n with 400+ integrations, scalable queue-based architecture
+- **🧠 AI Agents & RAG** — Flowise, Dify, LangChain, vector databases (Qdrant, Weaviate)
+- **📦 One Command Install** — Interactive wizard, automatic secrets, zero manual configuration
+- **🔒 Auto HTTPS** — Caddy reverse proxy with automatic Let's Encrypt certificates
+- **📊 Built-in Monitoring** — Grafana + Prometheus stack included
+- **🚀 Production Ready** — Scalable workers, health checks, proper service dependencies
+- **💰 Free & Open Source** — No vendor lock-in, Apache 2.0 license
+
+## Table of Contents
+
+- [Key Features](#key-features)
+- [Why This Setup?](#why-this-setup)
+- [What's Included](#whats-included)
+- [Included Community Workflows](#included-community-workflows)
+- [Installation](#installation)
+- [Quick Start and Usage](#️-quick-start-and-usage)
+- [Secure Access with Cloudflare Tunnel](#-secure-access-with-cloudflare-tunnel-optional)
+- [Upgrading](#upgrading)
+- [Quick Commands (Makefile)](#quick-commands-makefile)
+- [Troubleshooting](#troubleshooting)
+- [Tips & Tricks](#tips--tricks)
+- [License](#license)
+
+---
+
+## Why This Setup?
 
 This installer helps you create your own powerful, private AI workshop. Imagine having a suite of tools at your fingertips to:
 
@@ -21,7 +52,7 @@ This setup provides a comprehensive suite of cutting-edge services, all pre-conf
 - **Scalable n8n Performance:** n8n runs in `queue` mode by default, leveraging Redis for task management and Postgres for data storage. You can dynamically specify the number of n8n workers and task runners during installation, allowing for robust parallel processing of your workflows to handle demanding loads.
 - **Full Control:** All of this is hosted by you, giving you full control over your data, operations, and how resources are allocated.
 
-### What's Included
+## What's Included
 
 
 ✅ **[Caddy](https://caddyserver.com/), [Postgres](https://www.postgresql.org/), and [Redis](https://redis.io/)** - Core services for web proxy, database, and caching, which are always included.
@@ -86,7 +117,7 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Weaviate**](https://weaviate.io/) - An open-source AI-native vector database with a focus on scalability and ease of use. It can be used for RAG, hybrid search, and more.
 
-### Included Community Workflows
+## Included Community Workflows
 
 Get started quickly with a vast library of pre-built automations (optional import during setup)! This collection includes over 300 workflows covering a wide range of use cases:
 
