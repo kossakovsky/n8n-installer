@@ -91,6 +91,9 @@ fi
 if is_profile_active "open-webui"; then
     echo -e "     ${GREEN}*${NC} ${WHITE}Open WebUI${NC}: Register your account"
 fi
+if is_profile_active "nocodb"; then
+    echo -e "     ${GREEN}*${NC} ${WHITE}NocoDB${NC}: Create your account on first login"
+fi
 if is_profile_active "gost"; then
     echo -e "     ${GREEN}*${NC} ${WHITE}Gost Proxy${NC}: Routing AI traffic through external proxy"
 fi

@@ -15,6 +15,7 @@ source "$(dirname "$0")/utils.sh" && init_paths
 DATABASES=(
     "langfuse"
     "lightrag"
+    "nocodb"
     "postiz"
     "waha"
 )
