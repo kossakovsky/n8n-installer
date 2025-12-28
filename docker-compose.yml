@@ -24,7 +24,6 @@ volumes:
   paddlex_data:
   portainer_data:
   databasus_data:
-    name: localai_postgresus_data
   postiz-config:
   postiz-uploads:
   prometheus_data:
