@@ -89,10 +89,10 @@ if is_profile_active "portainer"; then
     }")
 fi
 
-# Postgresus
-if is_profile_active "postgresus"; then
-    SERVICES_ARRAY+=("    \"postgresus\": {
-      \"hostname\": \"$(json_escape "$POSTGRESUS_HOSTNAME")\",
+# Databasus
+if is_profile_active "databasus"; then
+    SERVICES_ARRAY+=("    \"databasus\": {
+      \"hostname\": \"$(json_escape "$DATABASUS_HOSTNAME")\",
       \"credentials\": {
         \"note\": \"PostgreSQL credentials are shown in the PostgreSQL card\"
       }
@@ -495,12 +495,12 @@ if is_profile_active "n8n"; then
     ((STEP_NUM++))
 fi
 
-# Step 3: Configure database backups (if postgresus active)
-if is_profile_active "postgresus"; then
+# Step 3: Configure database backups (if databasus active)
+if is_profile_active "databasus"; then
     QUICK_START_ARRAY+=("    {
       \"step\": $STEP_NUM,
       \"title\": \"Configure database backups\",
-      \"description\": \"Set up Postgresus for automated PostgreSQL backups\"
+      \"description\": \"Set up Databasus for automated database backups\"
     }")
     ((STEP_NUM++))
 fi

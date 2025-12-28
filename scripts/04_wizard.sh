@@ -6,7 +6,7 @@
 #
 # Features:
 #   - Single-screen checklist for service selection
-#   - Default services: n8n, portainer, monitoring, postgresus
+#   - Default services: n8n, portainer, monitoring, databasus
 #   - Preserves previously selected services on re-run
 #   - Updates COMPOSE_PROFILES in .env file
 #
@@ -41,15 +41,16 @@ base_services_data=(
     "cloudflare-tunnel" "Cloudflare Tunnel (Zero-Trust Secure Access)"
     "comfyui" "ComfyUI (Node-based Stable Diffusion UI)"
     "crawl4ai" "Crawl4ai (Web Crawler for AI)"
-    "docling" "Docling (Universal Document Converter to Markdown/JSON)"
+    "databasus" "Databasus (Database backups & monitoring)"
     "dify" "Dify (AI Application Development Platform with LLMOps)"
+    "docling" "Docling (Universal Document Converter to Markdown/JSON)"
     "flowise" "Flowise (AI Agent Builder)"
     "gost" "Gost Proxy (HTTP/HTTPS proxy for AI services outbound traffic)"
     "gotenberg" "Gotenberg (Document Conversion API)"
     "langfuse" "Langfuse Suite (AI Observability - includes Clickhouse, Minio)"
     "letta" "Letta (Agent Server & SDK)"
-    "lightrag" "LightRAG (Graph-based RAG with knowledge graphs)"
     "libretranslate" "LibreTranslate (Self-hosted translation API - 50+ languages)"
+    "lightrag" "LightRAG (Graph-based RAG with knowledge graphs)"
     "monitoring" "Monitoring Suite (Prometheus, Grafana, cAdvisor, Node-Exporter)"
     "n8n" "n8n, n8n-worker, n8n-import (Workflow Automation)"
     "neo4j" "Neo4j (Graph Database)"
@@ -58,7 +59,6 @@ base_services_data=(
     "open-webui" "Open WebUI (ChatGPT-like Interface)"
     "paddleocr" "PaddleOCR (OCR API Server)"
     "portainer" "Portainer (Docker management UI)"
-    "postgresus" "Postgresus (PostgreSQL backups & monitoring)"
     "postiz" "Postiz (Social publishing platform)"
     "python-runner" "Python Runner (Run your custom Python code from ./python-runner)"
     "qdrant" "Qdrant (Vector Database)"
@@ -92,7 +92,7 @@ while [ $idx -lt ${#base_services_data[@]} ]; do
     else
         # .env has no COMPOSE_PROFILES or it's empty/just quotes, use hardcoded defaults
         case "$tag" in
-            "n8n"|"portainer"|"monitoring"|"postgresus") status="ON" ;;
+            "n8n"|"portainer"|"monitoring"|"databasus") status="ON" ;;
             *) status="OFF" ;;
         esac
     fi

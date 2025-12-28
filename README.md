@@ -94,7 +94,7 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Portainer**](https://www.portainer.io/) - A lightweight, secure web UI to manage your Docker environment (containers, images, volumes, networks) with ease.
 
-✅ [**Postgresus**](https://github.com/RostislavDugin/postgresus) - PostgreSQL monitoring and automated backups with a self-hosted UI.
+✅ [**Databasus**](https://github.com/databasus/databasus) - Database backups & monitoring with a self-hosted UI.
 
 ✅ [**Postiz**](https://postiz.com/) - An open-source social media scheduling and publishing platform.
 
@@ -179,20 +179,20 @@ After successful installation, your services are up and running! Here's how to g
 
     - **n8n:** `n8n.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report. You may be prompted to change this password on first login.)
     - **ComfyUI:** `comfyui.yourdomain.com` (Node-based Stable Diffusion UI)
+    - **Databasus:** `databasus.yourdomain.com`
     - **Dify:** `dify.yourdomain.com` (AI application development platform with comprehensive LLMOps capabilities)
     - **Docling:** `docling.yourdomain.com` (Universal document converter with REST API; web UI available at `/ui`)
     - **Flowise:** `flowise.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report.)
     - **Grafana:** `grafana.yourdomain.com`
     - **Langfuse:** `langfuse.yourdomain.com`
-    - **LightRAG:** `lightrag.yourdomain.com`
     - **Letta:** `letta.yourdomain.com`
     - **LibreTranslate:** `translate.yourdomain.com`
+    - **LightRAG:** `lightrag.yourdomain.com`
     - **Neo4j:** `neo4j.yourdomain.com`
     - **NocoDB:** `nocodb.yourdomain.com`
     - **Open WebUI:** `webui.yourdomain.com`
     - **PaddleOCR:** `paddleocr.yourdomain.com`
     - **Portainer:** `portainer.yourdomain.com` (Protected by Caddy basic auth; on first login, complete Portainer admin setup)
-    - **Postgresus:** `postgresus.yourdomain.com`
     - **Postiz:** `postiz.yourdomain.com`
     - **Prometheus:** `prometheus.yourdomain.com` (Typically used as a data source for Grafana)
     - **Qdrant:** `qdrant.yourdomain.com`

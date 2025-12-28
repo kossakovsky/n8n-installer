@@ -34,29 +34,29 @@ After creating the tunnel, go to the **Published application routes** tab to add
 | Service            | Public Hostname               | Service URL                  | Auth Notes          |
 | ------------------ | ----------------------------- | ---------------------------- | ------------------- |
 | **n8n**            | n8n.yourdomain.com            | `http://n8n:5678`            | Built-in login      |
-| **Flowise**        | flowise.yourdomain.com        | `http://flowise:3001`        | Built-in login      |
-| **Open WebUI**     | webui.yourdomain.com          | `http://open-webui:8080`     | Built-in login      |
-| **Langfuse**       | langfuse.yourdomain.com       | `http://langfuse-web:3000`   | Built-in login      |
-| **Grafana**        | grafana.yourdomain.com        | `http://grafana:3000`        | Built-in login      |
-| **Prometheus**     | prometheus.yourdomain.com     | `http://prometheus:9090`     | ⚠️ Loses Caddy auth  |
-| **Portainer**      | portainer.yourdomain.com      | `http://portainer:9000`      | Built-in login      |
-| **Neo4j**          | neo4j.yourdomain.com          | `http://neo4j:7474`          | Built-in login      |
 | **ComfyUI**        | comfyui.yourdomain.com        | `http://comfyui:8188`        | ⚠️ Loses Caddy auth  |
-| **SearXNG**        | searxng.yourdomain.com        | `http://searxng:8080`        | ⚠️ Loses Caddy auth  |
+| **Databasus**      | databasus.yourdomain.com      | `http://databasus:4005`      | Built-in login      |
+| **Dify** ¹         | dify.yourdomain.com           | `http://nginx:80`            | Built-in login      |
+| **Docling**        | docling.yourdomain.com        | `http://docling:5001`        | ⚠️ Loses Caddy auth  |
+| **Flowise**        | flowise.yourdomain.com        | `http://flowise:3001`        | Built-in login      |
+| **Grafana**        | grafana.yourdomain.com        | `http://grafana:3000`        | Built-in login      |
+| **Langfuse**       | langfuse.yourdomain.com       | `http://langfuse-web:3000`   | Built-in login      |
 | **Letta**          | letta.yourdomain.com          | `http://letta:8283`          | No auth             |
-| **Weaviate**       | weaviate.yourdomain.com       | `http://weaviate:8080`       | API key recommended |
-| **Qdrant**         | qdrant.yourdomain.com         | `http://qdrant:6333`         | API key recommended |
+| **LibreTranslate** | libretranslate.yourdomain.com | `http://libretranslate:5000` | ⚠️ Loses Caddy auth  |
 | **LightRAG**       | lightrag.yourdomain.com       | `http://lightrag:9621`       | No auth             |
+| **Neo4j**          | neo4j.yourdomain.com          | `http://neo4j:7474`          | Built-in login      |
+| **Open WebUI**     | webui.yourdomain.com          | `http://open-webui:8080`     | Built-in login      |
+| **PaddleOCR**      | paddleocr.yourdomain.com      | `http://paddleocr:8080`      | ⚠️ Loses Caddy auth  |
+| **Portainer**      | portainer.yourdomain.com      | `http://portainer:9000`      | Built-in login      |
+| **Postiz**         | postiz.yourdomain.com         | `http://postiz:5000`         | Built-in login      |
+| **Prometheus**     | prometheus.yourdomain.com     | `http://prometheus:9090`     | ⚠️ Loses Caddy auth  |
+| **Qdrant**         | qdrant.yourdomain.com         | `http://qdrant:6333`         | API key recommended |
 | **RAGApp**         | ragapp.yourdomain.com         | `http://ragapp:8000`         | ⚠️ Loses Caddy auth  |
 | **RagFlow**        | ragflow.yourdomain.com        | `http://ragflow:80`          | Built-in login      |
-| **Postiz**         | postiz.yourdomain.com         | `http://postiz:5000`         | Built-in login      |
-| **PostgreSUS**     | postgresus.yourdomain.com     | `http://postgresus:4005`     | No auth             |
-| **WAHA**           | waha.yourdomain.com           | `http://waha:3000`           | API key recommended |
-| **Docling**        | docling.yourdomain.com        | `http://docling:5001`        | ⚠️ Loses Caddy auth  |
-| **LibreTranslate** | libretranslate.yourdomain.com | `http://libretranslate:5000` | ⚠️ Loses Caddy auth  |
-| **PaddleOCR**      | paddleocr.yourdomain.com      | `http://paddleocr:8080`      | ⚠️ Loses Caddy auth  |
-| **Dify** ¹         | dify.yourdomain.com           | `http://nginx:80`            | Built-in login      |
+| **SearXNG**        | searxng.yourdomain.com        | `http://searxng:8080`        | ⚠️ Loses Caddy auth  |
 | **Supabase** ¹     | supabase.yourdomain.com       | `http://kong:8000`           | Built-in login      |
+| **WAHA**           | waha.yourdomain.com           | `http://waha:3000`           | API key recommended |
+| **Weaviate**       | weaviate.yourdomain.com       | `http://weaviate:8080`       | API key recommended |
 
 **⚠️ Security Warning:**
 - Services marked **"Loses Caddy auth"** have basic authentication via Caddy that is bypassed by the tunnel. Use [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/applications/) or keep them internal.

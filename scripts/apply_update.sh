@@ -70,8 +70,9 @@ bash "$SCRIPT_DIR/05_configure_services.sh" || {
 }
 log_success "Service configuration completed."
 
-# Clean up legacy n8n worker containers from old naming convention
+# Clean up legacy containers from old naming conventions
 cleanup_legacy_n8n_workers
+cleanup_legacy_postgresus
 
 # Pull latest versions of selected containers based on updated .env
 set_telemetry_stage "update_docker_pull"

@@ -129,9 +129,9 @@ if is_profile_active "searxng"; then
     check_image_update "searxng" "searxng/searxng:latest"
 fi
 
-if is_profile_active "postgresus"; then
-    log_subheader "Postgresus"
-    check_image_update "postgresus" "ghcr.io/postgresus/postgresus:latest"
+if is_profile_active "databasus"; then
+    log_subheader "Databasus"
+    check_image_update "databasus" "databasus/databasus:latest"
 fi
 
 # Summary

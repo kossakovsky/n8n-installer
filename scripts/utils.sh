@@ -638,6 +638,22 @@ cleanup_legacy_n8n_workers() {
     fi
 }
 
+# Clean up legacy postgresus container after rename to databasus
+# This function removes the old "postgresus" container if it exists,
+# allowing the new "databasus" container to take its place.
+# Usage: cleanup_legacy_postgresus
+cleanup_legacy_postgresus() {
+    local container_name="postgresus"
+
+    # Check if container exists (running or stopped)
+    if docker ps -a --format '{{.Names}}' | grep -q "^${container_name}$"; then
+        log_info "Found legacy postgresus container, migrating to databasus..."
+        docker stop "$container_name" 2>/dev/null || true
+        docker rm -f "$container_name" 2>/dev/null || true
+        log_success "Legacy postgresus container removed. Databasus will use existing data via volume alias."
+    fi
+}
+
 #=============================================================================
 # USER DETECTION
 #=============================================================================

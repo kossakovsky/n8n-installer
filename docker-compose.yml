@@ -22,7 +22,8 @@ volumes:
   paddleocr_cache:
   paddlex_data:
   portainer_data:
-  postgresus_data:
+  databasus_data:
+    name: localai_postgresus_data
   postiz-config:
   postiz-uploads:
   prometheus_data:
@@ -335,7 +336,7 @@ services:
       PADDLEOCR_PASSWORD_HASH: ${PADDLEOCR_PASSWORD_HASH}
       PADDLEOCR_USERNAME: ${PADDLEOCR_USERNAME}
       PORTAINER_HOSTNAME: ${PORTAINER_HOSTNAME}
-      POSTGRESUS_HOSTNAME: ${POSTGRESUS_HOSTNAME}
+      DATABASUS_HOSTNAME: ${DATABASUS_HOSTNAME}
       POSTIZ_HOSTNAME: ${POSTIZ_HOSTNAME}
       PROMETHEUS_HOSTNAME: ${PROMETHEUS_HOSTNAME}
       PROMETHEUS_PASSWORD_HASH: ${PROMETHEUS_PASSWORD_HASH}
@@ -836,13 +837,19 @@ services:
       redis:
         condition: service_healthy
 
-  postgresus:
-    image: rostislavdugin/postgresus:latest
-    container_name: postgresus
-    profiles: ["postgresus"]
+  databasus:
+    image: databasus/databasus:latest
+    container_name: databasus
+    profiles: ["databasus"]
     restart: unless-stopped
     volumes:
-      - postgresus_data:/postgresus-data
+      - databasus_data:/databasus-data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4005/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   comfyui:
     image: yanwk/comfyui-boot:cu124-slim

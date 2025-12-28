@@ -81,9 +81,9 @@
     reverse_proxy postiz:5000
 }
 
-# Postgresus
-{$POSTGRESUS_HOSTNAME} {
-    reverse_proxy postgresus:4005
+# Databasus
+{$DATABASUS_HOSTNAME} {
+    reverse_proxy databasus:4005
 }
 
 # Letta

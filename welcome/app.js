@@ -191,13 +191,13 @@
             category: 'infra',
             docsUrl: 'https://docs.portainer.io'
         },
-        'postgresus': {
-            name: 'Postgresus',
-            description: 'PostgreSQL Backups & Monitoring',
-            icon: 'PG',
-            color: 'bg-[#336791]',
+        'databasus': {
+            name: 'Databasus',
+            description: 'Database Backups & Monitoring',
+            icon: 'DB',
+            color: 'bg-[#155DFC]',
             category: 'database',
-            docsUrl: 'https://postgresus.com/'
+            docsUrl: 'https://databasus.com/'
         },
         'langfuse': {
             name: 'Langfuse',
