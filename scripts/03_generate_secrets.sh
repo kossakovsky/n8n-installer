@@ -23,8 +23,14 @@ set -e
 source "$(dirname "$0")/utils.sh"
 init_paths
 
+# Source local mode utilities
+source "$SCRIPT_DIR/local.sh"
+
 # Source telemetry functions
 source "$SCRIPT_DIR/telemetry.sh"
+
+# Get installation mode using local.sh helper
+INSTALL_MODE="$(get_install_mode)"
 
 # Setup cleanup for temporary files
 TEMP_FILES=()
@@ -151,15 +157,13 @@ if [ -f "$OUTPUT_FILE" ]; then
     done < "$OUTPUT_FILE"
 fi
 
-# Install Caddy
-log_subheader "Installing Caddy"
-log_info "Adding Caddy repository and installing..."
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --yes --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
-apt install -y caddy
-
-# Check for caddy
-require_command "caddy" "Caddy installation failed. Please check the installation logs above."
+# Setup Caddy for bcrypt hash generation (using Docker for cross-platform support)
+log_subheader "Setting up Caddy for password hashing"
+log_info "Using Docker-based Caddy for password hashing..."
+if ! docker image inspect caddy:latest &>/dev/null; then
+    log_info "Pulling Caddy Docker image..."
+    docker pull caddy:latest
+fi
 
 require_whiptail
 
@@ -167,42 +171,51 @@ require_whiptail
 log_subheader "Domain Configuration"
 DOMAIN="" # Initialize DOMAIN variable
 
-# Try to get domain from existing .env file first
-# Check if USER_DOMAIN_NAME is set in existing_env_vars and is not empty
-if [[ ${existing_env_vars[USER_DOMAIN_NAME]+_} && -n "${existing_env_vars[USER_DOMAIN_NAME]}" ]]; then
-    DOMAIN="${existing_env_vars[USER_DOMAIN_NAME]}"
-    # Ensure this value is carried over to generated_values for writing and template processing
-    # If it came from existing_env_vars, it might already be there, but this ensures it.
+# Configure mode-specific environment variables using local.sh
+configure_mode_env generated_values "$INSTALL_MODE"
+
+if is_local_mode; then
+    # Local mode: use .local TLD automatically
+    DOMAIN="$(get_local_domain)"
     generated_values["USER_DOMAIN_NAME"]="$DOMAIN"
+    log_info "Using local development domain: .$DOMAIN"
 else
-    while true; do
-        DOMAIN_INPUT=$(wt_input "Primary Domain" "Enter the primary domain name for your services (e.g., example.com)." "") || true
+    # VPS mode: prompt for real domain
+    # Try to get domain from existing .env file first
+    if [[ ${existing_env_vars[USER_DOMAIN_NAME]+_} && -n "${existing_env_vars[USER_DOMAIN_NAME]}" ]]; then
+        DOMAIN="${existing_env_vars[USER_DOMAIN_NAME]}"
+        generated_values["USER_DOMAIN_NAME"]="$DOMAIN"
+    else
+        while true; do
+            DOMAIN_INPUT=$(wt_input "Primary Domain" "Enter the primary domain name for your services (e.g., example.com)." "") || true
 
-        DOMAIN_TO_USE="$DOMAIN_INPUT" # Direct assignment, no default fallback
+            DOMAIN_TO_USE="$DOMAIN_INPUT" # Direct assignment, no default fallback
 
-        # Validate domain input
-        if [[ -z "$DOMAIN_TO_USE" ]]; then
-            wt_msg "Validation" "Domain name cannot be empty."
-            continue
-        fi
+            # Validate domain input
+            if [[ -z "$DOMAIN_TO_USE" ]]; then
+                wt_msg "Validation" "Domain name cannot be empty."
+                continue
+            fi
 
-        # Basic check for likely invalid domain characters (very permissive)
-        if [[ "$DOMAIN_TO_USE" =~ [^a-zA-Z0-9.-] ]]; then
-            wt_msg "Validation" "Warning: Domain contains potentially invalid characters: '$DOMAIN_TO_USE'"
-        fi
-        if wt_yesno "Confirm Domain" "Use '$DOMAIN_TO_USE' as the primary domain?" "yes"; then
-            DOMAIN="$DOMAIN_TO_USE" # Set the final DOMAIN variable
-            generated_values["USER_DOMAIN_NAME"]="$DOMAIN" # Using USER_DOMAIN_NAME
-            log_info "Domain set to '$DOMAIN'. It will be saved in .env."
-            break # Confirmed, exit loop
-        fi
-    done
+            # Basic check for likely invalid domain characters (very permissive)
+            if [[ "$DOMAIN_TO_USE" =~ [^a-zA-Z0-9.-] ]]; then
+                wt_msg "Validation" "Warning: Domain contains potentially invalid characters: '$DOMAIN_TO_USE'"
+            fi
+            if wt_yesno "Confirm Domain" "Use '$DOMAIN_TO_USE' as the primary domain?" "yes"; then
+                DOMAIN="$DOMAIN_TO_USE"
+                generated_values["USER_DOMAIN_NAME"]="$DOMAIN"
+                log_info "Domain set to '$DOMAIN'. It will be saved in .env."
+                break # Confirmed, exit loop
+            fi
+        done
+    fi
 fi
 
-# Prompt for user email
+# Prompt for user email (used for service logins and SSL certificates in VPS mode)
 log_subheader "Email Configuration"
+
 if [[ -z "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
-    wt_msg "Email Required" "Please enter your email address. It will be used for logins and Let's Encrypt SSL."
+    wt_msg "Email Required" "Please enter your email address. It will be used for service logins."
 fi
 
 if [[ -n "${existing_env_vars[LETSENCRYPT_EMAIL]}" ]]; then
@@ -589,9 +602,6 @@ log_success ".env file generated successfully in the project root ($OUTPUT_FILE)
 
 # Save installation ID for telemetry correlation
 save_installation_id "$OUTPUT_FILE"
-
-# Uninstall caddy
-apt remove -y caddy
 
 # Cleanup any .bak files
 cleanup_bak_files "$PROJECT_ROOT"

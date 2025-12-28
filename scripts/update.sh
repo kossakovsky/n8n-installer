@@ -130,6 +130,6 @@ fi
 
 # Execute the rest of the update process using the (potentially updated) apply_update.sh
 # Note: apply_update.sh has its own error telemetry trap and stages
-bash "$APPLY_UPDATE_SCRIPT"
+"$BASH" "$APPLY_UPDATE_SCRIPT"
 
 exit 0

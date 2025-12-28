@@ -119,7 +119,7 @@ write_env_var "N8N_WORKER_COUNT" "$N8N_WORKER_COUNT"
 # Generate worker-runner pairs configuration
 # Each worker gets its own dedicated task runner sidecar
 log_info "Generating n8n worker-runner pairs configuration..."
-bash "$SCRIPT_DIR/generate_n8n_workers.sh"
+"$BASH" "$SCRIPT_DIR/generate_n8n_workers.sh"
 
 
 # ----------------------------------------------------------------

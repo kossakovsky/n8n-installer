@@ -90,6 +90,7 @@ x-n8n: &service-n8n
     N8N_SMTP_SSL: ${N8N_SMTP_SSL:-true}
     N8N_SMTP_STARTTLS: ${N8N_SMTP_STARTTLS:-true}
     N8N_SMTP_USER: ${N8N_SMTP_USER:-}
+    N8N_SECURE_COOKIE: ${N8N_SECURE_COOKIE:-true}
     N8N_TRUST_PROXY: true
     N8N_USER_MANAGEMENT_JWT_SECRET: ${N8N_USER_MANAGEMENT_JWT_SECRET}
     NODE_ENV: production
@@ -97,7 +98,7 @@ x-n8n: &service-n8n
     QUEUE_BULL_REDIS_HOST: ${REDIS_HOST:-redis}
     QUEUE_BULL_REDIS_PORT: ${REDIS_PORT:-6379}
     QUEUE_HEALTH_CHECK_ACTIVE: true
-    WEBHOOK_URL: ${N8N_HOSTNAME:+https://}${N8N_HOSTNAME:-http://localhost:5678}/
+    WEBHOOK_URL: ${PROTOCOL:-https}://${N8N_HOSTNAME}/
 
 x-ollama: &service-ollama
   image: ollama/ollama:latest
@@ -282,7 +283,7 @@ services:
     environment:
       NC_AUTH_JWT_SECRET: ${NOCODB_JWT_SECRET}
       NC_DB: pg://postgres:5432?u=postgres&p=${POSTGRES_PASSWORD}&d=nocodb
-      NC_PUBLIC_URL: https://${NOCODB_HOSTNAME}
+      NC_PUBLIC_URL: ${PROTOCOL:-https}://${NOCODB_HOSTNAME}
       NC_REDIS_URL: redis://redis:6379
     volumes:
       - nocodb_data:/usr/app/data
@@ -314,6 +315,7 @@ services:
       - caddy-data:/data:rw
       - caddy-config:/config:rw
     environment:
+      CADDY_AUTO_HTTPS: ${CADDY_AUTO_HTTPS:-on}
       COMFYUI_HOSTNAME: ${COMFYUI_HOSTNAME}
       COMFYUI_PASSWORD_HASH: ${COMFYUI_PASSWORD_HASH}
       COMFYUI_USERNAME: ${COMFYUI_USERNAME}
@@ -470,7 +472,7 @@ services:
     depends_on: *langfuse-depends-on
     environment:
       <<: *langfuse-worker-env
-      NEXTAUTH_URL: https://${LANGFUSE_HOSTNAME}
+      NEXTAUTH_URL: ${PROTOCOL:-https}://${LANGFUSE_HOSTNAME}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-organization_id}
       LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_INIT_ORG_NAME:-Organization}
@@ -572,7 +574,7 @@ services:
     volumes:
       - ./searxng:/etc/searxng:rw
     environment:
-      SEARXNG_BASE_URL: https://${SEARXNG_HOSTNAME:-localhost}/
+      SEARXNG_BASE_URL: ${PROTOCOL:-https}://${SEARXNG_HOSTNAME:-localhost}/
       UWSGI_WORKERS: ${SEARXNG_UWSGI_WORKERS:-4}
       UWSGI_THREADS: ${SEARXNG_UWSGI_THREADS:-4}
     # cap_drop: - ALL  # Temporarily commented out for first run
@@ -788,11 +790,11 @@ services:
       BACKEND_INTERNAL_URL: http://postiz:3000
       DATABASE_URL: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/${POSTIZ_DB_NAME:-postiz}?schema=postiz"
       DISABLE_REGISTRATION: ${POSTIZ_DISABLE_REGISTRATION}
-      FRONTEND_URL: ${POSTIZ_HOSTNAME:+https://}${POSTIZ_HOSTNAME}
+      FRONTEND_URL: ${PROTOCOL:-https}://${POSTIZ_HOSTNAME}
       IS_GENERAL: "true" # Required for self-hosting.
       JWT_SECRET: ${JWT_SECRET}
-      MAIN_URL: ${POSTIZ_HOSTNAME:+https://}${POSTIZ_HOSTNAME}
-      NEXT_PUBLIC_BACKEND_URL: ${POSTIZ_HOSTNAME:+https://}${POSTIZ_HOSTNAME}/api
+      MAIN_URL: ${PROTOCOL:-https}://${POSTIZ_HOSTNAME}
+      NEXT_PUBLIC_BACKEND_URL: ${PROTOCOL:-https}://${POSTIZ_HOSTNAME}/api
       NEXT_PUBLIC_UPLOAD_DIRECTORY: "/uploads"
       REDIS_URL: "redis://redis:6379"
       STORAGE_PROVIDER: "local"

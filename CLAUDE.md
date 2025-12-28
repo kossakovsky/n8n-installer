@@ -17,9 +17,10 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 
 - `Makefile`: Common commands (install, update, logs, etc.)
 - `docker-compose.yml`: Service definitions with profiles
-- `Caddyfile`: Reverse proxy configuration with automatic HTTPS
+- `Caddyfile`: Reverse proxy configuration (HTTPS for VPS, HTTP for local via `CADDY_AUTO_HTTPS`)
 - `.env`: Generated secrets and configuration (from `.env.example`)
-- `scripts/install.sh`: Main installation orchestrator (runs numbered scripts 01-08 in sequence)
+- `scripts/install-vps.sh`: VPS installation orchestrator (runs scripts 01-08 in sequence)
+- `scripts/install-local.sh`: Local installation orchestrator (inline prerequisites check, then 03-08)
 - `scripts/utils.sh`: Shared utility functions (sourced by all scripts via `source "$(dirname "$0")/utils.sh" && init_paths`)
 - `scripts/01_system_preparation.sh`: System updates, firewall, security hardening
 - `scripts/02_install_docker.sh`: Docker and Docker Compose installation
@@ -30,6 +31,7 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 - `scripts/databases.sh`: Creates isolated PostgreSQL databases for services (library)
 - `scripts/telemetry.sh`: Anonymous telemetry functions (Scarf integration)
 - `scripts/06_run_services.sh`: Starts Docker Compose stack
+- `scripts/generate_hosts.sh`: Generates /etc/hosts entries for local mode
 - `scripts/07_final_report.sh`: Post-install credential summary
 - `scripts/08_fix_permissions.sh`: Fixes file ownership for non-root access
 - `scripts/generate_n8n_workers.sh`: Generates dynamic worker/runner compose file
@@ -45,8 +47,17 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 
 ### Installation Flow
 
-`scripts/install.sh` orchestrates the installation by running numbered scripts in sequence:
+Two independent installation paths:
 
+```
+make install-vps   →  install-vps.sh (Ubuntu VPS)
+                       └── 01 → 02 → 03 → 04 → 05 → 06 → 07 → 08
+
+make install-local →  install-local.sh (macOS/Linux local)
+                       └── [inline prereq check] → 03 → 04 → 05 → 06 → 07 → 08
+```
+
+**VPS Installation** (`install-vps.sh`):
 1. `01_system_preparation.sh` - System updates, firewall, security hardening
 2. `02_install_docker.sh` - Docker and Docker Compose installation
 3. `03_generate_secrets.sh` - Generate passwords, API keys, bcrypt hashes
@@ -56,7 +67,22 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 7. `07_final_report.sh` - Display credentials and URLs
 8. `08_fix_permissions.sh` - Fix file ownership for non-root access
 
+**Local Installation** (`install-local.sh`):
+1. Inline prerequisites check - Verify Docker, whiptail, openssl, git
+2. `03_generate_secrets.sh` - Generate passwords, API keys, bcrypt hashes
+3. `04_wizard.sh` - Interactive service selection (whiptail UI)
+4. `05_configure_services.sh` - Service-specific configuration
+5. `06_run_services.sh` - Start Docker Compose stack
+6. `07_final_report.sh` - Display credentials and URLs
+
 The update flow (`scripts/update.sh`) similarly orchestrates: git fetch + reset → service selection → `apply_update.sh` → restart.
+
+### Installation Modes
+
+Two independent entry points (no shared entrypoint):
+
+- **VPS Mode** (`make install-vps`): Production with real domains, Let's Encrypt SSL, full system prep. Run with `sudo`.
+- **Local Mode** (`make install-local`): Development with `.local` domains, HTTP only, no system prep. Requires Docker pre-installed.
 
 ## Common Development Commands
 
@@ -65,6 +91,9 @@ The update flow (`scripts/update.sh`) similarly orchestrates: git fetch + reset 
 ```bash
 make install           # Full installation (runs scripts/install.sh)
 make update            # Update system and services (resets to origin)
+make install-vps       # VPS installation (Ubuntu with SSL)
+make install-local     # Local installation (macOS/Linux, no sudo)
+make update            # Update system and services
 make update-preview    # Preview available updates (dry-run)
 make git-pull          # Update for forks (merges from upstream/main)
 make clean             # Remove unused Docker resources (preserves data)
@@ -189,7 +218,7 @@ Key functions:
 - `load_env` - Source .env file to make variables available
 - `update_compose_profiles "profile1,profile2"` - Update COMPOSE_PROFILES in .env
 - `gen_password 32` / `gen_hex 64` / `gen_base64 64` - Secret generation
-- `generate_bcrypt_hash "password"` - Create Caddy-compatible bcrypt hash (uses Caddy binary)
+- `generate_bcrypt_hash "password"` - Create Caddy-compatible bcrypt hash (uses Caddy Docker image)
 - `json_escape "string"` - Escape string for JSON output
 - `wt_input`, `wt_password`, `wt_yesno`, `wt_msg` - Whiptail dialog wrappers
 - `wt_checklist`, `wt_radiolist`, `wt_menu` - Whiptail selection dialogs
@@ -202,6 +231,22 @@ Key functions:
 - `cleanup_legacy_n8n_workers` - Remove old n8n worker containers from previous naming convention
 - `get_n8n_workers_compose` / `get_supabase_compose` / `get_dify_compose` - Get compose file path if profile active AND file exists
 - `build_compose_files_array` - Build global `COMPOSE_FILES` array with all active compose files (main + external)
+
+### Local Mode Utilities (scripts/local.sh)
+
+Source with: `source "$SCRIPT_DIR/local.sh"` (after sourcing utils.sh)
+
+Encapsulates all VPS vs Local mode logic in one place:
+- `get_install_mode` - Get current mode from INSTALL_MODE env or .env file (defaults to "vps")
+- `is_local_mode` / `is_vps_mode` - Check current installation mode
+- `get_protocol` - Get protocol based on mode ("http" for local, "https" for VPS)
+- `get_caddy_auto_https` - Get Caddy setting ("off" for local, "on" for VPS)
+- `get_n8n_secure_cookie` - Get cookie security ("false" for local, "true" for VPS)
+- `get_local_domain` - Get default domain for local mode (".local")
+- `configure_mode_env` - Populate associative array with all mode-specific settings
+- `get_all_hostname_vars` - Get list of all hostname variables (single source of truth)
+- `print_local_hosts_instructions` - Display /etc/hosts setup instructions
+- `check_local_prerequisites` - Verify Docker, whiptail, openssl, git are installed
 
 ### Service Profiles
 
@@ -305,8 +350,8 @@ These are backed up before `git reset --hard` and restored after.
 - Verify `LETSENCRYPT_EMAIL` is set in `.env`
 
 ### Password hash generation fails
-- Ensure Caddy container is running: `docker compose -p localai up -d caddy`
-- Script uses: `docker exec caddy caddy hash-password --plaintext "$password"`
+- Ensure Docker is running (bcrypt hashes are generated via `docker run caddy:latest`)
+- Script uses: `docker run --rm caddy:latest caddy hash-password --algorithm bcrypt --plaintext "$password"`
 
 ## File Locations
 
@@ -326,6 +371,7 @@ docker compose -p localai config --quiet
 
 # Bash script syntax (validate all key scripts)
 bash -n scripts/utils.sh
+bash -n scripts/local.sh
 bash -n scripts/git.sh
 bash -n scripts/databases.sh
 bash -n scripts/telemetry.sh
@@ -337,7 +383,8 @@ bash -n scripts/generate_welcome_page.sh
 bash -n scripts/generate_n8n_workers.sh
 bash -n scripts/apply_update.sh
 bash -n scripts/update.sh
-bash -n scripts/install.sh
+bash -n scripts/install-vps.sh
+bash -n scripts/install-local.sh
 ```
 
 ### Full Testing
