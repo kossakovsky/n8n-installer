@@ -138,8 +138,8 @@ Get started quickly with a vast library of pre-built automations (optional impor
 2.  **DNS Configuration:** Before running the installation script, you **must** configure DNS A-record for your domain, pointing to the public IP address of the server where you'll install this system. Replace `yourdomain.com` with your actual domain:
     - **Wildcard Record:** `A *.yourdomain.com` -> `YOUR_SERVER_IP`
 3.  **Server:** Minimum server system requirements: Ubuntu 24.04 LTS, 64-bit.
-    - For running **all available services**: at least **8 GB Memory / 4 CPU Cores / 60 GB Disk Space **.
-    - For a minimal setup with only **n8n and Flowise**: **4 GB Memory / 2 CPU Cores / 30 GB Disk Space**.
+    - For running **all available services**: at least **20 GB Memory / 4 CPU Cores / 60 GB Disk Space**.
+    - For a minimal setup with **n8n, Monitoring, Databasus and Portainer**: **4 GB Memory / 2 CPU Cores / 40 GB Disk Space**.
 
 ### Running the Install
 
