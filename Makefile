@@ -1,4 +1,4 @@
-.PHONY: help install update update-preview clean logs status monitor restart show-restarts doctor switch-beta switch-stable
+.PHONY: help install update update-preview clean clean-all logs status monitor restart show-restarts doctor switch-beta switch-stable
 
 PROJECT_NAME := localai
 
@@ -8,7 +8,8 @@ help:
 	@echo "  make install           Full installation"
 	@echo "  make update            Update system and services"
 	@echo "  make update-preview    Preview available updates (dry-run)"
-	@echo "  make clean             Remove unused Docker resources"
+	@echo "  make clean             Remove unused Docker resources (preserves data)"
+	@echo "  make clean-all         Remove ALL Docker resources including data (DANGEROUS)"
 	@echo ""
 	@echo "  make logs              View logs (all services)"
 	@echo "  make logs s=<service>  View logs for specific service"
@@ -32,6 +33,12 @@ update-preview:
 
 clean:
 	sudo bash ./scripts/docker_cleanup.sh
+
+clean-all:
+	@echo "WARNING: This will delete ALL Docker resources including application data!"
+	@echo "Press Ctrl+C to cancel, or wait 10 seconds to continue..."
+	@sleep 10
+	docker system prune -a --volumes -f
 
 logs:
 ifdef s
