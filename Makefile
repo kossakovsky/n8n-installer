@@ -54,7 +54,7 @@ monitor:
 	docker stats
 
 restart:
-	docker compose -p $(PROJECT_NAME) down && docker compose -p $(PROJECT_NAME) up -d
+	bash ./scripts/restart.sh
 
 show-restarts:
 	@docker ps -q | while read id; do \
