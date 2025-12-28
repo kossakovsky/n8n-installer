@@ -21,6 +21,8 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 - `.env`: Generated secrets and configuration (from `.env.example`)
 - `scripts/install.sh`: Main installation orchestrator (runs numbered scripts 01-08 in sequence)
 - `scripts/utils.sh`: Shared utility functions (sourced by all scripts via `source "$(dirname "$0")/utils.sh" && init_paths`)
+- `scripts/01_system_preparation.sh`: System updates, firewall, security hardening
+- `scripts/02_install_docker.sh`: Docker and Docker Compose installation
 - `scripts/git.sh`: Git utilities (sync with origin, branch detection, configuration)
 - `scripts/03_generate_secrets.sh`: Secret generation and bcrypt hashing
 - `scripts/04_wizard.sh`: Interactive service selection using whiptail
@@ -63,7 +65,8 @@ The update flow (`scripts/update.sh`) similarly orchestrates: git fetch + reset 
 make install           # Full installation (runs scripts/install.sh)
 make update            # Update system and services
 make update-preview    # Preview available updates (dry-run)
-make clean             # Remove unused Docker resources
+make clean             # Remove unused Docker resources (preserves data)
+make clean-all         # Remove ALL Docker resources including data (DANGEROUS)
 
 make logs              # View logs (all services)
 make logs s=<service>  # View logs for specific service
