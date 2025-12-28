@@ -23,13 +23,20 @@ set -e
 source "$(dirname "$0")/utils.sh"
 init_paths
 
+# Source local mode utilities
+source "$SCRIPT_DIR/local.sh"
+
 # Load environment variables from .env file
 load_env || exit 1
+
+# Get installation mode and protocol using local.sh helpers
+INSTALL_MODE="$(get_install_mode)"
+PROTOCOL="$(get_protocol)"
 
 # Generate welcome page data
 if [ -f "$SCRIPT_DIR/generate_welcome_page.sh" ]; then
     log_info "Generating welcome page..."
-    bash "$SCRIPT_DIR/generate_welcome_page.sh" || log_warning "Failed to generate welcome page"
+    "$BASH" "$SCRIPT_DIR/generate_welcome_page.sh" || log_warning "Failed to generate welcome page"
 fi
 
 # Helper function to print a divider line
@@ -58,12 +65,25 @@ clear
 # Header
 log_box "Installation/Update Complete"
 
+# --- Local Mode: /etc/hosts Instructions ---
+if is_local_mode; then
+    print_section "Local Installation Setup"
+
+    # Generate hosts entries
+    if [ -f "$SCRIPT_DIR/generate_hosts.sh" ]; then
+        "$BASH" "$SCRIPT_DIR/generate_hosts.sh" 2>/dev/null || true
+    fi
+
+    # Print hosts setup instructions using local.sh helper
+    print_local_hosts_instructions
+fi
+
 # --- Welcome Page Section ---
 print_section "Welcome Page"
 echo ""
 echo -e "  ${WHITE}All your service credentials are available here:${NC}"
 echo ""
-print_credential "URL" "https://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}"
+print_credential "URL" "${PROTOCOL}://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}"
 print_credential "Username" "${WELCOME_USERNAME:-<not_set>}"
 print_credential "Password" "${WELCOME_PASSWORD:-<not_set>}"
 echo ""
@@ -74,7 +94,7 @@ echo -e "  ${DIM}hostnames, credentials, and internal URLs.${NC}"
 print_section "Next Steps"
 echo ""
 echo -e "  ${WHITE}1.${NC} Visit your Welcome Page to view all credentials"
-echo -e "     ${CYAN}https://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}${NC}"
+echo -e "     ${CYAN}${PROTOCOL}://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}${NC}"
 echo ""
 echo -e "  ${WHITE}2.${NC} Store the Welcome Page credentials securely"
 echo ""

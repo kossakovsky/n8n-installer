@@ -2,10 +2,14 @@
 
 PROJECT_NAME := localai
 
+# Detect bash 4+ (macOS ships with bash 3.2, need Homebrew bash; Ubuntu 24+ has bash 5.x)
+BASH_CMD := $(shell command -v /opt/homebrew/bin/bash 2>/dev/null || command -v /usr/local/bin/bash 2>/dev/null || echo bash)
+
 help:
 	@echo "n8n-install - Available commands:"
 	@echo ""
-	@echo "  make install           Full installation"
+	@echo "  make install-vps       VPS installation (Ubuntu with SSL)"
+	@echo "  make install-local     Local installation (macOS/Linux, no sudo)"
 	@echo "  make update            Update system and services"
 	@echo "  make update-preview    Preview available updates (dry-run)"
 	@echo "  make clean             Remove unused Docker resources (preserves data)"
@@ -22,8 +26,11 @@ help:
 	@echo "  make switch-beta       Switch to beta (develop branch)"
 	@echo "  make switch-stable     Switch to stable (main branch)"
 
-install:
-	sudo bash ./scripts/install.sh
+install-vps:
+	sudo bash ./scripts/install-vps.sh
+
+install-local:
+	$(BASH_CMD) ./scripts/install-local.sh
 
 update:
 	sudo bash ./scripts/update.sh

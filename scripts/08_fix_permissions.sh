@@ -17,8 +17,33 @@ source "$(dirname "$0")/utils.sh"
 # Initialize paths
 init_paths
 
+# Source local mode utilities
+source "$SCRIPT_DIR/local.sh"
+
+# Load environment for INSTALL_MODE
+load_env 2>/dev/null || true
+
 log_info "Fixing file permissions..."
 
+# Local mode: minimal permission fixes (usually not run with sudo)
+if is_local_mode; then
+    log_info "Local mode - applying minimal permission fixes"
+
+    # Ensure .env has restricted permissions
+    if [[ -f "$ENV_FILE" ]]; then
+        chmod 600 "$ENV_FILE"
+        log_info "Set restrictive permissions on .env file"
+    fi
+
+    # Ensure scripts are executable
+    chmod +x "$SCRIPT_DIR"/*.sh 2>/dev/null || true
+    chmod +x "$PROJECT_ROOT"/*.py 2>/dev/null || true
+
+    log_success "File permissions configured for local development!"
+    exit 0
+fi
+
+# VPS mode: full permission fix with chown
 # Get the real user who ran the installer
 REAL_USER=$(get_real_user)
 REAL_GROUP=$(id -gn "$REAL_USER" 2>/dev/null || echo "$REAL_USER")

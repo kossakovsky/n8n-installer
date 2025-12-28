@@ -1,50 +1,30 @@
 #!/bin/bash
 # =============================================================================
-# install.sh - Main installation orchestrator for n8n-install
+# install-vps.sh - VPS installation orchestrator for n8n-install
 # =============================================================================
-# This script runs the complete installation process by sequentially executing
-# 8 installation steps:
+# Runs the complete VPS installation process:
 #   1. System Preparation - updates packages, installs utilities, configures firewall
 #   2. Docker Installation - installs Docker and Docker Compose
-#   3. Secret Generation - creates .env file with secure passwords and secrets
-#   4. Service Wizard - interactive service selection using whiptail
-#   5. Service Configuration - prompts for API keys and service-specific settings
-#   6. Service Launch - starts all selected services via Docker Compose
-#   7. Final Report - displays credentials and access URLs
-#   8. Fix Permissions - ensures correct file ownership for the invoking user
+#   3. Secret Generation - generates passwords, API keys, bcrypt hashes
+#   4. Service Selection Wizard - interactive service selection
+#   5. Configure Services - service-specific configuration
+#   6. Run Services - starts Docker Compose stack
+#   7. Final Report - displays credentials and URLs
+#   8. Fix Permissions - fixes file ownership
 #
-# Usage: sudo bash scripts/install.sh
+# Usage: sudo bash scripts/install-vps.sh
+# Note: This script should be called from install.sh (entry point)
 # =============================================================================
 
 set -e
 
+# VPS mode is fixed for this script
+export INSTALL_MODE="vps"
+
 # Source the utilities file
 source "$(dirname "$0")/utils.sh"
 
-# Check for nested n8n-install directory
-current_path=$(pwd)
-if [[ "$current_path" == *"/n8n-install/n8n-install" ]]; then
-    log_info "Detected nested n8n-install directory. Correcting..."
-    cd ..
-    log_info "Moved to $(pwd)"
-    log_info "Removing redundant n8n-install directory..."
-    rm -rf "n8n-install"
-    log_info "Redundant directory removed."
-    # Re-evaluate SCRIPT_DIR after potential path correction
-    SCRIPT_DIR_REALPATH_TEMP="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-    if [[ "$SCRIPT_DIR_REALPATH_TEMP" == *"/n8n-install/n8n-install/scripts" ]]; then
-        # If SCRIPT_DIR is still pointing to the nested structure's scripts dir, adjust it
-        # This happens if the script was invoked like: sudo bash n8n-install/scripts/install.sh
-        # from the outer n8n-install directory.
-        # We need to ensure that relative paths for other scripts are correct.
-        # The most robust way is to re-execute the script from the corrected location
-        # if the SCRIPT_DIR itself was nested.
-        log_info "Re-executing install script from corrected path..."
-        exec sudo bash "./scripts/install.sh" "$@"
-    fi
-fi
-
-# Initialize paths using utils.sh helper
+# Initialize paths
 init_paths
 
 # Source telemetry functions
@@ -111,52 +91,63 @@ if [ ${#non_executable_scripts[@]} -gt 0 ]; then
     log_success "Scripts successfully made executable."
 fi
 
-# Run installation steps sequentially using their full paths
+# =============================================================================
+# Run VPS installation steps sequentially (8 steps total)
+# =============================================================================
+TOTAL_STEPS=8
 
-show_step 1 8 "System Preparation"
+log_header "VPS Installation"
+log_info "Starting VPS installation..."
+
+# Step 1: System Preparation
+show_step 1 $TOTAL_STEPS "System Preparation"
 set_telemetry_stage "system_prep"
-bash "$SCRIPT_DIR/01_system_preparation.sh" || { log_error "System Preparation failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/01_system_preparation.sh" || { log_error "System Preparation failed"; exit 1; }
 log_success "System preparation complete!"
 
-show_step 2 8 "Installing Docker"
+# Step 2: Docker Installation
+show_step 2 $TOTAL_STEPS "Installing Docker"
 set_telemetry_stage "docker_install"
-bash "$SCRIPT_DIR/02_install_docker.sh" || { log_error "Docker Installation failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/02_install_docker.sh" || { log_error "Docker Installation failed"; exit 1; }
 log_success "Docker installation complete!"
 
-show_step 3 8 "Generating Secrets and Configuration"
+# Step 3: Secrets Generation
+show_step 3 $TOTAL_STEPS "Generating Secrets and Configuration"
 set_telemetry_stage "secrets_gen"
-bash "$SCRIPT_DIR/03_generate_secrets.sh" || { log_error "Secret/Config Generation failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/03_generate_secrets.sh" || { log_error "Secret/Config Generation failed"; exit 1; }
 log_success "Secret/Config Generation complete!"
 
-show_step 4 8 "Running Service Selection Wizard"
+# Step 4: Service Selection Wizard
+show_step 4 $TOTAL_STEPS "Running Service Selection Wizard"
 set_telemetry_stage "wizard"
-bash "$SCRIPT_DIR/04_wizard.sh" || { log_error "Service Selection Wizard failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/04_wizard.sh" || { log_error "Service Selection Wizard failed"; exit 1; }
 log_success "Service Selection Wizard complete!"
 
-show_step 5 8 "Configure Services"
+# Step 5: Configure Services
+show_step 5 $TOTAL_STEPS "Configure Services"
 set_telemetry_stage "configure"
-bash "$SCRIPT_DIR/05_configure_services.sh" || { log_error "Configure Services failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/05_configure_services.sh" || { log_error "Configure Services failed"; exit 1; }
 log_success "Configure Services complete!"
 
-show_step 6 8 "Running Services"
+# Step 6: Running Services
+show_step 6 $TOTAL_STEPS "Running Services"
 set_telemetry_stage "db_init"
 # Start PostgreSQL first to initialize databases before other services
 log_info "Starting PostgreSQL..."
 docker compose -p localai up -d postgres || { log_error "Failed to start PostgreSQL"; exit 1; }
 
 # Initialize PostgreSQL databases for services (creates if not exist)
-# This must run BEFORE other services that depend on these databases
 source "$SCRIPT_DIR/databases.sh"
 init_all_databases || { log_warning "Database initialization had issues, but continuing..."; }
 
 # Now start all services (postgres is already running)
 set_telemetry_stage "services_start"
-bash "$SCRIPT_DIR/06_run_services.sh" || { log_error "Running Services failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/06_run_services.sh" || { log_error "Running Services failed"; exit 1; }
 log_success "Running Services complete!"
 
-show_step 7 8 "Generating Final Report"
+# Step 7: Final Report
+show_step 7 $TOTAL_STEPS "Generating Final Report"
 set_telemetry_stage "final_report"
-# --- Installation Summary ---
 log_info "Installation Summary:"
 echo -e "  ${GREEN}*${NC} System updated and basic utilities installed"
 echo -e "  ${GREEN}*${NC} Firewall (UFW) configured and enabled"
@@ -166,12 +157,13 @@ echo -e "  ${GREEN}*${NC} Docker and Docker Compose installed"
 echo -e "  ${GREEN}*${NC} '.env' generated with secure passwords and secrets"
 echo -e "  ${GREEN}*${NC} Services launched via Docker Compose"
 
-bash "$SCRIPT_DIR/07_final_report.sh" || { log_error "Final Report Generation failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/07_final_report.sh" || { log_error "Final Report Generation failed"; exit 1; }
 log_success "Final Report generated!"
 
-show_step 8 8 "Fixing File Permissions"
+# Step 8: Fix Permissions
+show_step 8 $TOTAL_STEPS "Fixing File Permissions"
 set_telemetry_stage "fix_perms"
-bash "$SCRIPT_DIR/08_fix_permissions.sh" || { log_error "Fix Permissions failed"; exit 1; }
+"$BASH" "$SCRIPT_DIR/08_fix_permissions.sh" || { log_error "Fix Permissions failed"; exit 1; }
 log_success "File permissions fixed!"
 
 log_success "Installation complete!"

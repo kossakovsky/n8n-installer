@@ -1,32 +1,32 @@
 {
-    # Global options - works for both environments
+    # Global options - works for both VPS and local environments
+    # CADDY_AUTO_HTTPS: "on" for VPS (Let's Encrypt), "off" for local (HTTP only)
+    auto_https {$CADDY_AUTO_HTTPS:on}
     email {$LETSENCRYPT_EMAIL}
 }
 
 # N8N
-{$N8N_HOSTNAME} {
-    # For domains, Caddy will automatically use Let's Encrypt
-    # For localhost/port addresses, HTTPS won't be enabled
+http://{$N8N_HOSTNAME} {
     reverse_proxy n8n:5678
 }
 
 # Open WebUI
-{$WEBUI_HOSTNAME} {
+http://{$WEBUI_HOSTNAME} {
     reverse_proxy open-webui:8080
 }
 
 # Flowise
-{$FLOWISE_HOSTNAME} {
+http://{$FLOWISE_HOSTNAME} {
     reverse_proxy flowise:3001
 }
 
 # Dify
-{$DIFY_HOSTNAME} {
+http://{$DIFY_HOSTNAME} {
     reverse_proxy nginx:80
 }
 
 # RAGApp
-{$RAGAPP_HOSTNAME} {
+http://{$RAGAPP_HOSTNAME} {
     basic_auth {
         {$RAGAPP_USERNAME} {$RAGAPP_PASSWORD_HASH}
     }
@@ -34,50 +34,45 @@
 }
 
 # RAGFlow
-{$RAGFLOW_HOSTNAME} {
+http://{$RAGFLOW_HOSTNAME} {
     reverse_proxy ragflow:80
 }
 
 # Langfuse
-{$LANGFUSE_HOSTNAME} {
+http://{$LANGFUSE_HOSTNAME} {
     reverse_proxy langfuse-web:3000
 }
 
-# # Ollama API
-# {$OLLAMA_HOSTNAME} {
-#     reverse_proxy ollama:11434
-# }
-
 # Supabase
-{$SUPABASE_HOSTNAME} {
+http://{$SUPABASE_HOSTNAME} {
     reverse_proxy kong:8000
 }
 
 # Grafana
-{$GRAFANA_HOSTNAME} {
+http://{$GRAFANA_HOSTNAME} {
     reverse_proxy grafana:3000
 }
 
 # WAHA (WhatsApp HTTP API)
-{$WAHA_HOSTNAME} {
+http://{$WAHA_HOSTNAME} {
     reverse_proxy waha:3000
 }
 
 # Prometheus
-{$PROMETHEUS_HOSTNAME} {
-    basic_auth { 
+http://{$PROMETHEUS_HOSTNAME} {
+    basic_auth {
         {$PROMETHEUS_USERNAME} {$PROMETHEUS_PASSWORD_HASH}
     }
     reverse_proxy prometheus:9090
 }
 
 # Portainer
-{$PORTAINER_HOSTNAME} {
+http://{$PORTAINER_HOSTNAME} {
     reverse_proxy portainer:9000
 }
 
 # Postiz
-{$POSTIZ_HOSTNAME} {
+http://{$POSTIZ_HOSTNAME} {
     reverse_proxy postiz:5000
 }
 
@@ -87,27 +82,27 @@
 }
 
 # Letta
-{$LETTA_HOSTNAME} {
+http://{$LETTA_HOSTNAME} {
     reverse_proxy letta:8283
 }
 
 # LightRAG (Graph-based RAG with Knowledge Extraction)
-{$LIGHTRAG_HOSTNAME} {
+http://{$LIGHTRAG_HOSTNAME} {
     reverse_proxy lightrag:9621
 }
 
 # Weaviate
-{$WEAVIATE_HOSTNAME} {
+http://{$WEAVIATE_HOSTNAME} {
     reverse_proxy weaviate:8080
 }
 
 # Qdrant
-{$QDRANT_HOSTNAME} {
+http://{$QDRANT_HOSTNAME} {
     reverse_proxy qdrant:6333
 }
 
 # ComfyUI
-{$COMFYUI_HOSTNAME} {
+http://{$COMFYUI_HOSTNAME} {
     basic_auth {
         {$COMFYUI_USERNAME} {$COMFYUI_PASSWORD_HASH}
     }
@@ -115,30 +110,30 @@
 }
 
 # LibreTranslate (Self-hosted Translation API)
-{$LT_HOSTNAME} {
+http://{$LT_HOSTNAME} {
     basic_auth {
         {$LT_USERNAME} {$LT_PASSWORD_HASH}
     }
     reverse_proxy libretranslate:5000
 }
 
-# Neo4j
-{$NEO4J_HOSTNAME} {
+# Neo4j Browser
+http://{$NEO4J_HOSTNAME} {
     reverse_proxy neo4j:7474
 }
 
-# Neo4j Bolt Protocol (wss)
-https://{$NEO4J_HOSTNAME}:7687 {
+# Neo4j Bolt Protocol
+{$NEO4J_HOSTNAME}:7687 {
     reverse_proxy neo4j:7687
 }
 
 # NocoDB
-{$NOCODB_HOSTNAME} {
+http://{$NOCODB_HOSTNAME} {
     reverse_proxy nocodb:8080
 }
 
 # PaddleOCR (PaddleX Basic Serving)
-{$PADDLEOCR_HOSTNAME} {
+http://{$PADDLEOCR_HOSTNAME} {
     basic_auth {
         {$PADDLEOCR_USERNAME} {$PADDLEOCR_PASSWORD_HASH}
     }
@@ -146,7 +141,7 @@ https://{$NEO4J_HOSTNAME}:7687 {
 }
 
 # Docling (Document Conversion API)
-{$DOCLING_HOSTNAME} {
+http://{$DOCLING_HOSTNAME} {
     basic_auth {
         {$DOCLING_USERNAME} {$DOCLING_PASSWORD_HASH}
     }
@@ -154,7 +149,7 @@ https://{$NEO4J_HOSTNAME}:7687 {
 }
 
 # Welcome Page (Post-install dashboard)
-{$WELCOME_HOSTNAME} {
+http://{$WELCOME_HOSTNAME} {
     basic_auth {
         {$WELCOME_USERNAME} {$WELCOME_PASSWORD_HASH}
     }
@@ -165,8 +160,8 @@ https://{$NEO4J_HOSTNAME}:7687 {
 
 import /etc/caddy/addons/*.conf
 
-# # SearXNG
-{$SEARXNG_HOSTNAME} {
+# SearXNG
+http://{$SEARXNG_HOSTNAME} {
     @protected not remote_ip 127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10
 
     basic_auth @protected {
@@ -174,7 +169,7 @@ import /etc/caddy/addons/*.conf
     }
 
     encode zstd gzip
-    
+
     @api {
         path /config
         path /healthz
@@ -190,7 +185,7 @@ import /etc/caddy/addons/*.conf
     @static {
         path /static/*
     }
-    
+
     header {
         # CSP (https://content-security-policy.com)
         Content-Security-Policy "upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://github.com/searxng/searxng/issues/new; font-src 'self'; frame-ancestors 'self'; base-uri 'self'; connect-src 'self' https://overpass-api.de; img-src * data:; frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.dailymotion.com https://www.deezer.com https://www.mixcloud.com https://w.soundcloud.com https://embed.spotify.com;"
@@ -207,12 +202,12 @@ import /etc/caddy/addons/*.conf
         # Remove "Server" header
         -Server
     }
-    
+
     header @api {
         Access-Control-Allow-Methods "GET, OPTIONS"
         Access-Control-Allow-Origin "*"
     }
-    
+
     route {
         # Cache policy
         header Cache-Control "max-age=0, no-store"
@@ -220,7 +215,7 @@ import /etc/caddy/addons/*.conf
         header @imageproxy Cache-Control "max-age=604800, public"
         header @static Cache-Control "max-age=31536000, public, immutable"
     }
-    
+
     # SearXNG (uWSGI)
     reverse_proxy searxng:8080 {
         header_up X-Forwarded-Port {http.request.port}
