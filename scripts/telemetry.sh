@@ -116,6 +116,7 @@ get_os_type() {
 # Arguments:
 #   $1 - event_type: "install_start", "install_complete", "update_start", "update_complete"
 #   $2 - services (optional): comma-separated list of selected profiles (for *_complete events)
+#        When provided, sends a separate request for each service to enable per-service analytics.
 # Note: To get installation ID, call get_installation_id directly before this function
 send_telemetry() {
     local event_type="$1"
@@ -141,17 +142,25 @@ send_telemetry() {
         version=$(cat "$PROJECT_ROOT/VERSION" | tr -d '\n\r')
     fi
 
-    # Build URL with query parameters (URL-encode services to handle special chars)
-    local url="${SCARF_ENDPOINT}?event=${event_type}&version=${version}&id=${install_id}&os=${os_type}"
+    # Build base URL with query parameters
+    local base_url="${SCARF_ENDPOINT}?event=${event_type}&version=${version}&id=${install_id}&os=${os_type}"
 
     if [[ -n "$services" ]]; then
-        # URL encode spaces (commas are allowed in query strings per RFC 3986)
-        local encoded_services="${services// /%20}"
-        url="${url}&services=${encoded_services}"
+        # Split services by comma and send individual request for each service
+        # This allows Scarf to track usage statistics per service
+        local service
+        IFS=',' read -ra service_array <<< "$services"
+        for service in "${service_array[@]}"; do
+            # Trim whitespace
+            service=$(echo "$service" | xargs)
+            [[ -z "$service" ]] && continue
+            # Send telemetry for this service in background
+            curl -sf --connect-timeout 2 --max-time 2 "${base_url}&services=${service}" >/dev/null 2>&1 &
+        done
+    else
+        # No services specified, send single event
+        curl -sf --connect-timeout 2 --max-time 2 "$base_url" >/dev/null 2>&1 &
     fi
-
-    # Send telemetry in background with short timeout (non-blocking, silent)
-    curl -sf --connect-timeout 2 --max-time 2 "$url" >/dev/null 2>&1 &
 }
 
 #=============================================================================
