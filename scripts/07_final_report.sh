@@ -85,6 +85,9 @@ fi
 if is_profile_active "portainer"; then
     echo -e "     ${GREEN}*${NC} ${WHITE}Portainer${NC}: Create admin account on first login"
 fi
+if is_profile_active "databasus"; then
+    echo -e "     ${GREEN}*${NC} ${WHITE}Databasus${NC}: Create account and configure backup schedules"
+fi
 if is_profile_active "flowise"; then
     echo -e "     ${GREEN}*${NC} ${WHITE}Flowise${NC}: Register and create your account"
 fi

@@ -843,6 +843,11 @@ services:
     container_name: databasus
     profiles: ["databasus"]
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
     volumes:
       - databasus_data:/databasus-data
     healthcheck:
