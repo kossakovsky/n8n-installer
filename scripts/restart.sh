@@ -3,11 +3,13 @@
 # restart.sh - Restart all services
 # =============================================================================
 # Restarts all Docker Compose services including dynamically generated
-# worker/runner compose files.
+# worker/runner compose files and external service stacks.
 #
-# Handles compose files:
+# Handles compose files via build_compose_files_array() from utils.sh:
 #   - docker-compose.yml (main)
-#   - docker-compose.n8n-workers.yml (if exists)
+#   - docker-compose.n8n-workers.yml (if exists and n8n profile active)
+#   - supabase/docker/docker-compose.yml (if exists and supabase profile active)
+#   - dify/docker/docker-compose.yaml (if exists and dify profile active)
 #
 # Usage: bash scripts/restart.sh
 # =============================================================================
@@ -20,16 +22,13 @@ init_paths
 
 cd "$PROJECT_ROOT"
 
+# Load environment to check active profiles
+load_env
+
 PROJECT_NAME="localai"
 
-# Build compose files array
-COMPOSE_FILES=("-f" "docker-compose.yml")
-
-# Add n8n workers compose file if exists
-N8N_WORKERS_COMPOSE="docker-compose.n8n-workers.yml"
-if [ -f "$N8N_WORKERS_COMPOSE" ]; then
-    COMPOSE_FILES+=("-f" "$N8N_WORKERS_COMPOSE")
-fi
+# Build compose files array (sets global COMPOSE_FILES)
+build_compose_files_array
 
 log_info "Restarting services..."
 log_info "Using compose files: ${COMPOSE_FILES[*]}"

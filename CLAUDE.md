@@ -155,6 +155,8 @@ Key functions:
 - `get_real_user` / `get_real_user_home` - Get actual user even under sudo
 - `backup_preserved_dirs` / `restore_preserved_dirs` - Directory preservation for git updates
 - `cleanup_legacy_n8n_workers` - Remove old n8n worker containers from previous naming convention
+- `get_n8n_workers_compose` / `get_supabase_compose` / `get_dify_compose` - Get compose file path if profile active AND file exists
+- `build_compose_files_array` - Build global `COMPOSE_FILES` array with all active compose files (main + external)
 
 ### Service Profiles
 

@@ -319,6 +319,58 @@ is_profile_active() {
     [[ -n "$COMPOSE_PROFILES" && ",$COMPOSE_PROFILES," == *",$profile,"* ]]
 }
 
+# Get n8n workers compose file path if profile is active and file exists
+# Usage: path=$(get_n8n_workers_compose) && COMPOSE_FILES+=("-f" "$path")
+get_n8n_workers_compose() {
+    local compose_file="$PROJECT_ROOT/docker-compose.n8n-workers.yml"
+    if [ -f "$compose_file" ] && is_profile_active "n8n"; then
+        echo "$compose_file"
+        return 0
+    fi
+    return 1
+}
+
+# Get Supabase compose file path if profile is active and file exists
+# Usage: path=$(get_supabase_compose) && COMPOSE_FILES+=("-f" "$path")
+get_supabase_compose() {
+    local compose_file="$PROJECT_ROOT/supabase/docker/docker-compose.yml"
+    if [ -f "$compose_file" ] && is_profile_active "supabase"; then
+        echo "$compose_file"
+        return 0
+    fi
+    return 1
+}
+
+# Get Dify compose file path if profile is active and file exists
+# Usage: path=$(get_dify_compose) && COMPOSE_FILES+=("-f" "$path")
+get_dify_compose() {
+    local compose_file="$PROJECT_ROOT/dify/docker/docker-compose.yaml"
+    if [ -f "$compose_file" ] && is_profile_active "dify"; then
+        echo "$compose_file"
+        return 0
+    fi
+    return 1
+}
+
+# Build array of all active compose files (main + external services)
+# IMPORTANT: Requires COMPOSE_PROFILES to be set before calling (via load_env)
+# Usage: build_compose_files_array; docker compose "${COMPOSE_FILES[@]}" up -d
+# Result is stored in global COMPOSE_FILES array
+build_compose_files_array() {
+    COMPOSE_FILES=("-f" "$PROJECT_ROOT/docker-compose.yml")
+
+    local path
+    if path=$(get_n8n_workers_compose); then
+        COMPOSE_FILES+=("-f" "$path")
+    fi
+    if path=$(get_supabase_compose); then
+        COMPOSE_FILES+=("-f" "$path")
+    fi
+    if path=$(get_dify_compose); then
+        COMPOSE_FILES+=("-f" "$path")
+    fi
+}
+
 #=============================================================================
 # UTILITIES
 #=============================================================================

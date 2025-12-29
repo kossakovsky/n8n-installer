@@ -633,20 +633,51 @@ fi
 
 ---
 
-## STEP 11: scripts/apply_update.sh (for complex services)
+## STEP 11: External Compose Files (for complex services like Supabase/Dify)
 
-**File:** `scripts/apply_update.sh`
+**Files:** `scripts/utils.sh`, `scripts/restart.sh`, `scripts/apply_update.sh`, `start_services.py`
 
-For services with external docker-compose files:
+For services with their own external docker-compose files (cloned from upstream repos):
+
+### 11.1 Add getter function to utils.sh
 
 ```bash
-if is_profile_active "$ARGUMENTS"; then
-    log_info "Updating $ARGUMENTS..."
-    docker compose -f docker-compose.$ARGUMENTS.yml pull
-fi
+# Get $ARGUMENTS compose file path if profile is active and file exists
+# Usage: path=$(get_${SERVICE_SLUG_UNDERSCORE}_compose) && COMPOSE_FILES+=("-f" "$path")
+get_${SERVICE_SLUG_UNDERSCORE}_compose() {
+    local compose_file="$PROJECT_ROOT/$ARGUMENTS/docker/docker-compose.yml"
+    if [ -f "$compose_file" ] && is_profile_active "$ARGUMENTS"; then
+        echo "$compose_file"
+        return 0
+    fi
+    return 1
+}
 ```
 
-Most services don't need this.
+### 11.2 Add to build_compose_files_array() in utils.sh
+
+```bash
+build_compose_files_array() {
+    COMPOSE_FILES=("-f" "$PROJECT_ROOT/docker-compose.yml")
+    # ... existing ...
+    if path=$(get_${SERVICE_SLUG_UNDERSCORE}_compose); then
+        COMPOSE_FILES+=("-f" "$path")
+    fi
+}
+```
+
+### 11.3 Add to start_services.py
+
+Add functions similar to Supabase/Dify:
+- `is_${SERVICE_SLUG_UNDERSCORE}_enabled()` - Check if profile is in COMPOSE_PROFILES
+- `clone_${SERVICE_SLUG_UNDERSCORE}_repo()` - Clone upstream repo with sparse checkout
+- `prepare_${SERVICE_SLUG_UNDERSCORE}_env()` - Copy/transform .env file
+- `start_${SERVICE_SLUG_UNDERSCORE}()` - Start services if enabled
+- Update `stop_all_services()` - Include compose file in down command (by file existence, not profile)
+
+**Important:** `stop_all_services()` checks file existence only (not profile) to ensure cleanup when profile is removed.
+
+Most services don't need this - only use for services that maintain their own docker-compose.yml upstream.
 
 ---
 
@@ -713,3 +744,9 @@ bash -n scripts/07_final_report.sh
 ### If Hardware Variants (CPU/GPU)
 - [ ] Mutually exclusive profiles (cpu, gpu-nvidia, gpu-amd)
 - [ ] GPU resource reservations
+
+### If External Compose File (Supabase/Dify style)
+- [ ] `scripts/utils.sh`: `get_*_compose()` function added
+- [ ] `scripts/utils.sh`: `build_compose_files_array()` updated
+- [ ] `start_services.py`: `is_*_enabled()`, `clone_*_repo()`, `prepare_*_env()`, `start_*()` functions
+- [ ] `start_services.py`: `stop_all_services()` includes compose file (by existence, not profile)
