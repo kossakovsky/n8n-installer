@@ -550,6 +550,13 @@ else
     _update_or_add_env_var "GOST_PROXY_URL" ""
 fi
 
+# Update GOST_NO_PROXY from template to ensure all internal services are included
+# This overwrites user's value to guarantee new services added in updates are included
+template_no_proxy=$(grep -E "^GOST_NO_PROXY=" "$TEMPLATE_FILE" 2>/dev/null | cut -d'=' -f2- | tr -d '"' || echo "")
+if [[ -n "$template_no_proxy" ]]; then
+    _update_or_add_env_var "GOST_NO_PROXY" "$template_no_proxy"
+fi
+
 # Hash passwords using caddy with bcrypt (consolidated loop)
 SERVICES_NEEDING_HASH=("PROMETHEUS" "SEARXNG" "COMFYUI" "PADDLEOCR" "RAGAPP" "LT" "DOCLING" "WELCOME")
 
