@@ -253,7 +253,13 @@ _update_or_add_env_var() {
     fi
 
     if [[ -n "$var_value" ]]; then
-        echo "${var_name}=\"$var_value\"" >> "$tmp_env_file"
+        # Use single quotes for values containing $ (like bcrypt hashes) to prevent variable expansion
+        # Use double quotes for everything else
+        if [[ "$var_value" == *'$'* ]]; then
+            echo "${var_name}='$var_value'" >> "$tmp_env_file"
+        else
+            echo "${var_name}=\"$var_value\"" >> "$tmp_env_file"
+        fi
     fi
     mv "$tmp_env_file" "$OUTPUT_FILE"
     # trap - EXIT # Remove specific trap for this temp file if desired, or let main script's trap handle it.
