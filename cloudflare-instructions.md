@@ -57,10 +57,13 @@ If your domain DNS is managed elsewhere (DigitalOcean, GoDaddy, Namecheap, etc.)
 
 4. **Wait for propagation**:
    - DNS propagation takes 5 minutes to 48 hours (usually under 1 hour)
+   - Most users see propagation complete within 10-30 minutes
    - Check status: `dig NS yourdomain.com` — should show Cloudflare nameservers
    - Cloudflare dashboard will show "Active" when complete
 
 ##### Option B: External DNS with Manual CNAME (Not Recommended)
+
+> **Warning**: This approach is for advanced users only. You lose most Cloudflare benefits and must maintain DNS records manually. Strongly consider Option A instead.
 
 If you cannot transfer DNS to Cloudflare, you can manually create CNAME records pointing to the tunnel. **Note**: This provides limited functionality — no automatic DNS management, no orange cloud proxy benefits.
 
@@ -350,7 +353,7 @@ or no `cf-ray` header at all.
 # Should return Cloudflare IPs, NOT your server IP
 dig +short yourdomain.com
 
-# Quick check: is it Cloudflare?
+# Quick check: is it Cloudflare? (requires whois: apt install whois)
 whois $(dig +short yourdomain.com | head -1) 2>/dev/null | grep -i cloudflare
 ```
 
@@ -361,6 +364,8 @@ If you see your server's IP (e.g., `137.184.x.x`), DNS is not configured correct
 ```bash
 curl -sI https://yourdomain.com 2>/dev/null | grep -q "cf-ray" && echo "✓ Traffic goes through Cloudflare Tunnel" || echo "✗ Traffic goes DIRECTLY to server (tunnel not working)"
 ```
+
+**Note**: This test requires `curl` and a working HTTPS connection. If you're debugging early setup before SSL is working, use `dig` commands from Step 3 instead.
 
 #### Common issues if verification fails
 
