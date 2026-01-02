@@ -27,35 +27,42 @@ load_env
 
 PROJECT_NAME="localai"
 
+# Time to wait for external services (Supabase, Dify) to initialize before starting main stack
+EXTERNAL_SERVICE_INIT_DELAY=10
+
 # Build compose files array (sets global COMPOSE_FILES)
 build_compose_files_array
 
 log_info "Restarting services..."
 log_info "Using compose files: ${COMPOSE_FILES[*]}"
 
-# Stop all services
+# Stop all services using ALL compose files (including external stacks)
+# This ensures clean shutdown of everything before restart
 docker compose -p "$PROJECT_NAME" "${COMPOSE_FILES[@]}" down
 
 # Start services in correct order (matching start_services.py behavior)
-# Supabase must be started separately due to relative path resolution in its compose file
+# NOTE: External stacks (Supabase, Dify) must be started SEPARATELY because their
+# compose files use relative paths for volumes/configs. When combined with main
+# docker-compose.yml via -f flags, the relative paths resolve incorrectly.
+# Solution: Start external stacks first from their own directories, then start main stack.
+
 if is_profile_active "supabase"; then
     SUPABASE_COMPOSE="$PROJECT_ROOT/supabase/docker/docker-compose.yml"
     if [ -f "$SUPABASE_COMPOSE" ]; then
         log_info "Starting Supabase services..."
         docker compose -p "$PROJECT_NAME" -f "$SUPABASE_COMPOSE" up -d
         log_info "Waiting for Supabase to initialize..."
-        sleep 10
+        sleep "$EXTERNAL_SERVICE_INIT_DELAY"
     fi
 fi
 
-# Start Dify separately (same relative path issue)
 if is_profile_active "dify"; then
     DIFY_COMPOSE="$PROJECT_ROOT/dify/docker/docker-compose.yaml"
     if [ -f "$DIFY_COMPOSE" ]; then
         log_info "Starting Dify services..."
         docker compose -p "$PROJECT_NAME" -f "$DIFY_COMPOSE" up -d
         log_info "Waiting for Dify to initialize..."
-        sleep 10
+        sleep "$EXTERNAL_SERVICE_INIT_DELAY"
     fi
 fi
 

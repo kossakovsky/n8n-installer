@@ -10,17 +10,28 @@ fi
 
 set -e
 
+# Temp file for counter (pipes create subshells in POSIX sh)
+COUNTER_FILE=$(mktemp)
+trap 'rm -f "$COUNTER_FILE"' EXIT
+echo "0" > "$COUNTER_FILE"
+
 # Import credentials first
 echo 'Importing credentials...'
 CRED_FILES=$(find /backup/credentials -maxdepth 1 -type f -not -name '.gitkeep' 2>/dev/null || true)
 if [ -n "$CRED_FILES" ]; then
   CRED_COUNT=$(echo "$CRED_FILES" | wc -l | tr -d ' ')
-  CURRENT=0
+  echo "0" > "$COUNTER_FILE"
   echo "$CRED_FILES" | while IFS= read -r file; do
+    CURRENT=$(cat "$COUNTER_FILE")
     CURRENT=$((CURRENT + 1))
+    echo "$CURRENT" > "$COUNTER_FILE"
     filename=$(basename "$file")
-    echo "[$CURRENT/$CRED_COUNT] Importing credential: $filename"
-    n8n import:credentials --input="$file" 2>/dev/null || echo "  Error importing: $filename"
+    printf "[%2d/%d] %s" "$CURRENT" "$CRED_COUNT" "$filename"
+    if n8n import:credentials --input="$file" >/dev/null 2>&1; then
+      echo " OK"
+    else
+      echo " FAILED"
+    fi
   done
 fi
 
@@ -43,8 +54,7 @@ TOTAL=$(echo "$WORKFLOW_FILES" | wc -l | tr -d ' ')
 echo "Importing $TOTAL of $TOTAL_FOUND workflows"
 echo ''
 
-# Use a counter file since pipes create subshells
-COUNTER_FILE=$(mktemp)
+# Reset counter for workflows
 echo "0" > "$COUNTER_FILE"
 
 echo "$WORKFLOW_FILES" | while IFS= read -r file; do
@@ -61,8 +71,6 @@ echo "$WORKFLOW_FILES" | while IFS= read -r file; do
     echo " FAILED"
   fi
 done
-
-rm -f "$COUNTER_FILE"
 
 echo ''
 echo 'Import complete!'
