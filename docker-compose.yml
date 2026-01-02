@@ -177,10 +177,10 @@ services:
       <<: *service-n8n-env
       RUN_N8N_IMPORT: ${RUN_N8N_IMPORT:-false}
     entrypoint: /bin/sh
-    command: /scripts/n8n_import_script.sh
+    command: /scripts/import_workflows.sh
     volumes:
       - ./n8n/backup:/backup
-      - ./n8n/n8n_import_script.sh:/scripts/n8n_import_script.sh:ro
+      - ./scripts/import_workflows.sh:/scripts/import_workflows.sh:ro
     depends_on:
       postgres:
         condition: service_healthy

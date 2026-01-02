@@ -39,6 +39,7 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 - `scripts/apply_update.sh`: Applies updates after git sync
 - `scripts/docker_cleanup.sh`: Removes unused Docker resources (used by `make clean`)
 - `scripts/download_top_workflows.sh`: Downloads community n8n workflows
+- `scripts/import_workflows.sh`: Imports workflows from `n8n/backup/workflows/` into n8n (used by `make import`)
 
 **Project Name**: All docker-compose commands use `-p localai` (defined in Makefile as `PROJECT_NAME := localai`).
 
@@ -75,6 +76,7 @@ make monitor           # Live CPU/memory monitoring (docker stats)
 make restart           # Restart all services
 make show-restarts     # Show restart count per container
 make doctor            # Run system diagnostics (DNS, SSL, containers, disk, memory)
+make import            # Import n8n workflows from backup
 
 make switch-beta       # Switch to develop branch and update
 make switch-stable     # Switch to main branch and update
