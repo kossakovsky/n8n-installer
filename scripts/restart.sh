@@ -36,7 +36,37 @@ log_info "Using compose files: ${COMPOSE_FILES[*]}"
 # Stop all services
 docker compose -p "$PROJECT_NAME" "${COMPOSE_FILES[@]}" down
 
-# Start all services
-docker compose -p "$PROJECT_NAME" "${COMPOSE_FILES[@]}" up -d
+# Start services in correct order (matching start_services.py behavior)
+# Supabase must be started separately due to relative path resolution in its compose file
+if is_profile_active "supabase"; then
+    SUPABASE_COMPOSE="$PROJECT_ROOT/supabase/docker/docker-compose.yml"
+    if [ -f "$SUPABASE_COMPOSE" ]; then
+        log_info "Starting Supabase services..."
+        docker compose -p "$PROJECT_NAME" -f "$SUPABASE_COMPOSE" up -d
+        log_info "Waiting for Supabase to initialize..."
+        sleep 10
+    fi
+fi
+
+# Start Dify separately (same relative path issue)
+if is_profile_active "dify"; then
+    DIFY_COMPOSE="$PROJECT_ROOT/dify/docker/docker-compose.yaml"
+    if [ -f "$DIFY_COMPOSE" ]; then
+        log_info "Starting Dify services..."
+        docker compose -p "$PROJECT_NAME" -f "$DIFY_COMPOSE" up -d
+        log_info "Waiting for Dify to initialize..."
+        sleep 10
+    fi
+fi
+
+# Build main compose files (exclude external stacks that were started separately)
+MAIN_COMPOSE_FILES=("-f" "$PROJECT_ROOT/docker-compose.yml")
+if path=$(get_n8n_workers_compose); then
+    MAIN_COMPOSE_FILES+=("-f" "$path")
+fi
+
+# Start main services
+log_info "Starting main services..."
+docker compose -p "$PROJECT_NAME" "${MAIN_COMPOSE_FILES[@]}" up -d
 
 log_success "Services restarted successfully!"
