@@ -77,6 +77,7 @@ make restart           # Restart all services
 make show-restarts     # Show restart count per container
 make doctor            # Run system diagnostics (DNS, SSL, containers, disk, memory)
 make import            # Import n8n workflows from backup
+make import n=10       # Import first N workflows only
 
 make switch-beta       # Switch to develop branch and update
 make switch-stable     # Switch to main branch and update
