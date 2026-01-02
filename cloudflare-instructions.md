@@ -22,14 +22,88 @@ Cloudflare Tunnel **bypasses Caddy** and connects directly to your services. Thi
 
 1. Go to [Cloudflare One Dashboard](https://one.dash.cloudflare.com/)
 2. Navigate to **Networks** → **Connectors** → **Cloudflare Tunnels**
-3. Click **Create a tunnel**
+3. Click **Create new cloudflared Tunnel**
 4. Choose **Cloudflared** connector and click **Next**
 5. Name your tunnel (e.g., "n8n-install") and click **Save tunnel**
 6. Copy the installation command shown - it contains your tunnel token
 
-#### 2. Configure Public Hostnames
+#### 2. DNS Configuration (Critical!)
 
-After creating the tunnel, go to the **Published application routes** tab to add public hostnames. For each service you want to expose, click **Add a public hostname** and configure:
+⚠️ **Important**: For Cloudflare Tunnel to work, your domain's DNS **must be managed by Cloudflare**. When DNS is managed by Cloudflare:
+- Public hostnames automatically create CNAME records pointing to the tunnel
+- Records appear with **Proxy status ON** (orange cloud)
+- Traffic routes through Cloudflare's network
+
+##### Option A: Transfer DNS to Cloudflare (Recommended)
+
+If your domain DNS is managed elsewhere (DigitalOcean, GoDaddy, Namecheap, etc.), you need to transfer it to Cloudflare:
+
+1. **Add domain to Cloudflare**:
+   - Go to [Cloudflare Dashboard](https://dash.cloudflare.com/)
+   - Click **Add a site** → enter your domain (e.g., `yourdomain.com`)
+   - Select the **Free** plan (or higher)
+   - Cloudflare will scan existing DNS records
+
+2. **Review DNS records**:
+   - Cloudflare imports your existing records automatically
+   - Verify all records are present (especially A records for your server)
+   - **Delete** any A records for subdomains you want to route through the tunnel
+
+3. **Update nameservers at your registrar**:
+   - Cloudflare shows two nameservers (e.g., `anna.ns.cloudflare.com`, `bob.ns.cloudflare.com`)
+   - Go to your domain registrar (DigitalOcean, GoDaddy, Namecheap, etc.)
+   - Change nameservers from current to Cloudflare's nameservers
+   - **DigitalOcean example**: Networking → Domains → your domain → change NS records
+
+4. **Wait for propagation**:
+   - DNS propagation takes 5 minutes to 48 hours (usually under 1 hour)
+   - Check status: `dig NS yourdomain.com` — should show Cloudflare nameservers
+   - Cloudflare dashboard will show "Active" when complete
+
+##### Option B: External DNS with Manual CNAME (Not Recommended)
+
+If you cannot transfer DNS to Cloudflare, you can manually create CNAME records pointing to the tunnel. **Note**: This provides limited functionality — no automatic DNS management, no orange cloud proxy benefits.
+
+1. **Get your tunnel ID**:
+   ```bash
+   # From tunnel logs
+   docker compose -p localai logs cloudflared 2>&1 | grep "Connector ID"
+   ```
+   Or find it in Cloudflare Zero Trust → Tunnels → your tunnel → Overview
+
+2. **Create CNAME in your DNS provider** (e.g., DigitalOcean):
+   ```
+   Type:    CNAME
+   Name:    databasus (or your subdomain)
+   Value:   <tunnel-id>.cfargotunnel.com
+   TTL:     Auto or 300
+   ```
+
+3. **Limitations of this approach**:
+   - No Cloudflare proxy benefits (DDoS protection limited)
+   - No automatic DNS record management
+   - Must manually update if tunnel ID changes
+   - Some Cloudflare features won't work
+
+##### Verifying DNS Configuration
+
+After setup, verify DNS points to Cloudflare:
+
+```bash
+# Check if domain resolves to Cloudflare IPs
+dig +short yourdomain.com
+
+# Cloudflare IPs are in ranges: 104.x.x.x, 172.x.x.x, etc.
+# Your server IP means DNS is NOT going through Cloudflare
+
+# Check nameservers
+dig NS yourdomain.com +short
+# Should show: xxx.ns.cloudflare.com
+```
+
+#### 3. Configure Public Hostnames
+
+After DNS is configured, go to **Cloudflare Zero Trust** → **Networks** → **Tunnels** → your tunnel → **Public Hostname** tab. For each service you want to expose, click **Add a public hostname** and configure:
 
 | Service            | Public Hostname               | Service URL                  | Auth Notes          |
 | ------------------ | ----------------------------- | ---------------------------- | ------------------- |
@@ -63,17 +137,6 @@ After creating the tunnel, go to the **Published application routes** tab to add
 - Services marked **"No auth"** have no protection at all - always use Cloudflare Access for these.
 - Services with **"Built-in login"** have their own authentication and are generally safe to expose.
 - Services with **"API key recommended"** should be configured with API keys in their settings.
-
-#### 3. DNS Configuration
-
-When you create public hostnames in the tunnel configuration, Cloudflare automatically creates the necessary DNS records. These will appear in your DNS dashboard as CNAME records pointing to the tunnel, with **Proxy status ON** (orange cloud).
-
-**Note:** If DNS records aren't created automatically:
-1. Go to your domain's DNS settings in Cloudflare
-2. Add CNAME records manually:
-   - **Name**: Service subdomain (e.g., `n8n`)
-   - **Target**: Your tunnel ID (shown in tunnel dashboard)
-   - **Proxy status**: ON (orange cloud)
 
 #### 4. Install with Tunnel Support
 
@@ -246,18 +309,75 @@ Create separate lists for different access levels:
 
 ### Verifying Tunnel Connection
 
-Check if the tunnel is running:
+#### Step 1: Check tunnel container is running
+
 ```bash
-docker logs cloudflared --tail 20
+docker compose -p localai ps cloudflared
+docker compose -p localai logs cloudflared --tail 20
 ```
 
 You should see:
 ```
-INF Registered tunnel connection connIndex=0
+INF Registered tunnel connection connIndex=0 ... location=xxx protocol=quic
+INF Registered tunnel connection connIndex=1 ... location=xxx protocol=quic
 INF Updated to new configuration
 ```
 
+#### Step 2: Verify traffic goes through Cloudflare
+
+This is the most important check — confirms your domain uses the tunnel, not direct connection:
+
+```bash
+# Check for Cloudflare headers
+curl -sI https://yourdomain.com | grep -iE '^(cf-|server:)'
+```
+
+**✅ Working through Cloudflare** — you'll see:
+```
+server: cloudflare
+cf-ray: 8a1b2c3d4e5f6g7h-YYZ
+```
+
+**❌ NOT through Cloudflare** — you'll see:
+```
+server: Caddy
+```
+or no `cf-ray` header at all.
+
+#### Step 3: Check DNS resolution
+
+```bash
+# Should return Cloudflare IPs, NOT your server IP
+dig +short yourdomain.com
+
+# Quick check: is it Cloudflare?
+whois $(dig +short yourdomain.com | head -1) 2>/dev/null | grep -i cloudflare
+```
+
+If you see your server's IP (e.g., `137.184.x.x`), DNS is not configured correctly.
+
+#### Quick one-liner test
+
+```bash
+curl -sI https://yourdomain.com 2>/dev/null | grep -q "cf-ray" && echo "✓ Traffic goes through Cloudflare Tunnel" || echo "✗ Traffic goes DIRECTLY to server (tunnel not working)"
+```
+
+#### Common issues if verification fails
+
+| Symptom | Cause | Solution |
+|---------|-------|----------|
+| No `cf-ray` header | DNS points to server IP | Transfer DNS to Cloudflare or create CNAME |
+| `server: Caddy` | Traffic bypasses tunnel | Check DNS, delete A records for subdomains |
+| Tunnel connected but no traffic | Missing public hostname | Add hostname in Zero Trust dashboard |
+| DNS shows server IP | Nameservers not updated | Update NS records at registrar |
+
 ### Troubleshooting
+
+**Tunnel running but traffic goes directly to server (no `cf-ray` header):**
+- **Most common cause**: DNS is managed outside Cloudflare (e.g., DigitalOcean, GoDaddy)
+- **Solution**: Transfer DNS to Cloudflare (see "DNS Configuration" section above)
+- **Quick check**: `dig NS yourdomain.com +short` — should show `xxx.ns.cloudflare.com`
+- If DNS is external, you must create CNAME records manually pointing to `<tunnel-id>.cfargotunnel.com`
 
 **"Too many redirects" error:**
 - Make sure you're pointing to the service directly (e.g., `http://n8n:5678`), NOT to Caddy
@@ -274,6 +394,10 @@ INF Updated to new configuration
 - Check tunnel logs: `docker logs cloudflared`
 - Ensure the service is running: `docker ps`
 - Verify service name and port in tunnel configuration
+
+**"ERR Cannot determine default origin certificate path":**
+- This warning in logs is normal for token-based tunnels
+- Does not affect functionality — tunnel still works
 
 **Mixed mode (tunnel + direct access):**
 - You can run both tunnel and traditional Caddy access simultaneously
