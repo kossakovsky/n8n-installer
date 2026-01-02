@@ -33,8 +33,17 @@ if [ -z "$WORKFLOW_FILES" ]; then
   exit 0
 fi
 
-TOTAL=$(echo "$WORKFLOW_FILES" | wc -l | tr -d ' ')
-echo "Found $TOTAL workflows to import"
+TOTAL_FOUND=$(echo "$WORKFLOW_FILES" | wc -l | tr -d ' ')
+
+# Apply limit if IMPORT_LIMIT is set
+if [ -n "$IMPORT_LIMIT" ] && [ "$IMPORT_LIMIT" -gt 0 ] 2>/dev/null; then
+  WORKFLOW_FILES=$(echo "$WORKFLOW_FILES" | head -n "$IMPORT_LIMIT")
+  TOTAL=$(echo "$WORKFLOW_FILES" | wc -l | tr -d ' ')
+  echo "Found $TOTAL_FOUND workflows, importing first $TOTAL (limit: $IMPORT_LIMIT)"
+else
+  TOTAL=$TOTAL_FOUND
+  echo "Found $TOTAL workflows to import"
+fi
 echo ''
 
 # Use a counter file since pipes create subshells
