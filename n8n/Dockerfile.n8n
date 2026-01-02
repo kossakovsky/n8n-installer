@@ -1,9 +1,9 @@
 FROM n8nio/n8n:stable
 
 USER root
-# Install static ffmpeg binary (no package manager needed)
-RUN wget -qO- https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | \
+# Install static ffmpeg binary from BtbN GitHub releases
+RUN wget -qO- --tries=3 --timeout=60 https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz | \
     tar -xJC /tmp && \
-    mv /tmp/ffmpeg-*-static/ffmpeg /tmp/ffmpeg-*-static/ffprobe /usr/local/bin/ && \
+    mv /tmp/ffmpeg-master-latest-linux64-gpl/bin/ffmpeg /tmp/ffmpeg-master-latest-linux64-gpl/bin/ffprobe /usr/local/bin/ && \
     rm -rf /tmp/ffmpeg-*
 USER node
