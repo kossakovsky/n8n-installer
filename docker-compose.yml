@@ -163,7 +163,7 @@ services:
     volumes:
       - open-webui:/app/backend/data
     healthcheck:
-      test: ["CMD", "curl", "-fs", "http://localhost:8080/health"]
+      test: ["CMD-SHELL", "http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= curl -fs http://localhost:8080/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
