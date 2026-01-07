@@ -99,9 +99,47 @@ Follow this workflow when adding a new optional service (refer to `.claude/comma
 8. **welcome/app.js**: Add `SERVICE_METADATA` entry with name, description, icon, color, category.
 9. **scripts/07_final_report.sh**: Add service URL and credentials output using `is_profile_active "myservice"`.
 10. **README.md**: Add one-line description under "What's Included".
-11. **CHANGELOG.md**: Add entry under `## [Unreleased]` → `### Added`.
+11. **CHANGELOG.md**: Add entry under `## [Unreleased]` → `### Added` (new service = minor version bump).
 
 **Always ask users if the new service requires Caddy basic auth protection.**
+
+## Versioning (CHANGELOG.md)
+
+This project uses [Semantic Versioning](https://semver.org/). When updating `CHANGELOG.md`:
+
+### Version Format: `MAJOR.MINOR.PATCH`
+
+| Type | When to bump | Examples |
+|------|--------------|----------|
+| **MAJOR** (X.0.0) | Breaking changes that require user action | n8n 2.0 migration, config format changes, removed features |
+| **MINOR** (0.X.0) | New services or features (backward compatible) | Adding NocoDB, new wizard options, new Makefile commands |
+| **PATCH** (0.0.X) | Bug fixes (backward compatible) | Healthcheck fixes, proxy bypass fixes, typo corrections |
+
+### Changelog Entry Format
+
+```markdown
+## [Unreleased]
+
+## [2.6.0] - 2026-01-15
+
+### Added
+- **NewService** - Brief description of what it provides
+
+### Changed
+- Description of modified behavior
+
+### Fixed
+- Description of bug fix
+```
+
+### After Release
+
+1. Move items from `[Unreleased]` to new version section
+2. Add comparison link at bottom of file:
+   ```markdown
+   [2.6.0]: https://github.com/kossakovsky/n8n-install/compare/v2.5.3...v2.6.0
+   ```
+3. Update `[Unreleased]` link to compare from new version
 
 ## Important Service Details
 
