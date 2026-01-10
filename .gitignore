@@ -12,3 +12,11 @@ volumes/
 docker-compose.override.yml
 docker-compose.n8n-workers.yml
 welcome/data.json
+
+# Custom TLS certificates
+certs/*
+!certs/.gitkeep
+
+# Custom Caddy addons (user configurations)
+caddy-addon/*.conf
+!caddy-addon/*.example

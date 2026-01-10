@@ -322,11 +322,12 @@ The project includes a Makefile for simplified command execution:
 | `make import`           | Import n8n workflows from backup                         |
 | `make import n=10`      | Import first N workflows only                            |
 
-### Diagnostics
+### Diagnostics & Configuration
 
-| Command       | Description                                                        |
-| ------------- | ------------------------------------------------------------------ |
-| `make doctor` | Run system diagnostics (checks DNS, SSL, containers, disk, memory) |
+| Command          | Description                                                        |
+| ---------------- | ------------------------------------------------------------------ |
+| `make doctor`    | Run system diagnostics (checks DNS, SSL, containers, disk, memory) |
+| `make setup-tls` | Configure custom TLS certificates for corporate/internal use       |
 
 Run `make help` for the full list of available commands.
 

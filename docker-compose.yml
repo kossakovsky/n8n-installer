@@ -309,6 +309,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy-addon:/etc/caddy/addons:ro
+      - ./certs:/etc/caddy/certs:ro
       - ./welcome:/srv/welcome:ro
       - caddy-data:/data:rw
       - caddy-config:/config:rw

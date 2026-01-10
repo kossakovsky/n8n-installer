@@ -1,0 +1,114 @@
+# Custom TLS Configuration for Corporate/Internal Certificates
+#
+# This file provides examples for using your own TLS certificates instead of Let's Encrypt.
+# Copy this file to custom-tls.conf and modify as needed.
+#
+# Prerequisites:
+# 1. Place your certificate files in the ./certs/ directory
+# 2. Update .env hostnames to match your internal domain
+# 3. Restart Caddy: docker compose -p localai restart caddy
+
+# =============================================================================
+# Option 1: Reusable TLS snippet (recommended for wildcard certificates)
+# =============================================================================
+# Define once, import in each service block
+
+(custom_tls) {
+    tls /etc/caddy/certs/wildcard.crt /etc/caddy/certs/wildcard.key
+}
+
+# Then for each service you want to override:
+#
+# n8n.internal.company.com {
+#     import custom_tls
+#     reverse_proxy n8n:5678
+# }
+#
+# flowise.internal.company.com {
+#     import custom_tls
+#     reverse_proxy flowise:3001
+# }
+
+# =============================================================================
+# Option 2: Individual service configuration
+# =============================================================================
+# Use when you have different certificates for different services
+
+# n8n.internal.company.com {
+#     tls /etc/caddy/certs/n8n.crt /etc/caddy/certs/n8n.key
+#     reverse_proxy n8n:5678
+# }
+
+# =============================================================================
+# Option 3: Internal CA with auto-reload
+# =============================================================================
+# Caddy can auto-reload certificates when they change
+
+# n8n.internal.company.com {
+#     tls /etc/caddy/certs/cert.pem /etc/caddy/certs/key.pem {
+#         # Optional: specify CA certificate for client verification
+#         # client_auth {
+#         #     mode require_and_verify
+#         #     trusted_ca_cert_file /etc/caddy/certs/ca.pem
+#         # }
+#     }
+#     reverse_proxy n8n:5678
+# }
+
+# =============================================================================
+# Full Example: All common services with wildcard certificate
+# =============================================================================
+# Uncomment and modify the hostnames to match your .env configuration
+
+# # N8N
+# n8n.internal.company.com {
+#     import custom_tls
+#     reverse_proxy n8n:5678
+# }
+
+# # Flowise
+# flowise.internal.company.com {
+#     import custom_tls
+#     reverse_proxy flowise:3001
+# }
+
+# # Open WebUI
+# webui.internal.company.com {
+#     import custom_tls
+#     reverse_proxy open-webui:8080
+# }
+
+# # Grafana
+# grafana.internal.company.com {
+#     import custom_tls
+#     reverse_proxy grafana:3000
+# }
+
+# # Portainer
+# portainer.internal.company.com {
+#     import custom_tls
+#     reverse_proxy portainer:9000
+# }
+
+# # Langfuse
+# langfuse.internal.company.com {
+#     import custom_tls
+#     reverse_proxy langfuse-web:3000
+# }
+
+# # Supabase
+# supabase.internal.company.com {
+#     import custom_tls
+#     reverse_proxy kong:8000
+# }
+
+# # Welcome Page (with basic auth preserved)
+# welcome.internal.company.com {
+#     import custom_tls
+#     basic_auth {
+#         {$WELCOME_USERNAME} {$WELCOME_PASSWORD_HASH}
+#     }
+#     root * /srv/welcome
+#     file_server
+#     try_files {path} /index.html
+# }

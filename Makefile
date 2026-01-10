@@ -1,4 +1,4 @@
-.PHONY: help install update update-preview git-pull clean clean-all logs status monitor restart show-restarts doctor switch-beta switch-stable import
+.PHONY: help install update update-preview git-pull clean clean-all logs status monitor restart show-restarts doctor switch-beta switch-stable import setup-tls
 
 PROJECT_NAME := localai
 
@@ -21,6 +21,7 @@ help:
 	@echo "  make doctor            Run system diagnostics"
 	@echo "  make import            Import n8n workflows from backup"
 	@echo "  make import n=10       Import first N workflows only"
+	@echo "  make setup-tls         Configure custom TLS certificates"
 	@echo ""
 	@echo "  make switch-beta       Switch to beta (develop branch)"
 	@echo "  make switch-stable     Switch to stable (main branch)"
@@ -88,3 +89,6 @@ ifdef n
 else
 	docker compose -p $(PROJECT_NAME) run --rm -e FORCE_IMPORT=true n8n-import
 endif
+
+setup-tls:
+	bash ./scripts/setup_custom_tls.sh
