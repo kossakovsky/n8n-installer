@@ -4,7 +4,7 @@
 # =============================================================================
 # Performs a full system and service update:
 #   1. Backs up user-customizable directories (e.g., python-runner/)
-#   2. Fetches and resets to origin/<branch> (discards any local commits)
+#   2. Syncs with remote repository (method depends on GIT_MODE)
 #   3. Restores backed up directories to preserve user modifications
 #   4. Updates Ubuntu system packages (apt-get update && upgrade)
 #   5. Delegates to apply_update.sh for service updates
@@ -12,14 +12,19 @@
 # This two-stage approach ensures apply_update.sh itself gets updated before
 # running, so new update logic is always applied.
 #
-# Git strategy: We use `git fetch` + `git reset --hard origin/<branch>` instead
-# of `git pull` to ensure we always sync with remote, even if the user has
-# accidental local commits that would cause rebase conflicts.
+# Git modes (set via GIT_MODE environment variable):
+#   - reset (default): git fetch + reset --hard origin/<branch>
+#     Best for: Standard installations, always syncs cleanly with remote
+#   - merge: git fetch upstream + merge upstream/<branch>
+#     Best for: Forks that maintain their own changes and merge from upstream
 #
 # Preserved directories: Defined in PRESERVE_DIRS array in utils.sh.
 # These directories contain user-customizable content that survives git reset.
 #
-# Usage: make update  OR  sudo bash scripts/update.sh
+# Usage:
+#   make update      - Standard update (reset mode)
+#   make git-pull    - Fork update (merge mode)
+#   GIT_MODE=merge sudo bash scripts/update.sh  - Manual merge mode
 # =============================================================================
 
 set -e
@@ -85,10 +90,20 @@ if [ -n "$BACKUP_PATH" ]; then
     log_info "Backup created at: $BACKUP_PATH"
 fi
 
-# Sync with origin (fetch + reset to remote branch)
-if ! git_sync_with_origin; then
-    restore_preserved_dirs "$BACKUP_PATH"
-    exit 1
+# Sync with remote repository based on GIT_MODE
+if [[ "${GIT_MODE:-reset}" == "merge" ]]; then
+    # Fork workflow: merge from upstream (preserves local commits)
+    log_info "Using merge mode (for forks)..."
+    if ! git_merge_from_upstream; then
+        restore_preserved_dirs "$BACKUP_PATH"
+        exit 1
+    fi
+else
+    # Standard workflow: reset to origin (discards local commits)
+    if ! git_sync_with_origin; then
+        restore_preserved_dirs "$BACKUP_PATH"
+        exit 1
+    fi
 fi
 
 # Restore user-customizable directories after git reset

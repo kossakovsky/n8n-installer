@@ -64,8 +64,9 @@ The update flow (`scripts/update.sh`) similarly orchestrates: git fetch + reset 
 
 ```bash
 make install           # Full installation (runs scripts/install.sh)
-make update            # Update system and services
+make update            # Update system and services (resets to origin)
 make update-preview    # Preview available updates (dry-run)
+make git-pull          # Update for forks (merges from upstream/main)
 make clean             # Remove unused Docker resources (preserves data)
 make clean-all         # Remove ALL Docker resources including data (DANGEROUS)
 

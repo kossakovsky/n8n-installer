@@ -271,6 +271,12 @@ To update all components (n8n, Open WebUI, etc.) to their latest versions and in
 make update
 ```
 
+**For forks**: If you maintain a fork with custom changes and want to merge updates from upstream instead of resetting:
+
+```bash
+make git-pull
+```
+
 This script will:
 
 1.  Fetch the latest updates for the installer from the Git repository.
@@ -298,8 +304,9 @@ The project includes a Makefile for simplified command execution:
 | Command               | Description                                          |
 | --------------------- | ---------------------------------------------------- |
 | `make install`        | Full installation                                    |
-| `make update`         | Update system and services                           |
+| `make update`         | Update system and services (resets to origin)        |
 | `make update-preview` | Preview available updates without applying (dry-run) |
+| `make git-pull`       | Update for forks (merges from upstream/main)         |
 | `make clean`          | Remove unused Docker resources                       |
 
 ### Monitoring & Logs

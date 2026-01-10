@@ -71,7 +71,7 @@ git_get_current_branch() {
 # SYNC OPERATIONS
 #=============================================================================
 
-# Sync local repository with origin
+# Sync local repository with origin using hard reset
 # Fetches latest changes and resets to origin/<branch>
 # This discards any local commits to ensure clean sync with remote
 # Usage: git_sync_with_origin [target_branch]
@@ -99,6 +99,40 @@ git_sync_with_origin() {
     fi
 
     log_info "Successfully synced with origin/$target_branch"
+    return 0
+}
+
+# Merge changes from upstream remote (for forks)
+# Fetches from upstream and merges main branch into current branch
+# Preserves local commits - suitable for fork workflows
+# Usage: git_merge_from_upstream
+# Returns: 0 on success, 1 on failure
+git_merge_from_upstream() {
+    local upstream_branch="main"
+
+    # Check if upstream remote exists
+    if ! git remote get-url upstream &>/dev/null; then
+        log_error "Remote 'upstream' not configured."
+        log_info "Add it with: git remote add upstream <original-repo-url>"
+        return 1
+    fi
+
+    # Fetch latest changes from upstream
+    log_info "Fetching latest changes from upstream..."
+    if ! git fetch upstream; then
+        log_error "Git fetch from upstream failed. Check your internet connection."
+        return 1
+    fi
+
+    # Merge upstream changes into current branch
+    log_info "Merging upstream/$upstream_branch into current branch..."
+    if ! git merge "upstream/$upstream_branch" --no-edit; then
+        log_error "Git merge from upstream/$upstream_branch failed."
+        log_error "You may need to resolve conflicts manually."
+        return 1
+    fi
+
+    log_success "Successfully merged changes from upstream/$upstream_branch"
     return 0
 }
 

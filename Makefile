@@ -1,4 +1,4 @@
-.PHONY: help install update update-preview clean clean-all logs status monitor restart show-restarts doctor switch-beta switch-stable import
+.PHONY: help install update update-preview git-pull clean clean-all logs status monitor restart show-restarts doctor switch-beta switch-stable import
 
 PROJECT_NAME := localai
 
@@ -6,8 +6,9 @@ help:
 	@echo "n8n-install - Available commands:"
 	@echo ""
 	@echo "  make install           Full installation"
-	@echo "  make update            Update system and services"
+	@echo "  make update            Update system and services (resets to origin)"
 	@echo "  make update-preview    Preview available updates (dry-run)"
+	@echo "  make git-pull          Update for forks (merges from upstream)"
 	@echo "  make clean             Remove unused Docker resources (preserves data)"
 	@echo "  make clean-all         Remove ALL Docker resources including data (DANGEROUS)"
 	@echo ""
@@ -32,6 +33,9 @@ update:
 
 update-preview:
 	bash ./scripts/update_preview.sh
+
+git-pull:
+	sudo GIT_MODE=merge bash ./scripts/update.sh
 
 clean:
 	sudo bash ./scripts/docker_cleanup.sh

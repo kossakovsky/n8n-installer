@@ -418,6 +418,7 @@
         { cmd: 'make show-restarts', desc: 'Show restart count per container' },
         { cmd: 'make doctor', desc: 'Run system diagnostics' },
         { cmd: 'make update', desc: 'Update system and services' },
+        { cmd: 'make git-pull', desc: 'Update for forks (merge from upstream)' },
         { cmd: 'make import', desc: 'Import n8n workflows (use n=10 to limit)' },
         { cmd: 'make clean', desc: 'Remove unused Docker resources' }
     ];
