@@ -415,6 +415,8 @@
         { cmd: 'make logs s=<service>', desc: 'View logs for specific service' },
         { cmd: 'make monitor', desc: 'Live CPU/memory monitoring' },
         { cmd: 'make restart', desc: 'Restart all services' },
+        { cmd: 'make stop', desc: 'Stop all services' },
+        { cmd: 'make start', desc: 'Start all services' },
         { cmd: 'make show-restarts', desc: 'Show restart count per container' },
         { cmd: 'make doctor', desc: 'Run system diagnostics' },
         { cmd: 'make update', desc: 'Update system and services' },

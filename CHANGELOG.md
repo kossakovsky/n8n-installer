@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Custom TLS certificates** - Support for corporate/internal certificates via `caddy-addon/` mechanism
+- New `make stop` and `make start` commands for stopping/starting all services without restart
 - New `make setup-tls` command and `scripts/setup_custom_tls.sh` helper script for easy certificate configuration
 - New `make git-pull` command for fork workflows - merges from upstream instead of hard reset
 

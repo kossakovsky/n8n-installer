@@ -1,4 +1,4 @@
-.PHONY: help install update update-preview git-pull clean clean-all logs status monitor restart show-restarts doctor switch-beta switch-stable import setup-tls
+.PHONY: help install update update-preview git-pull clean clean-all logs status monitor restart stop start show-restarts doctor switch-beta switch-stable import setup-tls
 
 PROJECT_NAME := localai
 
@@ -17,6 +17,8 @@ help:
 	@echo "  make status            Show container status"
 	@echo "  make monitor           Live CPU/memory monitoring"
 	@echo "  make restart           Restart all services"
+	@echo "  make stop              Stop all services"
+	@echo "  make start             Start all services"
 	@echo "  make show-restarts     Show restart count per container"
 	@echo "  make doctor            Run system diagnostics"
 	@echo "  make import            Import n8n workflows from backup"
@@ -62,6 +64,12 @@ monitor:
 
 restart:
 	bash ./scripts/restart.sh
+
+stop:
+	docker compose -p $(PROJECT_NAME) stop
+
+start:
+	docker compose -p $(PROJECT_NAME) start
 
 show-restarts:
 	@docker ps -q | while read id; do \

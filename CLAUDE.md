@@ -75,6 +75,8 @@ make logs s=<service>  # View logs for specific service
 make status            # Show container status
 make monitor           # Live CPU/memory monitoring (docker stats)
 make restart           # Restart all services
+make stop              # Stop all services
+make start             # Start all services
 make show-restarts     # Show restart count per container
 make doctor            # Run system diagnostics (DNS, SSL, containers, disk, memory)
 make import            # Import n8n workflows from backup
